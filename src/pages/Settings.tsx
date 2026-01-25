@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { Loader2, Save, Building2, Percent } from 'lucide-react';
 import { toast } from 'sonner';
+import { SubscriptionCard } from '@/components/subscription/SubscriptionCard';
 
 export default function Settings() {
   const { data: profile, isLoading } = useProfile();
@@ -150,27 +151,7 @@ export default function Settings() {
         </Card>
 
         {/* Subscription */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Subscription</CardTitle>
-            <CardDescription>
-              Manage your HonestInvoice subscription
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between rounded-lg border p-4">
-              <div>
-                <p className="font-medium">Free Plan</p>
-                <p className="text-sm text-muted-foreground">
-                  Upgrade to unlock unlimited invoices and premium features
-                </p>
-              </div>
-              <Button variant="outline" disabled>
-                Coming Soon
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <SubscriptionCard />
 
         {/* Save Button */}
         <div className="flex justify-end">

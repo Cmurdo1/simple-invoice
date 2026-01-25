@@ -150,6 +150,9 @@ export type Database = {
           id: string
           logo_url: string | null
           phone: string | null
+          stripe_customer_id: string | null
+          subscription_end: string | null
+          subscription_status: string | null
           tax_rate: number | null
           updated_at: string
         }
@@ -161,6 +164,9 @@ export type Database = {
           id: string
           logo_url?: string | null
           phone?: string | null
+          stripe_customer_id?: string | null
+          subscription_end?: string | null
+          subscription_status?: string | null
           tax_rate?: number | null
           updated_at?: string
         }
@@ -172,6 +178,9 @@ export type Database = {
           id?: string
           logo_url?: string | null
           phone?: string | null
+          stripe_customer_id?: string | null
+          subscription_end?: string | null
+          subscription_status?: string | null
           tax_rate?: number | null
           updated_at?: string
         }
