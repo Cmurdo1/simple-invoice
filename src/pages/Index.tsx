@@ -131,9 +131,9 @@ export default function Index() {
             </span>
           </div>
           <div className="flex gap-6 text-sm text-muted-foreground">
-            <a href="#" className="hover:text-foreground">Privacy</a>
-            <a href="#" className="hover:text-foreground">Terms</a>
-            <a href="#" className="hover:text-foreground">Support</a>
+            <Link to="/login" className="hover:text-foreground transition-colors">Privacy</Link>
+            <Link to="/login" className="hover:text-foreground transition-colors">Terms</Link>
+            <a href="mailto:support@honestinvoice.app" className="hover:text-foreground transition-colors">Support</a>
           </div>
         </div>
       </footer>
