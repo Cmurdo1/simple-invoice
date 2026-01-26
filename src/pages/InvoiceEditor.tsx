@@ -20,6 +20,8 @@ import { Loader2, Plus, Trash2, Save, Download, ArrowLeft, Send } from 'lucide-r
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { InvoiceStatus } from '@/types/database';
+import { exportInvoiceToPDF } from '@/lib/pdfExport';
+import { useAuth } from '@/contexts/AuthContext';
 
 const statusColors: Record<InvoiceStatus, string> = {
   draft: 'bg-muted text-muted-foreground',
@@ -34,6 +36,7 @@ export default function InvoiceEditor() {
   const { data: invoice, isLoading } = useInvoice(id);
   const { data: clients } = useClients();
   const { data: profile } = useProfile();
+  const { subscription } = useAuth();
   const updateInvoice = useUpdateInvoice();
   const addInvoiceItems = useAddInvoiceItems();
   const updateInvoiceItem = useUpdateInvoiceItem();
@@ -140,8 +143,29 @@ export default function InvoiceEditor() {
   };
 
   const handleExportPDF = async () => {
-    // TODO: Implement PDF export
-    toast.info('PDF export coming soon!');
+    if (!subscription.subscribed) {
+      toast.error('PDF export is a Pro feature. Upgrade to export invoices.');
+      return;
+    }
+    
+    if (!invoice) return;
+    
+    try {
+      await exportInvoiceToPDF({
+        invoice: {
+          ...invoice,
+          total_amount: Number(invoice.total_amount),
+          tax_amount: Number(invoice.tax_amount),
+        },
+        items: invoice.invoice_items || [],
+        client: invoice.client,
+        profile,
+      });
+      toast.success('PDF exported successfully!');
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast.error('Failed to export PDF');
+    }
   };
 
   const handleClientChange = async (clientId: string) => {

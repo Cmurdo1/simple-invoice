@@ -8,11 +8,14 @@ import {
   LogOut,
   Menu,
   X,
-  Users
+  Users,
+  Crown
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import logo from '@/assets/honest-invoice-logo.png';
+import { OfflineIndicator } from './OfflineIndicator';
+import { Badge } from '@/components/ui/badge';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -26,10 +29,12 @@ const navItems = [
 ];
 
 export function AppLayout({ children }: AppLayoutProps) {
-  const { signOut } = useAuth();
+  const { signOut, subscription } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const isPro = subscription.subscribed;
 
   const handleSignOut = async () => {
     await signOut();
@@ -47,6 +52,17 @@ export function AppLayout({ children }: AppLayoutProps) {
             <span className="font-display text-lg font-bold text-sidebar-foreground">
               HonestInvoice
             </span>
+            {isPro && (
+              <Badge className="gap-1 bg-primary/20 text-primary hover:bg-primary/30">
+                <Crown className="h-3 w-3" />
+                Pro
+              </Badge>
+            )}
+          </div>
+
+          {/* Offline Status */}
+          <div className="flex items-center justify-center border-b border-sidebar-border py-2">
+            <OfflineIndicator />
           </div>
 
           {/* Navigation */}
