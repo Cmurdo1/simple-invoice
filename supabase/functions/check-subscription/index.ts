@@ -42,6 +42,32 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
+    // First check if user has a manually set subscription in the database
+    const { data: existingProfile } = await supabaseClient
+      .from("profiles")
+      .select("subscription_status, subscription_end")
+      .eq("id", user.id)
+      .single();
+
+    // If user has a valid manual subscription (e.g., admin-granted), respect it
+    if (existingProfile?.subscription_status === "pro") {
+      const subEnd = existingProfile.subscription_end ? new Date(existingProfile.subscription_end) : null;
+      if (!subEnd || subEnd > new Date()) {
+        logStep("Manual pro subscription found in database", { 
+          status: existingProfile.subscription_status,
+          end: existingProfile.subscription_end 
+        });
+        return new Response(JSON.stringify({ 
+          subscribed: true,
+          subscription_status: "pro",
+          subscription_end: existingProfile.subscription_end
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+    }
+
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     
     // Find customer by email
@@ -50,15 +76,17 @@ serve(async (req) => {
     if (customers.data.length === 0) {
       logStep("No Stripe customer found");
       
-      // Update profile to reflect free status
-      await supabaseClient
-        .from("profiles")
-        .update({ 
-          subscription_status: "free",
-          subscription_end: null,
-          stripe_customer_id: null
-        })
-        .eq("id", user.id);
+      // Only update if not already manually set
+      if (existingProfile?.subscription_status !== "pro") {
+        await supabaseClient
+          .from("profiles")
+          .update({ 
+            subscription_status: "free",
+            subscription_end: null,
+            stripe_customer_id: null
+          })
+          .eq("id", user.id);
+      }
       
       return new Response(JSON.stringify({ 
         subscribed: false,

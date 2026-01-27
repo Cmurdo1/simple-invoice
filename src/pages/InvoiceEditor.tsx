@@ -16,12 +16,13 @@ import {
 } from '@/hooks/useInvoices';
 import { useClients } from '@/hooks/useClients';
 import { useProfile } from '@/hooks/useProfile';
-import { Loader2, Plus, Trash2, Save, Download, ArrowLeft, Send } from 'lucide-react';
+import { Loader2, Plus, Trash2, Save, Download, ArrowLeft, Send, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { InvoiceStatus } from '@/types/database';
 import { exportInvoiceToPDF } from '@/lib/pdfExport';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const statusColors: Record<InvoiceStatus, string> = {
   draft: 'bg-muted text-muted-foreground',
@@ -168,6 +169,48 @@ export default function InvoiceEditor() {
     }
   };
 
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+
+  const handleSendEmail = async () => {
+    if (!subscription.subscribed) {
+      toast.error('Email sending is a Pro feature. Upgrade to send invoices via email.');
+      return;
+    }
+    
+    if (!invoice || !invoice.client?.email) {
+      toast.error('Please assign a client with an email address first.');
+      return;
+    }
+
+    setIsSendingEmail(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('send-invoice-email', {
+        body: {
+          invoice_id: invoice.id,
+          client_email: invoice.client.email,
+          client_name: invoice.client.name,
+          invoice_number: invoice.invoice_number,
+          total_amount: Number(invoice.total_amount),
+          due_date: invoice.due_date,
+          business_name: profile?.business_name,
+          job_description: invoice.job_description,
+        },
+      });
+
+      if (error) throw error;
+      
+      // Mark invoice as sent
+      await updateInvoice.mutateAsync({ id: invoice.id, status: 'sent' as InvoiceStatus });
+      
+      toast.success(`Invoice emailed to ${invoice.client.email}!`);
+    } catch (error) {
+      console.error('Email sending error:', error);
+      toast.error('Failed to send invoice email. Please try again.');
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
+
   const handleClientChange = async (clientId: string) => {
     if (!id) return;
     await updateInvoice.mutateAsync({ 
@@ -230,7 +273,7 @@ export default function InvoiceEditor() {
               </p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {invoice.status === 'draft' && (
               <Button variant="outline" onClick={handleMarkAsSent} className="gap-2">
                 <Send className="h-4 w-4" />
@@ -238,10 +281,24 @@ export default function InvoiceEditor() {
               </Button>
             )}
             {invoice.status === 'sent' && (
-              <Button variant="outline" onClick={handleMarkAsPaid} className="gap-2 text-green-600 hover:text-green-700">
+              <Button variant="outline" onClick={handleMarkAsPaid} className="gap-2 text-primary hover:text-primary/80">
                 Mark as Paid
               </Button>
             )}
+            <Button 
+              variant="outline" 
+              onClick={handleSendEmail}
+              disabled={isSendingEmail || !invoice.client?.email}
+              className="gap-2"
+              title={!invoice.client?.email ? "Client needs an email address" : "Send invoice via email"}
+            >
+              {isSendingEmail ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Mail className="h-4 w-4" />
+              )}
+              Email Invoice
+            </Button>
             <Button variant="outline" onClick={handleExportPDF} className="gap-2">
               <Download className="h-4 w-4" />
               Export PDF

@@ -9,6 +9,14 @@ interface ExportOptions {
   profile?: Profile | null;
 }
 
+// Helper to convert hex color to RGB
+function hexToRgb(hex: string): [number, number, number] {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result 
+    ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)]
+    : [34, 139, 34]; // Default green
+}
+
 export async function exportInvoiceToPDF({
   invoice,
   items,
@@ -18,8 +26,9 @@ export async function exportInvoiceToPDF({
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   
-  // Colors
-  const primaryColor: [number, number, number] = [34, 139, 34]; // Green
+  // Use custom brand color or default green
+  const brandColorHex = profile?.brand_color || '#228B22';
+  const primaryColor: [number, number, number] = hexToRgb(brandColorHex);
   const textColor: [number, number, number] = [33, 37, 41];
   const mutedColor: [number, number, number] = [108, 117, 125];
 
@@ -125,8 +134,8 @@ export async function exportInvoiceToPDF({
   // Line Items Table
   yPos += 15;
   
-  // Table Header
-  doc.setFillColor(34, 139, 34);
+  // Table Header with brand color
+  doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
   doc.rect(20, yPos - 5, pageWidth - 40, 10, 'F');
   
   doc.setFontSize(9);
@@ -203,9 +212,9 @@ export async function exportInvoiceToPDF({
     doc.text(`$${taxAmount.toFixed(2)}`, pageWidth - 25, yPos, { align: 'right' });
   }
   
-  // Total
+  // Total with brand color
   yPos += 10;
-  doc.setFillColor(34, 139, 34);
+  doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
   doc.rect(pageWidth - 85, yPos - 5, 65, 12, 'F');
   
   doc.setFontSize(12);

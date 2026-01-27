@@ -5,12 +5,26 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
-import { Loader2, Save, Building2, Percent } from 'lucide-react';
+import { Loader2, Save, Building2, Percent, Palette, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { SubscriptionCard } from '@/components/subscription/SubscriptionCard';
+import { useAuth } from '@/contexts/AuthContext';
+import { Badge } from '@/components/ui/badge';
+
+const BRAND_COLORS = [
+  { name: 'Forest Green', value: '#228B22' },
+  { name: 'Royal Blue', value: '#4169E1' },
+  { name: 'Crimson', value: '#DC143C' },
+  { name: 'Dark Orange', value: '#FF8C00' },
+  { name: 'Purple', value: '#9932CC' },
+  { name: 'Teal', value: '#008080' },
+  { name: 'Navy', value: '#000080' },
+  { name: 'Charcoal', value: '#36454F' },
+];
 
 export default function Settings() {
   const { data: profile, isLoading } = useProfile();
+  const { subscription } = useAuth();
   const updateProfile = useUpdateProfile();
 
   const [formData, setFormData] = useState({
@@ -19,6 +33,7 @@ export default function Settings() {
     phone: '',
     address: '',
     tax_rate: 0,
+    brand_color: '#228B22',
   });
 
   useEffect(() => {
@@ -29,6 +44,7 @@ export default function Settings() {
         phone: profile.phone || '',
         address: profile.address || '',
         tax_rate: profile.tax_rate || 0,
+        brand_color: profile.brand_color || '#228B22',
       });
     }
   }, [profile]);
@@ -41,6 +57,7 @@ export default function Settings() {
         phone: formData.phone || null,
         address: formData.address || null,
         tax_rate: formData.tax_rate,
+        brand_color: subscription.subscribed ? formData.brand_color : null,
       });
     } catch (error) {
       // Error handled by mutation
@@ -115,6 +132,80 @@ export default function Settings() {
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Custom Branding - Pro Feature */}
+        <Card className={!subscription.subscribed ? 'opacity-75' : ''}>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Palette className="h-5 w-5 text-primary" />
+              Custom Branding
+              {!subscription.subscribed && (
+                <Badge variant="outline" className="ml-2 gap-1">
+                  <Lock className="h-3 w-3" />
+                  Pro
+                </Badge>
+              )}
+            </CardTitle>
+            <CardDescription>
+              Customize your invoice appearance with your brand colors
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-3">
+              <Label>Brand Color</Label>
+              <div className="grid grid-cols-4 gap-3">
+                {BRAND_COLORS.map((color) => (
+                  <button
+                    key={color.value}
+                    type="button"
+                    disabled={!subscription.subscribed}
+                    onClick={() => setFormData({ ...formData, brand_color: color.value })}
+                    className={`
+                      relative h-12 rounded-lg border-2 transition-all duration-200
+                      ${formData.brand_color === color.value 
+                        ? 'border-foreground ring-2 ring-foreground ring-offset-2' 
+                        : 'border-transparent hover:border-muted-foreground/50'}
+                      ${!subscription.subscribed ? 'cursor-not-allowed' : 'cursor-pointer'}
+                    `}
+                    style={{ backgroundColor: color.value }}
+                    title={color.name}
+                  >
+                    {formData.brand_color === color.value && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="h-3 w-3 rounded-full bg-white shadow-md" />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+              {!subscription.subscribed && (
+                <p className="text-sm text-muted-foreground">
+                  Upgrade to Pro to customize your brand colors on invoices and emails.
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="custom_color">Or enter a custom color</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="custom_color"
+                  type="color"
+                  disabled={!subscription.subscribed}
+                  value={formData.brand_color}
+                  onChange={(e) => setFormData({ ...formData, brand_color: e.target.value })}
+                  className="h-10 w-16 cursor-pointer p-1"
+                />
+                <Input
+                  placeholder="#228B22"
+                  disabled={!subscription.subscribed}
+                  value={formData.brand_color}
+                  onChange={(e) => setFormData({ ...formData, brand_color: e.target.value })}
+                  className="flex-1"
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
