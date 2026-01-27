@@ -1,0 +1,192 @@
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { Resend } from "https://esm.sh/resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+const logStep = (step: string, details?: Record<string, unknown>) => {
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  console.log(`[SEND-INVOICE-EMAIL] ${step}${detailsStr}`);
+};
+
+interface InvoiceEmailRequest {
+  invoice_id: string;
+  client_email: string;
+  client_name: string;
+  invoice_number: string;
+  total_amount: number;
+  due_date: string | null;
+  business_name: string;
+  job_description: string | null;
+}
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    logStep("Function started");
+
+    const resendKey = Deno.env.get("RESEND_API_KEY");
+    if (!resendKey) throw new Error("RESEND_API_KEY is not set");
+    logStep("Resend key verified");
+
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
+    );
+
+    // Authenticate user
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) throw new Error("No authorization header provided");
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
+    if (userError) throw new Error(`Authentication error: ${userError.message}`);
+    
+    const user = userData.user;
+    if (!user) throw new Error("User not authenticated");
+    logStep("User authenticated", { userId: user.id });
+
+    // Check subscription status from database
+    const { data: profile, error: profileError } = await supabaseClient
+      .from("profiles")
+      .select("subscription_status, subscription_end")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError) throw new Error(`Profile fetch error: ${profileError.message}`);
+
+    const isPro = profile?.subscription_status === 'pro' && 
+      (!profile.subscription_end || new Date(profile.subscription_end) > new Date());
+
+    if (!isPro) {
+      return new Response(JSON.stringify({ 
+        error: "Email sending is a Pro feature. Please upgrade to send invoices via email." 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 403,
+      });
+    }
+    logStep("Pro subscription verified");
+
+    const { 
+      invoice_id,
+      client_email, 
+      client_name, 
+      invoice_number,
+      total_amount,
+      due_date,
+      business_name,
+      job_description
+    }: InvoiceEmailRequest = await req.json();
+
+    if (!client_email || !invoice_number) {
+      throw new Error("Missing required fields: client_email and invoice_number are required");
+    }
+    logStep("Request data validated", { invoice_number, client_email });
+
+    const resend = new Resend(resendKey);
+
+    const dueDateText = due_date 
+      ? new Date(due_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+      : 'Upon Receipt';
+
+    const emailHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Invoice ${invoice_number}</title>
+        </head>
+        <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5;">
+          <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+            <div style="background-color: white; border-radius: 12px; padding: 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+              <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #228B22; margin: 0; font-size: 28px;">${business_name || 'HonestInvoice'}</h1>
+                <p style="color: #666; margin: 10px 0 0 0;">Professional Invoice</p>
+              </div>
+              
+              <div style="background: linear-gradient(135deg, #228B22 0%, #1e7a1e 100%); color: white; padding: 25px; border-radius: 8px; margin-bottom: 25px;">
+                <h2 style="margin: 0 0 10px 0; font-size: 22px;">Invoice ${invoice_number}</h2>
+                <p style="margin: 0; font-size: 32px; font-weight: bold;">$${total_amount.toFixed(2)}</p>
+              </div>
+              
+              <p style="color: #333; font-size: 16px; line-height: 1.6;">
+                Hello ${client_name || 'there'},
+              </p>
+              
+              <p style="color: #333; font-size: 16px; line-height: 1.6;">
+                Please find attached your invoice from <strong>${business_name || 'HonestInvoice'}</strong>.
+              </p>
+              
+              ${job_description ? `
+                <div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #228B22;">
+                  <strong style="color: #333;">Job Description:</strong>
+                  <p style="color: #666; margin: 8px 0 0 0;">${job_description}</p>
+                </div>
+              ` : ''}
+              
+              <table style="width: 100%; border-collapse: collapse; margin: 25px 0;">
+                <tr>
+                  <td style="padding: 12px 0; border-bottom: 1px solid #eee; color: #666;">Invoice Number:</td>
+                  <td style="padding: 12px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: 600; color: #333;">${invoice_number}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 12px 0; border-bottom: 1px solid #eee; color: #666;">Amount Due:</td>
+                  <td style="padding: 12px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: 600; color: #228B22;">$${total_amount.toFixed(2)}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 12px 0; color: #666;">Due Date:</td>
+                  <td style="padding: 12px 0; text-align: right; font-weight: 600; color: #333;">${dueDateText}</td>
+                </tr>
+              </table>
+              
+              <p style="color: #666; font-size: 14px; line-height: 1.6;">
+                If you have any questions about this invoice, please don't hesitate to reach out.
+              </p>
+              
+              <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
+                <p style="color: #999; font-size: 12px; margin: 0;">
+                  Sent via <strong>HonestInvoice</strong> - Professional invoicing made simple
+                </p>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    // Note: Using Resend's default domain for testing. In production, use a verified domain.
+    const emailResponse = await resend.emails.send({
+      from: "HonestInvoice <onboarding@resend.dev>",
+      to: [client_email],
+      subject: `Invoice ${invoice_number} from ${business_name || 'HonestInvoice'} - $${total_amount.toFixed(2)}`,
+      html: emailHtml,
+    });
+
+    logStep("Email sent successfully", { emailId: emailResponse.data?.id });
+
+    return new Response(JSON.stringify({ 
+      success: true, 
+      message: "Invoice email sent successfully",
+      email_id: emailResponse.data?.id
+    }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logStep("ERROR", { message: errorMessage });
+    return new Response(JSON.stringify({ error: errorMessage }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
+  }
+});

@@ -10,6 +10,7 @@ export interface Profile {
   address: string | null;
   phone: string | null;
   tax_rate: number;
+  brand_color: string | null;
   created_at: string;
   updated_at: string;
 }
