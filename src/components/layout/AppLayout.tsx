@@ -13,8 +13,10 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import logo from '@/assets/honest-invoice-logo.png';
+import logoLight from '@/assets/honest-invoice-logo.png';
+import logoDark from '@/assets/honest-invoice-logo-dark.png';
 import { OfflineIndicator } from './OfflineIndicator';
+import { useTheme } from '@/contexts/ThemeContext';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 
@@ -31,11 +33,13 @@ const navItems = [
 
 export function AppLayout({ children }: AppLayoutProps) {
   const { signOut, subscription } = useAuth();
+  const { resolvedTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isPro = subscription.subscribed;
+  const logo = resolvedTheme === 'dark' ? logoDark : logoLight;
 
   const handleSignOut = async () => {
     await signOut();
