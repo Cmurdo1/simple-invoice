@@ -161,6 +161,7 @@ export default function InvoiceEditor() {
         items: invoice.invoice_items || [],
         client: invoice.client,
         profile,
+        isPro: subscription.subscribed,
       });
       toast.success('PDF exported successfully!');
     } catch (error) {

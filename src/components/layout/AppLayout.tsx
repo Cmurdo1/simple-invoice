@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import logo from '@/assets/honest-invoice-logo.png';
 import { OfflineIndicator } from './OfflineIndicator';
 import { Badge } from '@/components/ui/badge';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -88,8 +89,12 @@ export function AppLayout({ children }: AppLayoutProps) {
             })}
           </nav>
 
-          {/* Sign out */}
-          <div className="border-t border-sidebar-border p-4">
+          {/* Theme toggle and Sign out */}
+          <div className="border-t border-sidebar-border p-4 space-y-2">
+            <div className="flex items-center justify-between px-3 py-1">
+              <span className="text-sm text-sidebar-foreground">Theme</span>
+              <ThemeToggle />
+            </div>
             <Button
               variant="ghost"
               className="w-full justify-start gap-3 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
