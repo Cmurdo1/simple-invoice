@@ -1,15 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
-import { Loader2, Save, Building2, Percent, Palette, Lock } from 'lucide-react';
+import { Loader2, Save, Building2, Percent, Palette, Lock, Upload, X, Image as ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { SubscriptionCard } from '@/components/subscription/SubscriptionCard';
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
 
 const BRAND_COLORS = [
   { name: 'Forest Green', value: '#228B22' },
@@ -34,7 +35,10 @@ export default function Settings() {
     address: '',
     tax_rate: 0,
     brand_color: '#228B22',
+    logo_url: '',
   });
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (profile) {
@@ -45,9 +49,56 @@ export default function Settings() {
         address: profile.address || '',
         tax_rate: profile.tax_rate || 0,
         brand_color: profile.brand_color || '#228B22',
+        logo_url: profile.logo_url || '',
       });
     }
   }, [profile]);
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Image must be less than 2MB');
+      return;
+    }
+
+    setIsUploadingLogo(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `logo-${Date.now()}.${fileExt}`;
+      const filePath = `logos/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('business-assets')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('business-assets')
+        .getPublicUrl(filePath);
+
+      setFormData({ ...formData, logo_url: publicUrl });
+      toast.success('Logo uploaded successfully');
+    } catch (error) {
+      console.error('Logo upload error:', error);
+      toast.error('Failed to upload logo');
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  };
+
+  const handleRemoveLogo = () => {
+    setFormData({ ...formData, logo_url: '' });
+  };
 
   const handleSave = async () => {
     try {
@@ -58,6 +109,7 @@ export default function Settings() {
         address: formData.address || null,
         tax_rate: formData.tax_rate,
         brand_color: subscription.subscribed ? formData.brand_color : null,
+        logo_url: subscription.subscribed ? formData.logo_url || null : null,
       });
     } catch (error) {
       // Error handled by mutation
@@ -153,7 +205,67 @@ export default function Settings() {
               Customize your invoice appearance with your brand colors
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
+            {/* Logo Upload */}
+            <div className="space-y-3">
+              <Label>Business Logo</Label>
+              <div className="flex items-center gap-4">
+                {formData.logo_url ? (
+                  <div className="relative h-20 w-20 overflow-hidden rounded-lg border bg-muted">
+                    <img 
+                      src={formData.logo_url} 
+                      alt="Business logo" 
+                      className="h-full w-full object-contain"
+                    />
+                    {subscription.subscribed && (
+                      <button
+                        onClick={handleRemoveLogo}
+                        className="absolute -right-2 -top-2 rounded-full bg-destructive p-1 text-destructive-foreground shadow-sm hover:bg-destructive/90"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex h-20 w-20 items-center justify-center rounded-lg border border-dashed bg-muted/50">
+                    <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                )}
+                <div className="flex flex-col gap-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleLogoUpload}
+                    disabled={!subscription.subscribed}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={!subscription.subscribed || isUploadingLogo}
+                    onClick={() => fileInputRef.current?.click()}
+                    className="gap-2"
+                  >
+                    {isUploadingLogo ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Upload className="h-4 w-4" />
+                    )}
+                    {formData.logo_url ? 'Change Logo' : 'Upload Logo'}
+                  </Button>
+                  <p className="text-xs text-muted-foreground">PNG, JPG up to 2MB</p>
+                </div>
+              </div>
+              {!subscription.subscribed && (
+                <p className="text-sm text-muted-foreground">
+                  Upgrade to Pro to add your logo to invoices and PDFs.
+                </p>
+              )}
+            </div>
+
+            {/* Brand Color */}
             <div className="space-y-3">
               <Label>Brand Color</Label>
               <div className="grid grid-cols-4 gap-3">

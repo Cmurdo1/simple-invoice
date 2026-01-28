@@ -7,6 +7,7 @@ interface ExportOptions {
   items: InvoiceItem[];
   client?: Client | null;
   profile?: Profile | null;
+  isPro?: boolean;
 }
 
 // Helper to convert hex color to RGB
@@ -17,28 +18,66 @@ function hexToRgb(hex: string): [number, number, number] {
     : [34, 139, 34]; // Default green
 }
 
+// Helper to load an image and convert to base64
+async function loadImageAsBase64(url: string): Promise<string | null> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
 export async function exportInvoiceToPDF({
   invoice,
   items,
   client,
   profile,
+  isPro = false,
 }: ExportOptions): Promise<void> {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   
-  // Use custom brand color or default green
-  const brandColorHex = profile?.brand_color || '#228B22';
+  // Use custom brand color for Pro users, or default green
+  const brandColorHex = (isPro && profile?.brand_color) ? profile.brand_color : '#228B22';
   const primaryColor: [number, number, number] = hexToRgb(brandColorHex);
   const textColor: [number, number, number] = [33, 37, 41];
   const mutedColor: [number, number, number] = [108, 117, 125];
 
   let yPos = 20;
 
-  // Header - Business Info
+  // Header - Logo (Pro users only) and Business Info
+  let logoWidth = 0;
+  
+  if (isPro && profile?.logo_url) {
+    const logoBase64 = await loadImageAsBase64(profile.logo_url);
+    if (logoBase64) {
+      try {
+        // Add logo with max height of 20mm
+        const logoHeight = 16;
+        logoWidth = 16; // Square logo assumption
+        doc.addImage(logoBase64, 'AUTO', 20, yPos - 5, logoWidth, logoHeight);
+        yPos += 2;
+      } catch (error) {
+        console.error('Failed to add logo to PDF:', error);
+      }
+    }
+  }
+
+  // Business name and details
+  const textStartX = logoWidth > 0 ? 20 + logoWidth + 5 : 20;
+  
   doc.setFontSize(24);
   doc.setTextColor(...primaryColor);
   doc.setFont('helvetica', 'bold');
-  doc.text(profile?.business_name || 'HonestInvoice', 20, yPos);
+  doc.text(profile?.business_name || 'HonestInvoice', textStartX, yPos);
   
   yPos += 10;
   doc.setFontSize(10);
@@ -46,15 +85,15 @@ export async function exportInvoiceToPDF({
   doc.setFont('helvetica', 'normal');
   
   if (profile?.address) {
-    doc.text(profile.address, 20, yPos);
+    doc.text(profile.address, textStartX, yPos);
     yPos += 5;
   }
   if (profile?.email) {
-    doc.text(profile.email, 20, yPos);
+    doc.text(profile.email, textStartX, yPos);
     yPos += 5;
   }
   if (profile?.phone) {
-    doc.text(profile.phone, 20, yPos);
+    doc.text(profile.phone, textStartX, yPos);
     yPos += 5;
   }
 
