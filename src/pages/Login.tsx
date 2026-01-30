@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
-import logo from '@/assets/honest-invoice-logo.png';
+import logo from '@/assets/honest-invoice-logo-dark.png';
 
 export default function Login() {
   const [email, setEmail] = useState('');
