@@ -49,8 +49,8 @@ export default function Privacy() {
             </p>
             <p className="text-muted-foreground">
               <strong>Contact Information:</strong> For any privacy-related questions or concerns, please contact us at:{' '}
-              <a href="mailto:privacy@honestinvoice.com" className="text-primary hover:underline">
-                privacy@honestinvoice.com
+              <a href="mailto:support@honestinvoice.com" className="text-primary hover:underline">
+                support@honestinvoice.com
               </a>
             </p>
           </section>
@@ -211,7 +211,7 @@ export default function Privacy() {
               <li><strong>Access:</strong> You can access your personal information at any time through the Settings page in the App.</li>
               <li><strong>Correction:</strong> You can update or correct your account information, business profile, and client data directly within the App.</li>
               <li><strong>Deletion:</strong> You can request deletion of your account and associated data by contacting us at{' '}
-                <a href="mailto:privacy@honestinvoice.com" className="text-primary hover:underline">privacy@honestinvoice.com</a>. 
+                <a href="mailto:support@honestinvoice.com" className="text-primary hover:underline">support@honestinvoice.com</a>. 
                 We will process your request within 30 days.</li>
               <li><strong>Data Export:</strong> You can export your invoices as PDF files at any time through the App.</li>
               <li><strong>Opt-Out:</strong> You can opt out of non-essential communications by adjusting your notification preferences.</li>
@@ -227,7 +227,7 @@ export default function Privacy() {
               inadvertently collected personal information from a child under 13, we will take steps to delete such 
               information promptly. If you believe we have collected information from a child under 13, please contact 
               us immediately at{' '}
-              <a href="mailto:privacy@honestinvoice.com" className="text-primary hover:underline">privacy@honestinvoice.com</a>.
+              <a href="mailto:support@honestinvoice.com" className="text-primary hover:underline">support@honestinvoice.com</a>.
             </p>
           </section>
 
@@ -263,9 +263,6 @@ export default function Privacy() {
             <div className="border rounded-lg p-4 bg-muted/30">
               <p className="font-medium mb-2">HonestInvoice</p>
               <p className="text-sm text-muted-foreground">Email:{' '}
-                <a href="mailto:privacy@honestinvoice.com" className="text-primary hover:underline">privacy@honestinvoice.com</a>
-              </p>
-              <p className="text-sm text-muted-foreground">Support:{' '}
                 <a href="mailto:support@honestinvoice.com" className="text-primary hover:underline">support@honestinvoice.com</a>
               </p>
               <p className="text-sm text-muted-foreground">Website:{' '}
