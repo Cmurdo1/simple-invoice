@@ -47,6 +47,41 @@ export type Database = {
         }
         Relationships: []
       }
+      invoice_feedback: {
+        Row: {
+          client_name: string | null
+          comment: string | null
+          created_at: string
+          id: string
+          invoice_id: string
+          rating: number | null
+        }
+        Insert: {
+          client_name?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          invoice_id: string
+          rating?: number | null
+        }
+        Update: {
+          client_name?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          invoice_id?: string
+          rating?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_feedback_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_items: {
         Row: {
           created_at: string
@@ -93,6 +128,7 @@ export type Database = {
           client_id: string | null
           created_at: string
           due_date: string | null
+          feedback_token: string | null
           id: string
           invoice_number: string | null
           job_description: string | null
@@ -107,6 +143,7 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           due_date?: string | null
+          feedback_token?: string | null
           id?: string
           invoice_number?: string | null
           job_description?: string | null
@@ -121,6 +158,7 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           due_date?: string | null
+          feedback_token?: string | null
           id?: string
           invoice_number?: string | null
           job_description?: string | null
