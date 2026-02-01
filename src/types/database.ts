@@ -37,6 +37,7 @@ export interface Invoice {
   notes: string | null;
   job_description: string | null;
   due_date: string | null;
+  feedback_token: string | null;
   created_at: string;
   updated_at: string;
   client?: Client | null;
@@ -51,6 +52,15 @@ export interface InvoiceItem {
   unit_price: number;
   total: number;
   sort_order: number;
+  created_at: string;
+}
+
+export interface InvoiceFeedback {
+  id: string;
+  invoice_id: string;
+  rating: number | null;
+  comment: string | null;
+  client_name: string | null;
   created_at: string;
 }
 
