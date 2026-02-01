@@ -8,20 +8,20 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import logo from '@/assets/honest-invoice-logo-dark.png';
-
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const {
+    signIn
+  } = useAuth();
   const navigate = useNavigate();
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
-    const { error } = await signIn(email, password);
-
+    const {
+      error
+    } = await signIn(email, password);
     if (error) {
       toast.error(error.message);
       setLoading(false);
@@ -30,13 +30,11 @@ export default function Login() {
       navigate('/dashboard');
     }
   };
-
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+  return <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center">
-            <img src={logo} alt="HonestInvoice" className="h-16 w-16" />
+            <img alt="HonestInvoice" className="h-16 w-16" src="/lovable-uploads/a10c7696-c395-4a0f-87cc-fde00d83b6c0.png" />
           </div>
           <CardTitle className="text-2xl">Welcome back</CardTitle>
           <CardDescription>Sign in to your HonestInvoice account</CardDescription>
@@ -45,27 +43,11 @@ export default function Login() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-              />
+              <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-              />
+              <Input id="password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required autoComplete="current-password" />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
@@ -82,6 +64,5 @@ export default function Login() {
           </CardFooter>
         </form>
       </Card>
-    </div>
-  );
+    </div>;
 }
