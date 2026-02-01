@@ -192,9 +192,6 @@ export default function Terms() {
             <div className="border rounded-lg p-4 bg-muted/30">
               <p className="font-medium mb-2">HonestInvoice</p>
               <p className="text-sm text-muted-foreground">Email:{' '}
-                <a href="mailto:legal@honestinvoice.com" className="text-primary hover:underline">legal@honestinvoice.com</a>
-              </p>
-              <p className="text-sm text-muted-foreground">Support:{' '}
                 <a href="mailto:support@honestinvoice.com" className="text-primary hover:underline">support@honestinvoice.com</a>
               </p>
             </div>
