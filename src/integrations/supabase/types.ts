@@ -232,7 +232,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      validate_feedback_token: {
+        Args: { p_invoice_id: string; p_token: string }
+        Returns: boolean
+      }
     }
     Enums: {
       invoice_status: "draft" | "sent" | "paid" | "overdue"

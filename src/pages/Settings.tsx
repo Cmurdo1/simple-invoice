@@ -1,12 +1,23 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
-import { Loader2, Save, Building2, Percent, Palette, Lock, Upload, X, Image as ImageIcon, FileText, ExternalLink } from 'lucide-react';
+import { Loader2, Save, Building2, Percent, Palette, Lock, Upload, X, Image as ImageIcon, FileText, ExternalLink, Trash2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { SubscriptionCard } from '@/components/subscription/SubscriptionCard';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,9 +36,12 @@ const BRAND_COLORS = [
 ];
 
 export default function Settings() {
+  const navigate = useNavigate();
   const { data: profile, isLoading } = useProfile();
-  const { subscription } = useAuth();
+  const { subscription, signOut } = useAuth();
   const updateProfile = useUpdateProfile();
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   const [formData, setFormData] = useState({
     business_name: '',
@@ -114,6 +128,38 @@ export default function Settings() {
       });
     } catch (error) {
       // Error handled by mutation
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'DELETE') return;
+    
+    setIsDeletingAccount(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Please log in again to delete your account');
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('delete-account', {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success('Account deleted successfully');
+      await signOut();
+      navigate('/');
+    } catch (error: any) {
+      console.error('Delete account error:', error);
+      toast.error(error.message || 'Failed to delete account');
+    } finally {
+      setIsDeletingAccount(false);
+      setDeleteConfirmText('');
     }
   };
 
@@ -383,6 +429,77 @@ export default function Settings() {
               <span className="font-medium">Terms of Service</span>
               <ExternalLink className="h-4 w-4 text-muted-foreground" />
             </Link>
+          </CardContent>
+        </Card>
+
+        {/* Danger Zone */}
+        <Card className="border-destructive/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Danger Zone
+            </CardTitle>
+            <CardDescription>
+              Irreversible actions for your account
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="gap-2">
+                  <Trash2 className="h-4 w-4" />
+                  Delete Account
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription className="space-y-3">
+                    <p>
+                      This action cannot be undone. This will permanently delete your
+                      account and remove all your data including:
+                    </p>
+                    <ul className="list-disc list-inside text-sm space-y-1">
+                      <li>All invoices and invoice items</li>
+                      <li>All client information</li>
+                      <li>Your business profile</li>
+                      <li>Any active subscription</li>
+                    </ul>
+                    <div className="pt-2">
+                      <Label htmlFor="confirm-delete" className="text-foreground">
+                        Type <span className="font-bold">DELETE</span> to confirm:
+                      </Label>
+                      <Input
+                        id="confirm-delete"
+                        className="mt-2"
+                        value={deleteConfirmText}
+                        onChange={(e) => setDeleteConfirmText(e.target.value.toUpperCase())}
+                        placeholder="DELETE"
+                      />
+                    </div>
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => setDeleteConfirmText('')}>
+                    Cancel
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeleteAccount}
+                    disabled={deleteConfirmText !== 'DELETE' || isDeletingAccount}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {isDeletingAccount ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      'Delete Account'
+                    )}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </CardContent>
         </Card>
 

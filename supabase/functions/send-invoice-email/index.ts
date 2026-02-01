@@ -98,6 +98,18 @@ serve(async (req) => {
     }
     logStep("Request data validated", { invoice_number, client_email, invoice_id });
 
+    // Fetch invoice with feedback token
+    const { data: invoice, error: invoiceError } = await supabaseClient
+      .from("invoices")
+      .select("feedback_token")
+      .eq("id", invoice_id)
+      .single();
+
+    if (invoiceError) {
+      logStep("Warning: Could not fetch invoice feedback token", { error: invoiceError.message });
+    }
+    const feedbackToken = invoice?.feedback_token;
+
     // Fetch invoice line items for itemized breakdown
     const { data: lineItems, error: itemsError } = await supabaseClient
       .from("invoice_items")
@@ -224,6 +236,13 @@ serve(async (req) => {
               <p style="color: #666; font-size: 14px; line-height: 1.6; margin-top: 20px;">
                 Thank you for your business! If you have any questions about this invoice, please don't hesitate to reach out.
               </p>
+              
+              ${feedbackToken ? `
+                <div style="text-align: center; margin-top: 25px; padding: 20px; background-color: #f9f9f9; border-radius: 8px;">
+                  <p style="color: #333; font-size: 14px; margin: 0 0 15px 0;">How was your experience?</p>
+                  <a href="https://honestinvoice.com/feedback?invoice=${invoice_id}&token=${feedbackToken}" style="display: inline-block; background-color: #228B22; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600;">Leave Feedback</a>
+                </div>
+              ` : ''}
               
               <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
                 <p style="color: #999; font-size: 12px; margin: 0 0 8px 0;">
