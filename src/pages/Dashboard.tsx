@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useInvoices } from '@/hooks/useInvoices';
+import { useFeedback, useAverageRating } from '@/hooks/useFeedback';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,9 @@ import {
   DollarSign, 
   FileText, 
   Clock,
-  Loader2
+  Loader2,
+  Star,
+  MessageSquare
 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -24,6 +27,8 @@ const statusColors: Record<InvoiceStatus, string> = {
 
 export default function Dashboard() {
   const { data: invoices, isLoading } = useInvoices();
+  const { data: feedback, isLoading: feedbackLoading } = useFeedback();
+  const averageRating = useAverageRating();
 
   // Calculate monthly stats
   const now = new Date();
@@ -170,6 +175,83 @@ export default function Dashboard() {
                     </div>
                   </Link>
                 ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Client Feedback */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5 text-primary" />
+              Client Feedback
+            </CardTitle>
+            {averageRating !== null && (
+              <div className="flex items-center gap-1 text-sm">
+                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                <span className="font-medium">{averageRating.toFixed(1)}</span>
+                <span className="text-muted-foreground">avg</span>
+              </div>
+            )}
+          </CardHeader>
+          <CardContent>
+            {feedbackLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : !feedback || feedback.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <Star className="mb-4 h-12 w-12 text-muted-foreground/50" />
+                <h3 className="mb-2 text-lg font-semibold">No feedback yet</h3>
+                <p className="text-sm text-muted-foreground">
+                  Feedback will appear here when clients rate your invoices
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {feedback.slice(0, 5).map((fb) => (
+                  <div key={fb.id} className="rounded-lg border p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">
+                            {fb.client_name || fb.client_business_name || 'Anonymous'}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            on {fb.invoice_number || 'Invoice'}
+                          </span>
+                        </div>
+                        {fb.comment && (
+                          <p className="text-sm text-muted-foreground">{fb.comment}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(fb.created_at), 'MMM d, yyyy')}
+                        </p>
+                      </div>
+                      {fb.rating && (
+                        <div className="flex items-center gap-0.5">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              className={cn(
+                                'h-4 w-4',
+                                star <= fb.rating!
+                                  ? 'fill-yellow-400 text-yellow-400'
+                                  : 'text-muted-foreground/30'
+                              )}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {feedback.length > 5 && (
+                  <p className="text-center text-sm text-muted-foreground">
+                    +{feedback.length - 5} more feedback entries
+                  </p>
+                )}
               </div>
             )}
           </CardContent>
