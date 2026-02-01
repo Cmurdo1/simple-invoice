@@ -56,7 +56,7 @@ serve(async (req) => {
     // Check subscription status from database
     const { data: profile, error: profileError } = await supabaseClient
       .from("profiles")
-      .select("subscription_status, subscription_end")
+      .select("subscription_status, subscription_end, email")
       .eq("id", user.id)
       .single();
 
@@ -153,8 +153,15 @@ serve(async (req) => {
               </p>
               
               <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-                <p style="color: #999; font-size: 12px; margin: 0;">
-                  Sent via <strong>HonestInvoice</strong> - Professional invoicing made simple
+                <p style="color: #999; font-size: 12px; margin: 0 0 8px 0;">
+                  Powered by <strong>HonestInvoice</strong> - Professional invoicing made simple
+                </p>
+                <p style="color: #999; font-size: 11px; margin: 0;">
+                  <a href="https://honestinvoice.com" style="color: #228B22; text-decoration: none;">Visit Website</a>
+                  &nbsp;|&nbsp;
+                  <a href="mailto:support@honestinvoice.com" style="color: #228B22; text-decoration: none;">Contact Support</a>
+                  &nbsp;|&nbsp;
+                  <a href="https://honestinvoice.com/privacy" style="color: #228B22; text-decoration: none;">Privacy Policy</a>
                 </p>
               </div>
             </div>
@@ -163,10 +170,12 @@ serve(async (req) => {
       </html>
     `;
 
-    // Note: Using Resend's default domain for testing. In production, use a verified domain.
+    // Send from HonestInvoice domain with user's business name for personalization
+    const fromName = business_name ? `${business_name} via HonestInvoice` : 'HonestInvoice';
     const emailResponse = await resend.emails.send({
-      from: "HonestInvoice <onboarding@resend.dev>",
+      from: `${fromName} <invoices@honestinvoice.com>`,
       to: [client_email],
+      reply_to: profile?.email || undefined,
       subject: `Invoice ${invoice_number} from ${business_name || 'HonestInvoice'} - $${total_amount.toFixed(2)}`,
       html: emailHtml,
     });
