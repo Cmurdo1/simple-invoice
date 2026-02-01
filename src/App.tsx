@@ -16,6 +16,8 @@ import MagicCreate from "./pages/MagicCreate";
 import InvoiceEditor from "./pages/InvoiceEditor";
 import Clients from "./pages/Clients";
 import Settings from "./pages/Settings";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,10 +31,12 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            {/* Public routes */}
+{/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
 
             {/* Protected routes */}
             <Route

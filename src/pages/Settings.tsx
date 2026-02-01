@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
-import { Loader2, Save, Building2, Percent, Palette, Lock, Upload, X, Image as ImageIcon } from 'lucide-react';
+import { Loader2, Save, Building2, Percent, Palette, Lock, Upload, X, Image as ImageIcon, FileText, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { SubscriptionCard } from '@/components/subscription/SubscriptionCard';
 import { useAuth } from '@/contexts/AuthContext';
@@ -355,6 +356,35 @@ export default function Settings() {
 
         {/* Subscription */}
         <SubscriptionCard />
+
+        {/* Legal */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              Legal
+            </CardTitle>
+            <CardDescription>
+              Privacy policy and terms of service
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Link 
+              to="/privacy" 
+              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+            >
+              <span className="font-medium">Privacy Policy</span>
+              <ExternalLink className="h-4 w-4 text-muted-foreground" />
+            </Link>
+            <Link 
+              to="/terms" 
+              className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors"
+            >
+              <span className="font-medium">Terms of Service</span>
+              <ExternalLink className="h-4 w-4 text-muted-foreground" />
+            </Link>
+          </CardContent>
+        </Card>
 
         {/* Save Button */}
         <div className="flex justify-end">
