@@ -9,9 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useClients } from '@/hooks/useClients';
 import { useCreateInvoice, useAddInvoiceItems, useRecalculateInvoiceTotals } from '@/hooks/useInvoices';
 import { useProfile } from '@/hooks/useProfile';
-import { Loader2, Wand2, Sparkles, ArrowRight } from 'lucide-react';
+import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
+import { Loader2, Wand2, Sparkles, ArrowRight, Mic, MicOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { ExtractedLineItem } from '@/types/database';
+import { cn } from '@/lib/utils';
 
 export default function MagicCreate() {
   const navigate = useNavigate();
@@ -26,6 +28,22 @@ export default function MagicCreate() {
   const [extracting, setExtracting] = useState(false);
   const [extractedItems, setExtractedItems] = useState<ExtractedLineItem[] | null>(null);
   const [creating, setCreating] = useState(false);
+
+  const { isListening, isSupported, toggleListening } = useSpeechRecognition({
+    onResult: (transcript) => {
+      setJobDescription((prev) => {
+        const separator = prev.trim() ? ' ' : '';
+        return prev + separator + transcript;
+      });
+    },
+    onError: (error) => {
+      if (error === 'not-allowed') {
+        toast.error('Microphone access denied. Please enable it in your browser settings.');
+      } else {
+        toast.error('Speech recognition error. Please try again.');
+      }
+    },
+  });
 
   const handleExtract = async () => {
     if (!jobDescription.trim()) {
@@ -129,6 +147,7 @@ export default function MagicCreate() {
             </CardTitle>
             <CardDescription>
               Describe the work you did in plain language. Include materials, labor, quantities, and any other details.
+              {isSupported && ' You can also use voice input by clicking the microphone button.'}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -149,14 +168,54 @@ export default function MagicCreate() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Job Description</Label>
-              <Textarea
-                id="description"
-                placeholder="Example: Replaced 2 toilets ($150 each), fixed leaky kitchen faucet, snaked main drain line. Labor: 4 hours at $85/hour."
-                className="min-h-[150px] resize-none"
-                value={jobDescription}
-                onChange={(e) => setJobDescription(e.target.value)}
-              />
+              <div className="flex items-center justify-between">
+                <Label htmlFor="description">Job Description</Label>
+                {isSupported && (
+                  <Button
+                    type="button"
+                    variant={isListening ? "destructive" : "outline"}
+                    size="sm"
+                    onClick={toggleListening}
+                    className={cn(
+                      "gap-2 transition-all",
+                      isListening && "animate-pulse"
+                    )}
+                  >
+                    {isListening ? (
+                      <>
+                        <MicOff className="h-4 w-4" />
+                        Stop Recording
+                      </>
+                    ) : (
+                      <>
+                        <Mic className="h-4 w-4" />
+                        Voice Input
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
+              <div className="relative">
+                <Textarea
+                  id="description"
+                  placeholder="Example: Replaced 2 toilets ($150 each), fixed leaky kitchen faucet, snaked main drain line. Labor: 4 hours at $85/hour."
+                  className={cn(
+                    "min-h-[150px] resize-none transition-all",
+                    isListening && "border-destructive ring-2 ring-destructive/20"
+                  )}
+                  value={jobDescription}
+                  onChange={(e) => setJobDescription(e.target.value)}
+                />
+                {isListening && (
+                  <div className="absolute bottom-3 right-3 flex items-center gap-2 text-sm text-destructive">
+                    <span className="relative flex h-3 w-3">
+                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-destructive opacity-75"></span>
+                      <span className="relative inline-flex h-3 w-3 rounded-full bg-destructive"></span>
+                    </span>
+                    Listening...
+                  </div>
+                )}
+              </div>
             </div>
 
             <Button
