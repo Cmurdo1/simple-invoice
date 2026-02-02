@@ -10,8 +10,7 @@ import { useClients } from '@/hooks/useClients';
 import { useCreateInvoice, useAddInvoiceItems, useRecalculateInvoiceTotals } from '@/hooks/useInvoices';
 import { useProfile } from '@/hooks/useProfile';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
-import { useTextToSpeech } from '@/hooks/useTextToSpeech';
-import { Loader2, Wand2, Sparkles, ArrowRight, Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
+import { Loader2, Wand2, Sparkles, ArrowRight, Mic, MicOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { ExtractedLineItem } from '@/types/database';
 import { cn } from '@/lib/utils';
@@ -30,7 +29,7 @@ export default function MagicCreate() {
   const [extractedItems, setExtractedItems] = useState<ExtractedLineItem[] | null>(null);
   const [creating, setCreating] = useState(false);
 
-  const { isListening, isSupported: isSpeechToTextSupported, toggleListening } = useSpeechRecognition({
+  const { isListening, isSupported, toggleListening } = useSpeechRecognition({
     onResult: (transcript) => {
       setJobDescription((prev) => {
         const separator = prev.trim() ? ' ' : '';
@@ -43,12 +42,6 @@ export default function MagicCreate() {
       } else {
         toast.error('Speech recognition error. Please try again.');
       }
-    },
-  });
-
-  const { isSpeaking, isSupported: isTextToSpeechSupported, toggle: toggleSpeaking } = useTextToSpeech({
-    onError: () => {
-      toast.error('Text-to-speech error. Please try again.');
     },
   });
 
@@ -154,7 +147,7 @@ export default function MagicCreate() {
             </CardTitle>
             <CardDescription>
               Describe the work you did in plain language. Include materials, labor, quantities, and any other details.
-              {isSpeechToTextSupported && ' You can also use voice input by clicking the microphone button.'}
+              {isSupported && ' You can also use voice input by clicking the microphone button.'}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -177,53 +170,30 @@ export default function MagicCreate() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="description">Job Description</Label>
-                <div className="flex items-center gap-2">
-                  {isTextToSpeechSupported && jobDescription.trim() && (
-                    <Button
-                      type="button"
-                      variant={isSpeaking ? "secondary" : "outline"}
-                      size="sm"
-                      onClick={() => toggleSpeaking(jobDescription)}
-                      className="gap-2"
-                    >
-                      {isSpeaking ? (
-                        <>
-                          <VolumeX className="h-4 w-4" />
-                          Stop
-                        </>
-                      ) : (
-                        <>
-                          <Volume2 className="h-4 w-4" />
-                          Read Aloud
-                        </>
-                      )}
-                    </Button>
-                  )}
-                  {isSpeechToTextSupported && (
-                    <Button
-                      type="button"
-                      variant={isListening ? "destructive" : "outline"}
-                      size="sm"
-                      onClick={toggleListening}
-                      className={cn(
-                        "gap-2 transition-all",
-                        isListening && "animate-pulse"
-                      )}
-                    >
-                      {isListening ? (
-                        <>
-                          <MicOff className="h-4 w-4" />
-                          Stop Recording
-                        </>
-                      ) : (
-                        <>
-                          <Mic className="h-4 w-4" />
-                          Voice Input
-                        </>
-                      )}
-                    </Button>
-                  )}
-                </div>
+                {isSupported && (
+                  <Button
+                    type="button"
+                    variant={isListening ? "destructive" : "outline"}
+                    size="sm"
+                    onClick={toggleListening}
+                    className={cn(
+                      "gap-2 transition-all",
+                      isListening && "animate-pulse"
+                    )}
+                  >
+                    {isListening ? (
+                      <>
+                        <MicOff className="h-4 w-4" />
+                        Stop Recording
+                      </>
+                    ) : (
+                      <>
+                        <Mic className="h-4 w-4" />
+                        Voice Input
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
               <div className="relative">
                 <Textarea
