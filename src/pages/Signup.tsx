@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import logo from '@/assets/honest-invoice-logo.png';
+import { SEOHead } from '@/components/seo/SEOHead';
 
 export default function Signup() {
   const [email, setEmail] = useState('');
@@ -44,14 +45,20 @@ export default function Signup() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center">
-            <img src={logo} alt="HonestInvoice" className="h-16 w-16" />
-          </div>
-          <CardTitle className="text-2xl">Create an account</CardTitle>
-          <CardDescription>Start invoicing your clients in seconds</CardDescription>
+    <>
+      <SEOHead 
+        title="Sign Up for Free Invoicing Software"
+        description="Create your free Honest Invoice account. Start invoicing clients in seconds with AI-powered line item extraction and professional PDF exports."
+        canonicalUrl="/signup"
+      />
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center">
+              <img src={logo} alt="HonestInvoice" className="h-16 w-16" />
+            </div>
+            <CardTitle className="text-2xl">Create an account</CardTitle>
+            <CardDescription>Start invoicing your clients in seconds</CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
@@ -107,5 +114,6 @@ export default function Signup() {
         </form>
       </Card>
     </div>
+    </>
   );
 }

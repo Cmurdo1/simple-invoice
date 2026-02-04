@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import logo from '@/assets/honest-invoice-logo-dark.png';
+import { SEOHead } from '@/components/seo/SEOHead';
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -30,7 +32,14 @@ export default function Login() {
       navigate('/dashboard');
     }
   };
-  return <div className="flex min-h-screen items-center justify-center bg-background px-4">
+  return <>
+    <SEOHead 
+      title="Sign In to Honest Invoice"
+      description="Sign in to your Honest Invoice account to manage invoices, track payments, and grow your business."
+      canonicalUrl="/login"
+      noIndex={true}
+    />
+    <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center">
@@ -52,7 +61,7 @@ export default function Login() {
           </CardContent>
           <CardFooter className="flex flex-col gap-4">
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Sign In
             </Button>
             <p className="text-center text-sm text-muted-foreground">
@@ -64,5 +73,6 @@ export default function Login() {
           </CardFooter>
         </form>
       </Card>
-    </div>;
+    </div>
+  </>;
 }
