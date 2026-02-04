@@ -21,6 +21,7 @@ interface InvoiceEmailRequest {
   due_date: string | null;
   business_name: string;
   job_description: string | null;
+  document_type?: 'invoice' | 'estimate';
 }
 
 interface InvoiceItem {
@@ -90,13 +91,18 @@ serve(async (req) => {
       total_amount,
       due_date,
       business_name,
-      job_description
+      job_description,
+      document_type = 'invoice'
     }: InvoiceEmailRequest = await req.json();
 
     if (!client_email || !invoice_number || !invoice_id) {
       throw new Error("Missing required fields: client_email, invoice_number, and invoice_id are required");
     }
-    logStep("Request data validated", { invoice_number, client_email, invoice_id });
+    
+    const isEstimate = document_type === 'estimate';
+    const docLabel = isEstimate ? 'Estimate' : 'Invoice';
+    const docLabelLower = isEstimate ? 'estimate' : 'invoice';
+    logStep("Request data validated", { invoice_number, client_email, invoice_id, document_type });
 
     // Fetch invoice with feedback token
     const { data: invoice, error: invoiceError } = await supabaseClient
@@ -126,7 +132,7 @@ serve(async (req) => {
 
     const dueDateText = due_date 
       ? new Date(due_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-      : 'Upon Receipt';
+      : 'Upon Job Completion';
 
     // Calculate subtotal from line items
     const subtotal = lineItems?.reduce(
@@ -152,20 +158,20 @@ serve(async (req) => {
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Invoice ${invoice_number}</title>
+          <title>${docLabel} ${invoice_number}</title>
         </head>
         <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5;">
           <div style="max-width: 650px; margin: 0 auto; padding: 40px 20px;">
             <div style="background-color: white; border-radius: 12px; padding: 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
               <div style="text-align: center; margin-bottom: 30px;">
                 <h1 style="color: #228B22; margin: 0; font-size: 28px;">${business_name || 'HonestInvoice'}</h1>
-                <p style="color: #666; margin: 10px 0 0 0;">Professional Invoice</p>
+                <p style="color: #666; margin: 10px 0 0 0;">Professional ${docLabel}</p>
               </div>
               
-              <div style="background: linear-gradient(135deg, #228B22 0%, #1e7a1e 100%); color: white; padding: 25px; border-radius: 8px; margin-bottom: 25px;">
-                <h2 style="margin: 0 0 10px 0; font-size: 22px;">Invoice ${invoice_number}</h2>
+              <div style="background: linear-gradient(135deg, ${isEstimate ? '#2563eb' : '#228B22'} 0%, ${isEstimate ? '#1d4ed8' : '#1e7a1e'} 100%); color: white; padding: 25px; border-radius: 8px; margin-bottom: 25px;">
+                <h2 style="margin: 0 0 10px 0; font-size: 22px;">${docLabel} ${invoice_number}</h2>
                 <p style="margin: 0; font-size: 32px; font-weight: bold;">$${total_amount.toFixed(2)}</p>
-                <p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.9;">Due: ${dueDateText}</p>
+                <p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.9;">${isEstimate ? 'Estimated Total' : `Due: ${dueDateText}`}</p>
               </div>
               
               <p style="color: #333; font-size: 16px; line-height: 1.6;">
@@ -173,7 +179,7 @@ serve(async (req) => {
               </p>
               
               <p style="color: #333; font-size: 16px; line-height: 1.6;">
-                Please find your itemized invoice from <strong>${business_name || 'HonestInvoice'}</strong> below.
+                Please find your itemized ${docLabelLower} from <strong>${business_name || 'HonestInvoice'}</strong> below.
               </p>
               
               ${job_description ? `
@@ -219,17 +225,17 @@ serve(async (req) => {
               ` : `
                 <table style="width: 100%; border-collapse: collapse; margin: 25px 0;">
                   <tr>
-                    <td style="padding: 12px 0; border-bottom: 1px solid #eee; color: #666;">Invoice Number:</td>
+                    <td style="padding: 12px 0; border-bottom: 1px solid #eee; color: #666;">${docLabel} Number:</td>
                     <td style="padding: 12px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: 600; color: #333;">${invoice_number}</td>
                   </tr>
                   <tr>
-                    <td style="padding: 12px 0; border-bottom: 1px solid #eee; color: #666;">Amount Due:</td>
-                    <td style="padding: 12px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: 600; color: #228B22;">$${total_amount.toFixed(2)}</td>
+                    <td style="padding: 12px 0; border-bottom: 1px solid #eee; color: #666;">${isEstimate ? 'Estimated Amount' : 'Amount Due'}:</td>
+                    <td style="padding: 12px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: 600; color: ${isEstimate ? '#2563eb' : '#228B22'};">$${total_amount.toFixed(2)}</td>
                   </tr>
-                  <tr>
+                  ${!isEstimate ? `<tr>
                     <td style="padding: 12px 0; color: #666;">Due Date:</td>
                     <td style="padding: 12px 0; text-align: right; font-weight: 600; color: #333;">${dueDateText}</td>
-                  </tr>
+                  </tr>` : ''}
                 </table>
               `}
               
@@ -268,7 +274,7 @@ serve(async (req) => {
       from: `${fromName} <invoices@honestinvoice.com>`,
       to: [client_email],
       reply_to: profile?.email || undefined,
-      subject: `Invoice ${invoice_number} from ${business_name || 'HonestInvoice'} - $${total_amount.toFixed(2)}`,
+      subject: `${docLabel} ${invoice_number} from ${business_name || 'HonestInvoice'} - $${total_amount.toFixed(2)}`,
       html: emailHtml,
     });
 

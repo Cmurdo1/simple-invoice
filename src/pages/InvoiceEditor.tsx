@@ -171,6 +171,7 @@ export default function InvoiceEditor() {
   };
 
   const [isSendingEmail, setIsSendingEmail] = useState(false);
+  const [sendAsEstimate, setSendAsEstimate] = useState(false);
 
   const handleSendEmail = async () => {
     if (!subscription.subscribed) {
@@ -195,6 +196,7 @@ export default function InvoiceEditor() {
           due_date: invoice.due_date,
           business_name: profile?.business_name,
           job_description: invoice.job_description,
+          document_type: sendAsEstimate ? 'estimate' : 'invoice',
         },
       });
 
@@ -203,13 +205,22 @@ export default function InvoiceEditor() {
       // Mark invoice as sent
       await updateInvoice.mutateAsync({ id: invoice.id, status: 'sent' as InvoiceStatus });
       
-      toast.success(`Invoice emailed to ${invoice.client.email}!`);
+      const docType = sendAsEstimate ? 'Estimate' : 'Invoice';
+      toast.success(`${docType} emailed to ${invoice.client.email}!`);
     } catch (error) {
       console.error('Email sending error:', error);
-      toast.error('Failed to send invoice email. Please try again.');
+      toast.error('Failed to send email. Please try again.');
     } finally {
       setIsSendingEmail(false);
     }
+  };
+
+  const handleDueDateChange = async (value: string) => {
+    if (!id) return;
+    await updateInvoice.mutateAsync({ 
+      id, 
+      due_date: value === 'completion' ? null : value 
+    });
   };
 
   const handleClientChange = async (clientId: string) => {
@@ -286,20 +297,31 @@ export default function InvoiceEditor() {
                 Mark as Paid
               </Button>
             )}
-            <Button 
-              variant="outline" 
-              onClick={handleSendEmail}
-              disabled={isSendingEmail || !invoice.client?.email}
-              className="gap-2"
-              title={!invoice.client?.email ? "Client needs an email address" : "Send invoice via email"}
-            >
-              {isSendingEmail ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Mail className="h-4 w-4" />
-              )}
-              Email Invoice
-            </Button>
+            <div className="flex items-center gap-2">
+              <Select value={sendAsEstimate ? 'estimate' : 'invoice'} onValueChange={(v) => setSendAsEstimate(v === 'estimate')}>
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="invoice">Invoice</SelectItem>
+                  <SelectItem value="estimate">Estimate</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button 
+                variant="outline" 
+                onClick={handleSendEmail}
+                disabled={isSendingEmail || !invoice.client?.email}
+                className="gap-2"
+                title={!invoice.client?.email ? "Client needs an email address" : `Send ${sendAsEstimate ? 'estimate' : 'invoice'} via email`}
+              >
+                {isSendingEmail ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Mail className="h-4 w-4" />
+                )}
+                Email
+              </Button>
+            </div>
             <Button variant="outline" onClick={handleExportPDF} className="gap-2">
               <Download className="h-4 w-4" />
               Export PDF
@@ -329,6 +351,25 @@ export default function InvoiceEditor() {
                 ))}
               </SelectContent>
             </Select>
+            
+            <div className="mt-4">
+              <label className="text-sm font-medium text-muted-foreground mb-2 block">Due Date</label>
+              <Select 
+                value={invoice.due_date || 'completion'} 
+                onValueChange={handleDueDateChange}
+              >
+                <SelectTrigger className="w-full max-w-sm">
+                  <SelectValue placeholder="Select due date..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="completion">Upon Job Completion</SelectItem>
+                  <SelectItem value={new Date().toISOString().split('T')[0]}>Today</SelectItem>
+                  <SelectItem value={new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}>In 7 days</SelectItem>
+                  <SelectItem value={new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}>In 14 days</SelectItem>
+                  <SelectItem value={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}>In 30 days</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </CardContent>
         </Card>
 
