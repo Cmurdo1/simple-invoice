@@ -5,6 +5,85 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const DECOMPOSITION_PROMPT = `You are an expert contractor estimator specializing in work breakdown structures (WBS).
+
+Your task is to DECOMPOSE job descriptions into granular, auditable line items following industry best practices.
+
+## CRITICAL RULES:
+
+1. **SEPARATE LABOR FROM MATERIALS** - Always create distinct line items
+2. **INCLUDE HIDDEN COSTS** - Don't forget: disposal, prep work, cleanup, permits, travel
+3. **BE SPECIFIC WITH QUANTITIES** - Use actual measurements when given, estimate conservatively when not
+4. **LOCATION MATTERS** - Include WHERE the work is being done (roof section, room, etc.)
+
+## DECOMPOSITION CHECKLIST (apply to every job):
+□ Materials (itemize each material separately)
+□ Labor (break down by task type)
+□ Equipment/Tool rental if needed
+□ Preparation work (protection, moving items, access setup)
+□ Disposal/Cleanup fees
+□ Travel/Mobilization if applicable
+
+## PRICING GUIDELINES (2024 rates, adjust for complexity):
+
+**Labor Rates (per hour):**
+- General labor/helper: $45-65
+- Skilled trades (plumbing, electrical, HVAC): $85-125
+- Roofing labor: $65-95
+- Painting labor: $55-75
+- Specialized/licensed work: $100-150
+
+**Common Material Estimates:**
+- Standard receptacle/outlet: $3-8 each
+- GFCI outlet: $15-25 each
+- Light switch: $3-10 each
+- Wire (12/2 Romex): $0.80-1.20/ft
+- Paint (quality): $35-55/gallon (covers ~350 sq ft)
+- Roofing shingles: $30-45/bundle (covers ~33 sq ft)
+- Drywall sheet (4x8): $12-18
+- Caulk/sealant: $5-12/tube
+
+**Service Minimums:**
+- Minimum service call: $75-150
+- Disposal fee: $50-150 per load
+- Permit fees: varies by jurisdiction
+
+## OUTPUT FORMAT:
+Return ONLY a valid JSON array. Each item must have:
+- description: Detailed description with WHAT + WHERE + specifications
+- quantity: Number (hours, units, sq ft, etc.)
+- unit_price: Price per unit in USD
+
+## SELF-AUDIT BEFORE RESPONDING:
+1. Did I separate ALL materials from labor?
+2. Did I include disposal/cleanup if there's removal?
+3. Did I account for prep work and protection?
+4. Are my quantities realistic (not underestimated)?
+5. Did I include minimum service charges if job is small?`;
+
+const AUDIT_PROMPT = `You are a senior estimator auditing a junior estimator's work breakdown.
+
+Review this estimate for COMPLETENESS and ACCURACY:
+
+## AUDIT CHECKLIST:
+1. **Missing Items** - Are there obvious items the junior missed?
+2. **Underestimated Quantities** - Are quantities realistic?
+3. **Price Accuracy** - Are prices within market range?
+4. **Labor Time** - Is labor time sufficient for the scope?
+5. **Hidden Costs** - Disposal, prep, cleanup, permits included?
+
+## COMMON MISTAKES TO CATCH:
+- Forgetting disposal fees for removal jobs
+- Underestimating labor hours
+- Missing materials (fasteners, connectors, tape, etc.)
+- No minimum service charge for small jobs
+- Forgetting prep/protection time
+
+If the estimate is good, return it unchanged.
+If there are issues, add the missing items or adjust quantities/prices.
+
+Return ONLY the corrected JSON array.`;
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -25,7 +104,9 @@ Deno.serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    // Step 1: Initial decomposition with reasoning
+    console.log('Step 1: Decomposing job description...');
+    const decompositionResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${LOVABLE_API_KEY}`,
@@ -34,74 +115,93 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
-          {
-            role: 'system',
-            content: `You are a detailed bid/invoice extractor for field contractors (roofers, plumbers, electricians, HVAC, landscapers, etc.).
-
-Extract comprehensive line items from job descriptions for professional bids and invoices.
-
-For each line item, provide:
-- description: Detailed description including WHAT is being done, WHERE (location/area), and any specifics
-- quantity: Number of units, hours, or square footage (be specific about the unit in the description)
-- unit_price: Estimated price in USD (use industry-standard rates)
-
-EXTRACTION RULES:
-1. ALWAYS separate labor from materials as distinct line items
-2. Include location details in descriptions (e.g., "Front roof section", "Kitchen sink area")
-3. For time-based work, specify estimated hours clearly
-4. For area-based work (roofing, painting), use square footage when possible
-5. Include equipment rental or specialized tools if mentioned
-6. Add disposal/cleanup fees for removal jobs
-
-Common contractor rates:
-- General labor: $65-85/hour
-- Skilled trades (plumbing, electrical): $85-125/hour
-- Roofing labor: $75-100/hour
-- Moss removal: $0.50-1.50/sq ft or $75-100/hour
-- Roof cleaning: $0.20-0.50/sq ft
-- Materials: Use current market prices
-- Disposal/hauling: $50-150 per load
-- Equipment rental: Varies by type
-
-Return ONLY valid JSON array, no markdown or explanation.
-Example output for moss removal job:
-[
-  {"description": "Moss removal - Main roof section (approx 1500 sq ft)", "quantity": 1500, "unit_price": 0.75},
-  {"description": "Moss removal - Garage roof section (approx 400 sq ft)", "quantity": 400, "unit_price": 0.75},
-  {"description": "Zinc strip installation - Ridge line (prevents regrowth)", "quantity": 60, "unit_price": 3.50},
-  {"description": "Roof debris cleanup and disposal", "quantity": 1, "unit_price": 125},
-  {"description": "Labor - Roof access setup and safety equipment", "quantity": 2, "unit_price": 85}
-]`
-          },
-          {
-            role: 'user',
-            content: `Extract line items from this job description:\n\n${job_description}`
-          }
+          { role: 'system', content: DECOMPOSITION_PROMPT },
+          { role: 'user', content: `Decompose this job into line items:\n\n${job_description}` }
         ],
-        temperature: 0.3,
+        temperature: 0.2,
       }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`AI API error: ${errorText}`);
+    if (!decompositionResponse.ok) {
+      const errorText = await decompositionResponse.text();
+      console.error('Decomposition error:', errorText);
+      throw new Error(`AI decomposition failed: ${decompositionResponse.status}`);
     }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || '[]';
+    const decompositionData = await decompositionResponse.json();
+    const initialEstimate = decompositionData.choices?.[0]?.message?.content || '[]';
     
-    // Parse the JSON response
+    // Parse initial estimate
     let items;
     try {
-      // Remove any markdown code blocks if present
-      const cleanContent = content.replace(/```json\n?|\n?```/g, '').trim();
+      const cleanContent = initialEstimate.replace(/```json\n?|\n?```/g, '').trim();
       items = JSON.parse(cleanContent);
     } catch {
+      console.error('Failed to parse initial estimate:', initialEstimate);
       items = [];
     }
 
+    if (items.length === 0) {
+      return new Response(
+        JSON.stringify({ items: [], audit_notes: 'Could not parse job description' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Step 2: Self-audit pass
+    console.log('Step 2: Auditing estimate...');
+    const auditResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          { role: 'system', content: AUDIT_PROMPT },
+          { 
+            role: 'user', 
+            content: `Original job description:\n${job_description}\n\nInitial estimate to audit:\n${JSON.stringify(items, null, 2)}` 
+          }
+        ],
+        temperature: 0.1,
+      }),
+    });
+
+    if (auditResponse.ok) {
+      const auditData = await auditResponse.json();
+      const auditedEstimate = auditData.choices?.[0]?.message?.content || '';
+      
+      try {
+        const cleanAudit = auditedEstimate.replace(/```json\n?|\n?```/g, '').trim();
+        const auditedItems = JSON.parse(cleanAudit);
+        if (Array.isArray(auditedItems) && auditedItems.length > 0) {
+          items = auditedItems;
+          console.log('Audit complete, items updated');
+        }
+      } catch {
+        console.log('Audit parse failed, using initial estimate');
+      }
+    }
+
+    // Validate and clean items
+    const validatedItems = items
+      .filter((item: any) => item.description && typeof item.quantity === 'number' && typeof item.unit_price === 'number')
+      .map((item: any) => ({
+        description: String(item.description).trim(),
+        quantity: Math.max(0, Number(item.quantity)),
+        unit_price: Math.max(0, Number(item.unit_price)),
+      }));
+
+    console.log(`Returning ${validatedItems.length} validated items`);
+
     return new Response(
-      JSON.stringify({ items }),
+      JSON.stringify({ 
+        items: validatedItems,
+        item_count: validatedItems.length,
+        subtotal: validatedItems.reduce((sum: number, item: any) => sum + (item.quantity * item.unit_price), 0)
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error: unknown) {
