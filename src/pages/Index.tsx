@@ -5,6 +5,7 @@ import { FileText, Wand2, Smartphone, CheckCircle2 } from 'lucide-react';
 import logoLight from '@/assets/honest-invoice-logo.png';
 import logoDark from '@/assets/honest-invoice-logo-dark.png';
 import { useTheme } from '@/contexts/ThemeContext';
+import { SEO } from '@/components/SEO';
 
 // Feature data with SEO-optimized descriptions and alt text
 const features = [
@@ -46,6 +47,10 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title="Honest Invoice: Free Online Invoicing & Billing Software for Freelancers"
+        description="Stop chasing payments. Use Honest Invoice to automate billing, track expenses, and get paid 2x faster. 100% secure. Join 10,000+ small businesses. Start for free."
+      />
       {/* Header */}
       <header className="border-b">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">

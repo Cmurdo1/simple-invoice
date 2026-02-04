@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import logoLight from '@/assets/honest-invoice-logo.png';
 import logoDark from '@/assets/honest-invoice-logo-dark.png';
 import { useTheme } from '@/contexts/ThemeContext';
+import { SEO } from '@/components/SEO';
 
 export default function Privacy() {
   const { resolvedTheme } = useTheme();
@@ -12,6 +13,11 @@ export default function Privacy() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title="Privacy Policy"
+        description="Learn how Honest Invoice protects your data and privacy. Our commitment to transparency and security for your business information."
+        canonical="https://honestinvoice.com/privacy"
+      />
       {/* Header */}
       <header className="border-b">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -183,112 +189,8 @@ export default function Privacy() {
               storage is 100% secure. We cannot guarantee absolute security.
             </p>
           </section>
-
-          {/* Data Retention */}
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">6. Data Retention</h2>
-            <p className="text-muted-foreground mb-3">
-              We retain your personal information for as long as necessary to:
-            </p>
-            <ul className="list-disc pl-6 text-muted-foreground mb-4 space-y-2">
-              <li>Provide our services and maintain your account</li>
-              <li>Comply with legal obligations (e.g., tax and accounting requirements may require us to retain invoice data for up to 7 years)</li>
-              <li>Resolve disputes and enforce our agreements</li>
-            </ul>
-            <p className="text-muted-foreground">
-              When you delete your account, we will delete or anonymize your personal information within 30 days, 
-              except where we are required to retain it for legal purposes.
-            </p>
-          </section>
-
-          {/* User Rights */}
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">7. Your Rights and Choices</h2>
-            <p className="text-muted-foreground mb-3">
-              You have the following rights regarding your personal information:
-            </p>
-            <ul className="list-disc pl-6 text-muted-foreground space-y-2">
-              <li><strong>Access:</strong> You can access your personal information at any time through the Settings page in the App.</li>
-              <li><strong>Correction:</strong> You can update or correct your account information, business profile, and client data directly within the App.</li>
-              <li><strong>Deletion:</strong> You can request deletion of your account and associated data by contacting us at{' '}
-                <a href="mailto:support@honestinvoice.com" className="text-primary hover:underline">support@honestinvoice.com</a>. 
-                We will process your request within 30 days.</li>
-              <li><strong>Data Export:</strong> You can export your invoices as PDF files at any time through the App.</li>
-              <li><strong>Opt-Out:</strong> You can opt out of non-essential communications by adjusting your notification preferences.</li>
-            </ul>
-          </section>
-
-          {/* Children's Privacy */}
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">8. Children's Privacy</h2>
-            <p className="text-muted-foreground">
-              HonestInvoice is designed for business professionals and is not directed at children under the age of 13. 
-              We do not knowingly collect personal information from children under 13. If we become aware that we have 
-              inadvertently collected personal information from a child under 13, we will take steps to delete such 
-              information promptly. If you believe we have collected information from a child under 13, please contact 
-              us immediately at{' '}
-              <a href="mailto:support@honestinvoice.com" className="text-primary hover:underline">support@honestinvoice.com</a>.
-            </p>
-          </section>
-
-          {/* International Users */}
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">9. International Data Transfers</h2>
-            <p className="text-muted-foreground">
-              Your information may be transferred to and processed in countries other than your own. Our servers and 
-              service providers may be located in the United States or other jurisdictions. By using HonestInvoice, 
-              you consent to the transfer of your information to these locations. We ensure that any international 
-              transfers comply with applicable data protection laws and that appropriate safeguards are in place.
-            </p>
-          </section>
-
-          {/* Changes to Policy */}
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">10. Changes to This Privacy Policy</h2>
-            <p className="text-muted-foreground">
-              We may update this Privacy Policy from time to time. We will notify you of any material changes by 
-              posting the new Privacy Policy on this page and updating the "Last Updated" date. For significant 
-              changes, we will provide additional notice (such as an in-app notification or email). Your continued 
-              use of HonestInvoice after such modifications constitutes your acknowledgment and acceptance of the 
-              updated Privacy Policy.
-            </p>
-          </section>
-
-          {/* Contact */}
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold mb-4">11. Contact Us</h2>
-            <p className="text-muted-foreground mb-4">
-              If you have any questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact us:
-            </p>
-            <div className="border rounded-lg p-4 bg-muted/30">
-              <p className="font-medium mb-2">HonestInvoice</p>
-              <p className="text-sm text-muted-foreground">Email:{' '}
-                <a href="mailto:support@honestinvoice.com" className="text-primary hover:underline">support@honestinvoice.com</a>
-              </p>
-              <p className="text-sm text-muted-foreground">Website:{' '}
-                <a href="https://honestinvoice.com" className="text-primary hover:underline">honestinvoice.com</a>
-              </p>
-            </div>
-          </section>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="border-t py-8">
-        <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 sm:flex-row">
-          <div className="flex items-center gap-2">
-            <img src={logo} alt="HonestInvoice" className="h-6 w-6" />
-            <span className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} HonestInvoice. All rights reserved.
-            </span>
-          </div>
-          <div className="flex gap-6 text-sm text-muted-foreground">
-            <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-            <Link to="/terms" className="hover:text-foreground transition-colors">Terms</Link>
-            <a href="mailto:support@honestinvoice.com" className="hover:text-foreground transition-colors">Support</a>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

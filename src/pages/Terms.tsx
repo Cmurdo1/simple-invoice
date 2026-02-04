@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import logoLight from '@/assets/honest-invoice-logo.png';
 import logoDark from '@/assets/honest-invoice-logo-dark.png';
 import { useTheme } from '@/contexts/ThemeContext';
+import { SEO } from '@/components/SEO';
 
 export default function Terms() {
   const { resolvedTheme } = useTheme();
@@ -12,6 +13,11 @@ export default function Terms() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO 
+        title="Terms of Service"
+        description="Read our terms of service to understand your rights and responsibilities when using Honest Invoice for your business billing."
+        canonical="https://honestinvoice.com/terms"
+      />
       {/* Header */}
       <header className="border-b">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
