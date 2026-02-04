@@ -1,8 +1,13 @@
+# Honest Invoice - SEO Optimized Robots.txt
+# https://honestinvoice.com
+
 User-agent: Googlebot
 Allow: /
+Crawl-delay: 1
 
 User-agent: Bingbot
 Allow: /
+Crawl-delay: 2
 
 User-agent: Twitterbot
 Allow: /
@@ -10,5 +15,26 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+Crawl-delay: 2
+
+User-agent: DuckDuckBot
+Allow: /
+
 User-agent: *
 Allow: /
+Crawl-delay: 5
+
+# Sitemap location
+Sitemap: https://honestinvoice.com/sitemap.xml
+
+# Disallow private/authenticated routes from indexing
+Disallow: /dashboard
+Disallow: /create
+Disallow: /invoice/
+Disallow: /clients
+Disallow: /settings

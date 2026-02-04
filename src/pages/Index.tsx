@@ -5,6 +5,7 @@ import { FileText, Wand2, Smartphone, CheckCircle2 } from 'lucide-react';
 import logoLight from '@/assets/honest-invoice-logo.png';
 import logoDark from '@/assets/honest-invoice-logo-dark.png';
 import { useTheme } from '@/contexts/ThemeContext';
+import { SEOHead } from '@/components/seo/SEOHead';
 
 // Feature data with SEO-optimized descriptions and alt text
 const features = [
@@ -45,7 +46,9 @@ export default function Index() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <>
+      <SEOHead canonicalUrl="/" />
+      <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -172,5 +175,6 @@ export default function Index() {
         </div>
       </footer>
     </div>
+    </>
   );
 }

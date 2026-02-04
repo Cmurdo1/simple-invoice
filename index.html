@@ -7,17 +7,27 @@
     <meta name="description" content="Stop chasing payments. Use Honest Invoice to automate billing, track expenses, and get paid 2x faster. 100% secure. Join 10,000+ small businesses. Start for free." />
     <meta name="author" content="HonestInvoice" />
     <meta name="keywords" content="free invoicing software, online billing, freelancer invoicing, small business billing, invoice generator, payment tracking, expense management, tax compliance" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow" />
+    <meta name="bingbot" content="index, follow" />
 
     <meta property="og:title" content="Honest Invoice: Free Online Invoicing & Billing Software" />
     <meta property="og:description" content="Stop chasing payments. Automate billing, track expenses, and get paid 2x faster. 100% secure. Start for free." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://honestinvoice.com" />
+    <meta property="og:site_name" content="Honest Invoice" />
+    <meta property="og:locale" content="en_US" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Honest Invoice: Free Invoicing for Freelancers" />
     <meta name="twitter:description" content="AI-powered invoicing software. Automate billing and get paid 2x faster." />
     
     <link rel="canonical" href="https://honestinvoice.com" />
+    
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
     
     <!-- JSON-LD Structured Data for SEO -->
     <script type="application/ld+json">
@@ -26,18 +36,94 @@
       "@type": "SoftwareApplication",
       "name": "Honest Invoice",
       "applicationCategory": "BusinessApplication",
-      "operatingSystem": "Web",
+      "applicationSubCategory": "Invoicing Software",
+      "operatingSystem": "Web Browser",
       "offers": {
         "@type": "Offer",
         "price": "0",
-        "priceCurrency": "USD"
+        "priceCurrency": "USD",
+        "availability": "https://schema.org/InStock"
       },
       "description": "Free online invoicing and billing software for freelancers and small businesses. AI-powered line item extraction, offline support, and professional PDF exports.",
       "aggregateRating": {
         "@type": "AggregateRating",
         "ratingValue": "4.8",
-        "ratingCount": "10000"
-      }
+        "reviewCount": "10000",
+        "bestRating": "5",
+        "worstRating": "1"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "Honest Invoice"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Honest Invoice",
+        "url": "https://honestinvoice.com"
+      },
+      "featureList": [
+        "AI-powered invoice line item extraction",
+        "Offline invoicing support",
+        "Professional PDF exports",
+        "Client management",
+        "Expense tracking"
+      ],
+      "screenshot": "https://honestinvoice.com/screenshots/dashboard.png",
+      "softwareVersion": "2.0",
+      "datePublished": "2024-01-01",
+      "dateModified": "2026-02-04"
+    }
+    </script>
+    
+    <!-- Organization Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Honest Invoice",
+      "url": "https://honestinvoice.com",
+      "logo": "https://honestinvoice.com/pwa-512x512.png",
+      "description": "Free invoicing software for freelancers and small businesses",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer support",
+        "email": "support@honestinvoice.com"
+      },
+      "sameAs": []
+    }
+    </script>
+    
+    <!-- FAQ Schema for common questions -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is Honest Invoice free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, Honest Invoice offers a free tier with core invoicing features including AI-powered line item extraction, offline support, and PDF exports."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I use Honest Invoice offline?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, Honest Invoice works offline. You can create and edit invoices without an internet connection, and your data will sync automatically when you're back online."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does AI-powered invoice creation work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Simply describe your job in plain language, and our AI will automatically generate accurate, itemized invoice line items with appropriate pricing based on industry standards."
+          }
+        }
+      ]
     }
     </script>
   </head>
