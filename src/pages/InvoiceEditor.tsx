@@ -162,8 +162,9 @@ export default function InvoiceEditor() {
         client: invoice.client,
         profile,
         isPro: subscription.subscribed,
+        documentType: sendAsEstimate ? 'estimate' : 'invoice',
       });
-      toast.success('PDF exported successfully!');
+      toast.success(`${sendAsEstimate ? 'Estimate' : 'Invoice'} PDF exported successfully!`);
     } catch (error) {
       console.error('PDF export error:', error);
       toast.error('Failed to export PDF');

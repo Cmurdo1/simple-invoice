@@ -61,10 +61,10 @@ serve(async (req) => {
     if (!user) throw new Error("User not authenticated");
     logStep("User authenticated", { userId: user.id });
 
-    // Check subscription status from database
+    // Check subscription status and get brand colors from database
     const { data: profile, error: profileError } = await supabaseClient
       .from("profiles")
-      .select("subscription_status, subscription_end, email")
+      .select("subscription_status, subscription_end, email, brand_color, estimate_color, logo_url, phone, address")
       .eq("id", user.id)
       .single();
 
@@ -102,7 +102,16 @@ serve(async (req) => {
     const isEstimate = document_type === 'estimate';
     const docLabel = isEstimate ? 'Estimate' : 'Invoice';
     const docLabelLower = isEstimate ? 'estimate' : 'invoice';
-    logStep("Request data validated", { invoice_number, client_email, invoice_id, document_type });
+    
+    // Use custom brand colors from profile (Pro feature)
+    const invoiceColor = profile?.brand_color || '#228B22';
+    const estimateColor = profile?.estimate_color || '#2563eb';
+    const primaryColor = isEstimate ? estimateColor : invoiceColor;
+    
+    // Create a darker shade for gradients
+    const darkerColor = adjustColorBrightness(primaryColor, -20);
+    
+    logStep("Request data validated", { invoice_number, client_email, invoice_id, document_type, primaryColor });
 
     // Fetch invoice with feedback token
     const { data: invoice, error: invoiceError } = await supabaseClient
@@ -140,130 +149,222 @@ serve(async (req) => {
       0
     ) || total_amount;
 
-    // Build the itemized line items HTML
+    // Build the itemized line items HTML - MOBILE OPTIMIZED
     const lineItemsHtml = lineItems && lineItems.length > 0 
       ? lineItems.map((item: InvoiceItem) => `
           <tr>
-            <td style="padding: 12px; border-bottom: 1px solid #eee; color: #333;">${item.description}</td>
-            <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: center; color: #666;">${item.quantity}</td>
-            <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right; color: #666;">$${item.unit_price.toFixed(2)}</td>
-            <td style="padding: 12px; border-bottom: 1px solid #eee; text-align: right; font-weight: 600; color: #333;">$${(item.quantity * item.unit_price).toFixed(2)}</td>
+            <td style="padding: 10px 8px; border-bottom: 1px solid #eee; color: #333; font-size: 14px; word-break: break-word;">${item.description}</td>
+            <td style="padding: 10px 8px; border-bottom: 1px solid #eee; text-align: center; color: #666; font-size: 14px; white-space: nowrap;">${item.quantity}</td>
+            <td style="padding: 10px 8px; border-bottom: 1px solid #eee; text-align: right; color: #666; font-size: 14px; white-space: nowrap;">$${item.unit_price.toFixed(2)}</td>
+            <td style="padding: 10px 8px; border-bottom: 1px solid #eee; text-align: right; font-weight: 600; color: #333; font-size: 14px; white-space: nowrap;">$${(item.quantity * item.unit_price).toFixed(2)}</td>
           </tr>
         `).join('')
       : '';
 
+    // Mobile-first, fully responsive email template
     const emailHtml = `
       <!DOCTYPE html>
-      <html>
+      <html lang="en">
         <head>
           <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+          <meta http-equiv="X-UA-Compatible" content="IE=edge">
           <title>${docLabel} ${invoice_number}</title>
+          <!--[if mso]>
+          <noscript>
+            <xml>
+              <o:OfficeDocumentSettings>
+                <o:PixelsPerInch>96</o:PixelsPerInch>
+              </o:OfficeDocumentSettings>
+            </xml>
+          </noscript>
+          <![endif]-->
+          <style type="text/css">
+            /* Reset styles */
+            body, table, td, p, a, li, blockquote { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+            table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+            img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+            body { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+            
+            /* Mobile styles */
+            @media only screen and (max-width: 600px) {
+              .email-container { width: 100% !important; max-width: 100% !important; }
+              .mobile-padding { padding: 20px 16px !important; }
+              .mobile-stack { display: block !important; width: 100% !important; }
+              .mobile-center { text-align: center !important; }
+              .mobile-full-width { width: 100% !important; }
+              .header-amount { font-size: 28px !important; }
+              .table-responsive { font-size: 13px !important; }
+              .table-responsive td { padding: 8px 6px !important; }
+              .hide-mobile { display: none !important; }
+            }
+          </style>
         </head>
-        <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f5f5f5;">
-          <div style="max-width: 650px; margin: 0 auto; padding: 40px 20px;">
-            <div style="background-color: white; border-radius: 12px; padding: 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-              <div style="text-align: center; margin-bottom: 30px;">
-                <h1 style="color: #228B22; margin: 0; font-size: 28px;">${business_name || 'HonestInvoice'}</h1>
-                <p style="color: #666; margin: 10px 0 0 0;">Professional ${docLabel}</p>
-              </div>
-              
-              <div style="background: linear-gradient(135deg, ${isEstimate ? '#2563eb' : '#228B22'} 0%, ${isEstimate ? '#1d4ed8' : '#1e7a1e'} 100%); color: white; padding: 25px; border-radius: 8px; margin-bottom: 25px;">
-                <h2 style="margin: 0 0 10px 0; font-size: 22px;">${docLabel} ${invoice_number}</h2>
-                <p style="margin: 0; font-size: 32px; font-weight: bold;">$${total_amount.toFixed(2)}</p>
-                <p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.9;">${isEstimate ? 'Estimated Total' : `Due: ${dueDateText}`}</p>
-              </div>
-              
-              <p style="color: #333; font-size: 16px; line-height: 1.6;">
-                Hello ${client_name || 'there'},
-              </p>
-              
-              <p style="color: #333; font-size: 16px; line-height: 1.6;">
-                Please find your itemized ${docLabelLower} from <strong>${business_name || 'HonestInvoice'}</strong> below.
-              </p>
-              
-              ${job_description ? `
-                <div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #228B22;">
-                  <strong style="color: #333;">Job Summary:</strong>
-                  <p style="color: #666; margin: 8px 0 0 0;">${job_description}</p>
-                </div>
-              ` : ''}
-              
-              ${lineItems && lineItems.length > 0 ? `
-                <div style="margin: 25px 0;">
-                  <h3 style="color: #333; margin: 0 0 15px 0; font-size: 18px;">Itemized Breakdown</h3>
-                  <table style="width: 100%; border-collapse: collapse; border: 1px solid #eee; border-radius: 8px;">
-                    <thead>
-                      <tr style="background-color: #f9f9f9;">
-                        <th style="padding: 12px; text-align: left; font-weight: 600; color: #333; border-bottom: 2px solid #228B22;">Description</th>
-                        <th style="padding: 12px; text-align: center; font-weight: 600; color: #333; border-bottom: 2px solid #228B22;">Qty</th>
-                        <th style="padding: 12px; text-align: right; font-weight: 600; color: #333; border-bottom: 2px solid #228B22;">Price</th>
-                        <th style="padding: 12px; text-align: right; font-weight: 600; color: #333; border-bottom: 2px solid #228B22;">Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      ${lineItemsHtml}
-                    </tbody>
-                    <tfoot>
-                      <tr style="background-color: #f9f9f9;">
-                        <td colspan="3" style="padding: 12px; text-align: right; font-weight: 600; color: #333;">Subtotal:</td>
-                        <td style="padding: 12px; text-align: right; font-weight: 600; color: #333;">$${subtotal.toFixed(2)}</td>
-                      </tr>
-                      ${total_amount !== subtotal ? `
-                        <tr style="background-color: #f9f9f9;">
-                          <td colspan="3" style="padding: 12px; text-align: right; font-weight: 600; color: #666;">Tax:</td>
-                          <td style="padding: 12px; text-align: right; font-weight: 600; color: #666;">$${(total_amount - subtotal).toFixed(2)}</td>
-                        </tr>
-                      ` : ''}
-                      <tr style="background-color: #228B22;">
-                        <td colspan="3" style="padding: 15px; text-align: right; font-weight: 700; color: white; font-size: 16px;">Total Due:</td>
-                        <td style="padding: 15px; text-align: right; font-weight: 700; color: white; font-size: 18px;">$${total_amount.toFixed(2)}</td>
-                      </tr>
-                    </tfoot>
-                  </table>
-                </div>
-              ` : `
-                <table style="width: 100%; border-collapse: collapse; margin: 25px 0;">
-                  <tr>
-                    <td style="padding: 12px 0; border-bottom: 1px solid #eee; color: #666;">${docLabel} Number:</td>
-                    <td style="padding: 12px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: 600; color: #333;">${invoice_number}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding: 12px 0; border-bottom: 1px solid #eee; color: #666;">${isEstimate ? 'Estimated Amount' : 'Amount Due'}:</td>
-                    <td style="padding: 12px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: 600; color: ${isEstimate ? '#2563eb' : '#228B22'};">$${total_amount.toFixed(2)}</td>
-                  </tr>
-                  ${!isEstimate ? `<tr>
-                    <td style="padding: 12px 0; color: #666;">Due Date:</td>
-                    <td style="padding: 12px 0; text-align: right; font-weight: 600; color: #333;">${dueDateText}</td>
-                  </tr>` : ''}
-                </table>
-              `}
-              
-              <p style="color: #666; font-size: 14px; line-height: 1.6; margin-top: 20px;">
-                Thank you for your business! If you have any questions about this invoice, please don't hesitate to reach out.
-              </p>
-              
-              ${feedbackToken ? `
-                <div style="text-align: center; margin-top: 25px; padding: 20px; background-color: #f9f9f9; border-radius: 8px;">
-                  <p style="color: #333; font-size: 14px; margin: 0 0 15px 0;">How was your experience?</p>
-                  <a href="https://honestinvoice.com/feedback?invoice=${invoice_id}&token=${feedbackToken}" style="display: inline-block; background-color: #228B22; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600;">Leave Feedback</a>
-                </div>
-              ` : ''}
-              
-              <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-                <p style="color: #999; font-size: 12px; margin: 0 0 8px 0;">
-                  Powered by <strong>HonestInvoice</strong> - Transparent invoicing made simple
-                </p>
-                <p style="color: #999; font-size: 11px; margin: 0;">
-                  <a href="https://honestinvoice.com" style="color: #228B22; text-decoration: none;">Visit Website</a>
-                  &nbsp;|&nbsp;
-                  <a href="mailto:support@honestinvoice.com" style="color: #228B22; text-decoration: none;">Contact Support</a>
-                  &nbsp;|&nbsp;
-                  <a href="https://honestinvoice.com/privacy" style="color: #228B22; text-decoration: none;">Privacy Policy</a>
-                </p>
-              </div>
-            </div>
+        <body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+          <!-- Preview text -->
+          <div style="display: none; max-height: 0; overflow: hidden;">
+            ${docLabel} ${invoice_number} - $${total_amount.toFixed(2)} from ${business_name || 'HonestInvoice'}
           </div>
+          
+          <!-- Main wrapper -->
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f5;">
+            <tr>
+              <td align="center" style="padding: 20px 10px;">
+                
+                <!-- Email container -->
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" class="email-container" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                  
+                  <!-- Header with branding -->
+                  <tr>
+                    <td class="mobile-padding" style="padding: 30px 40px; text-align: center; border-bottom: 1px solid #eee;">
+                      ${profile?.logo_url ? `
+                        <img src="${profile.logo_url}" alt="${business_name}" style="max-width: 150px; max-height: 60px; margin-bottom: 10px;">
+                      ` : `
+                        <h1 style="color: ${primaryColor}; margin: 0; font-size: 24px; font-weight: 700;">${business_name || 'HonestInvoice'}</h1>
+                      `}
+                      <p style="color: #666; margin: 8px 0 0 0; font-size: 14px;">Professional ${docLabel}</p>
+                    </td>
+                  </tr>
+                  
+                  <!-- Amount banner -->
+                  <tr>
+                    <td class="mobile-padding" style="padding: 0;">
+                      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                        <tr>
+                          <td style="background: linear-gradient(135deg, ${primaryColor} 0%, ${darkerColor} 100%); padding: 25px 30px; text-align: center;">
+                            <h2 style="color: #ffffff; margin: 0 0 8px 0; font-size: 18px; font-weight: 600;">${docLabel} ${invoice_number}</h2>
+                            <p class="header-amount" style="color: #ffffff; margin: 0; font-size: 36px; font-weight: 700;">$${total_amount.toFixed(2)}</p>
+                            <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 14px;">${isEstimate ? 'Estimated Total' : `Due: ${dueDateText}`}</p>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                  
+                  <!-- Content -->
+                  <tr>
+                    <td class="mobile-padding" style="padding: 30px 40px;">
+                      <p style="color: #333; font-size: 16px; line-height: 1.6; margin: 0 0 16px 0;">
+                        Hello ${client_name || 'there'},
+                      </p>
+                      
+                      <p style="color: #333; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                        Please find your itemized ${docLabelLower} from <strong>${business_name || 'HonestInvoice'}</strong> below.
+                      </p>
+                      
+                      ${job_description ? `
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 25px;">
+                          <tr>
+                            <td style="background-color: #f9f9f9; padding: 16px; border-radius: 8px; border-left: 4px solid ${primaryColor};">
+                              <strong style="color: #333; font-size: 14px;">Job Summary:</strong>
+                              <p style="color: #666; margin: 8px 0 0 0; font-size: 14px; line-height: 1.5;">${job_description}</p>
+                            </td>
+                          </tr>
+                        </table>
+                      ` : ''}
+                      
+                      ${lineItems && lineItems.length > 0 ? `
+                        <h3 style="color: #333; margin: 0 0 15px 0; font-size: 16px; font-weight: 600;">Itemized Breakdown</h3>
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="table-responsive" style="border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
+                          <thead>
+                            <tr style="background-color: #f9f9f9;">
+                              <th style="padding: 12px 8px; text-align: left; font-weight: 600; color: #333; border-bottom: 2px solid ${primaryColor}; font-size: 13px;">Description</th>
+                              <th style="padding: 12px 8px; text-align: center; font-weight: 600; color: #333; border-bottom: 2px solid ${primaryColor}; font-size: 13px; width: 50px;">Qty</th>
+                              <th style="padding: 12px 8px; text-align: right; font-weight: 600; color: #333; border-bottom: 2px solid ${primaryColor}; font-size: 13px; width: 70px;">Price</th>
+                              <th style="padding: 12px 8px; text-align: right; font-weight: 600; color: #333; border-bottom: 2px solid ${primaryColor}; font-size: 13px; width: 80px;">Total</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            ${lineItemsHtml}
+                          </tbody>
+                          <tfoot>
+                            <tr style="background-color: #f9f9f9;">
+                              <td colspan="3" style="padding: 12px 8px; text-align: right; font-weight: 600; color: #333; font-size: 14px;">Subtotal:</td>
+                              <td style="padding: 12px 8px; text-align: right; font-weight: 600; color: #333; font-size: 14px;">$${subtotal.toFixed(2)}</td>
+                            </tr>
+                            ${total_amount !== subtotal ? `
+                              <tr style="background-color: #f9f9f9;">
+                                <td colspan="3" style="padding: 10px 8px; text-align: right; font-weight: 500; color: #666; font-size: 14px;">Tax:</td>
+                                <td style="padding: 10px 8px; text-align: right; font-weight: 500; color: #666; font-size: 14px;">$${(total_amount - subtotal).toFixed(2)}</td>
+                              </tr>
+                            ` : ''}
+                            <tr style="background-color: ${primaryColor};">
+                              <td colspan="3" style="padding: 14px 8px; text-align: right; font-weight: 700; color: #ffffff; font-size: 15px;">Total ${isEstimate ? 'Estimate' : 'Due'}:</td>
+                              <td style="padding: 14px 8px; text-align: right; font-weight: 700; color: #ffffff; font-size: 17px;">$${total_amount.toFixed(2)}</td>
+                            </tr>
+                          </tfoot>
+                        </table>
+                      ` : `
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0;">
+                          <tr>
+                            <td style="padding: 12px 0; border-bottom: 1px solid #eee; color: #666; font-size: 14px;">${docLabel} Number:</td>
+                            <td style="padding: 12px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: 600; color: #333; font-size: 14px;">${invoice_number}</td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 12px 0; border-bottom: 1px solid #eee; color: #666; font-size: 14px;">${isEstimate ? 'Estimated Amount' : 'Amount Due'}:</td>
+                            <td style="padding: 12px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: 600; color: ${primaryColor}; font-size: 14px;">$${total_amount.toFixed(2)}</td>
+                          </tr>
+                          ${!isEstimate ? `<tr>
+                            <td style="padding: 12px 0; color: #666; font-size: 14px;">Due Date:</td>
+                            <td style="padding: 12px 0; text-align: right; font-weight: 600; color: #333; font-size: 14px;">${dueDateText}</td>
+                          </tr>` : ''}
+                        </table>
+                      `}
+                      
+                      <p style="color: #666; font-size: 14px; line-height: 1.6; margin: 25px 0 0 0;">
+                        Thank you for your business! If you have any questions, please don't hesitate to reach out.
+                      </p>
+                      
+                      ${profile?.phone || profile?.email ? `
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top: 15px;">
+                          <tr>
+                            <td style="color: #666; font-size: 13px;">
+                              ${profile?.phone ? `<span>📞 ${profile.phone}</span>` : ''}
+                              ${profile?.phone && profile?.email ? ` &nbsp;|&nbsp; ` : ''}
+                              ${profile?.email ? `<span>✉️ ${profile.email}</span>` : ''}
+                            </td>
+                          </tr>
+                        </table>
+                      ` : ''}
+                    </td>
+                  </tr>
+                  
+                  ${feedbackToken ? `
+                    <!-- Feedback CTA -->
+                    <tr>
+                      <td class="mobile-padding" style="padding: 0 40px 30px 40px;">
+                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                          <tr>
+                            <td style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; text-align: center;">
+                              <p style="color: #333; font-size: 14px; margin: 0 0 15px 0;">How was your experience?</p>
+                              <a href="https://honestinvoice.com/feedback?invoice=${invoice_id}&token=${feedbackToken}" style="display: inline-block; background-color: ${primaryColor}; color: #ffffff; padding: 12px 28px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 14px;">Leave Feedback</a>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  ` : ''}
+                  
+                  <!-- Footer -->
+                  <tr>
+                    <td style="padding: 20px 30px; background-color: #f9f9f9; border-top: 1px solid #eee; text-align: center;">
+                      <p style="color: #999; font-size: 12px; margin: 0 0 8px 0;">
+                        Powered by <strong style="color: ${primaryColor};">HonestInvoice</strong> — Transparent invoicing made simple
+                      </p>
+                      <p style="color: #999; font-size: 11px; margin: 0;">
+                        <a href="https://honestinvoice.com" style="color: ${primaryColor}; text-decoration: none;">Website</a>
+                        &nbsp;•&nbsp;
+                        <a href="mailto:support@honestinvoice.com" style="color: ${primaryColor}; text-decoration: none;">Support</a>
+                        &nbsp;•&nbsp;
+                        <a href="https://honestinvoice.com/privacy" style="color: ${primaryColor}; text-decoration: none;">Privacy</a>
+                      </p>
+                    </td>
+                  </tr>
+                  
+                </table>
+              </td>
+            </tr>
+          </table>
         </body>
       </html>
     `;
@@ -297,3 +398,22 @@ serve(async (req) => {
     });
   }
 });
+
+// Helper function to adjust color brightness
+function adjustColorBrightness(hex: string, percent: number): string {
+  // Remove # if present
+  hex = hex.replace(/^#/, '');
+  
+  // Parse the hex color
+  let r = parseInt(hex.substring(0, 2), 16);
+  let g = parseInt(hex.substring(2, 4), 16);
+  let b = parseInt(hex.substring(4, 6), 16);
+  
+  // Adjust brightness
+  r = Math.max(0, Math.min(255, r + (r * percent / 100)));
+  g = Math.max(0, Math.min(255, g + (g * percent / 100)));
+  b = Math.max(0, Math.min(255, b + (b * percent / 100)));
+  
+  // Convert back to hex
+  return `#${Math.round(r).toString(16).padStart(2, '0')}${Math.round(g).toString(16).padStart(2, '0')}${Math.round(b).toString(16).padStart(2, '0')}`;
+}

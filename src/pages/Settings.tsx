@@ -50,6 +50,7 @@ export default function Settings() {
     address: '',
     tax_rate: 0,
     brand_color: '#228B22',
+    estimate_color: '#2563eb',
     logo_url: '',
   });
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
@@ -64,6 +65,7 @@ export default function Settings() {
         address: profile.address || '',
         tax_rate: profile.tax_rate || 0,
         brand_color: profile.brand_color || '#228B22',
+        estimate_color: (profile as any).estimate_color || '#2563eb',
         logo_url: profile.logo_url || '',
       });
     }
@@ -124,8 +126,9 @@ export default function Settings() {
         address: formData.address || null,
         tax_rate: formData.tax_rate,
         brand_color: subscription.subscribed ? formData.brand_color : null,
+        estimate_color: subscription.subscribed ? formData.estimate_color : null,
         logo_url: subscription.subscribed ? formData.logo_url || null : null,
-      });
+      } as any);
     } catch (error) {
       // Error handled by mutation
     }
@@ -240,7 +243,7 @@ export default function Settings() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Palette className="h-5 w-5 text-primary" />
-              Custom Branding
+              Document Branding
               {!subscription.subscribed && (
                 <Badge variant="outline" className="ml-2 gap-1">
                   <Lock className="h-3 w-3" />
@@ -249,13 +252,13 @@ export default function Settings() {
               )}
             </CardTitle>
             <CardDescription>
-              Customize your invoice appearance with your brand colors
+              Create a premium, professional look with fully customizable colors for your invoices and estimates
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Logo Upload */}
             <div className="space-y-3">
-              <Label>Business Logo</Label>
+              <Label className="text-base font-semibold">Business Logo</Label>
               <div className="flex items-center gap-4">
                 {formData.logo_url ? (
                   <div className="relative h-20 w-20 overflow-hidden rounded-lg border bg-muted">
@@ -305,16 +308,20 @@ export default function Settings() {
                   <p className="text-xs text-muted-foreground">PNG, JPG up to 2MB</p>
                 </div>
               </div>
-              {!subscription.subscribed && (
-                <p className="text-sm text-muted-foreground">
-                  Upgrade to Pro to add your logo to invoices and PDFs.
-                </p>
-              )}
             </div>
 
-            {/* Brand Color */}
-            <div className="space-y-3">
-              <Label>Brand Color</Label>
+            {/* Invoice Color */}
+            <div className="space-y-3 rounded-lg border p-4" style={{ borderColor: formData.brand_color + '40' }}>
+              <div className="flex items-center gap-3">
+                <div 
+                  className="h-6 w-6 rounded-full shadow-inner" 
+                  style={{ backgroundColor: formData.brand_color }}
+                />
+                <Label className="text-base font-semibold">Invoice Color</Label>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                This color will appear on invoice headers, buttons, and accents
+              </p>
               <div className="grid grid-cols-4 gap-3">
                 {BRAND_COLORS.map((color) => (
                   <button
@@ -340,17 +347,8 @@ export default function Settings() {
                   </button>
                 ))}
               </div>
-              {!subscription.subscribed && (
-                <p className="text-sm text-muted-foreground">
-                  Upgrade to Pro to customize your brand colors on invoices and emails.
-                </p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="custom_color">Or enter a custom color</Label>
               <div className="flex gap-2">
                 <Input
-                  id="custom_color"
                   type="color"
                   disabled={!subscription.subscribed}
                   value={formData.brand_color}
@@ -366,6 +364,104 @@ export default function Settings() {
                 />
               </div>
             </div>
+
+            {/* Estimate Color */}
+            <div className="space-y-3 rounded-lg border p-4" style={{ borderColor: formData.estimate_color + '40' }}>
+              <div className="flex items-center gap-3">
+                <div 
+                  className="h-6 w-6 rounded-full shadow-inner" 
+                  style={{ backgroundColor: formData.estimate_color }}
+                />
+                <Label className="text-base font-semibold">Estimate Color</Label>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                This color will appear on estimate headers, buttons, and accents
+              </p>
+              <div className="grid grid-cols-4 gap-3">
+                {BRAND_COLORS.map((color) => (
+                  <button
+                    key={color.value}
+                    type="button"
+                    disabled={!subscription.subscribed}
+                    onClick={() => setFormData({ ...formData, estimate_color: color.value })}
+                    className={`
+                      relative h-12 rounded-lg border-2 transition-all duration-200
+                      ${formData.estimate_color === color.value 
+                        ? 'border-foreground ring-2 ring-foreground ring-offset-2' 
+                        : 'border-transparent hover:border-muted-foreground/50'}
+                      ${!subscription.subscribed ? 'cursor-not-allowed' : 'cursor-pointer'}
+                    `}
+                    style={{ backgroundColor: color.value }}
+                    title={color.name}
+                  >
+                    {formData.estimate_color === color.value && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="h-3 w-3 rounded-full bg-white shadow-md" />
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  type="color"
+                  disabled={!subscription.subscribed}
+                  value={formData.estimate_color}
+                  onChange={(e) => setFormData({ ...formData, estimate_color: e.target.value })}
+                  className="h-10 w-16 cursor-pointer p-1"
+                />
+                <Input
+                  placeholder="#2563eb"
+                  disabled={!subscription.subscribed}
+                  value={formData.estimate_color}
+                  onChange={(e) => setFormData({ ...formData, estimate_color: e.target.value })}
+                  className="flex-1"
+                />
+              </div>
+            </div>
+
+            {!subscription.subscribed && (
+              <div className="rounded-lg bg-muted/50 p-4 text-center">
+                <Lock className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                <p className="text-sm font-medium text-foreground">Unlock Premium Branding</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Upgrade to Pro to customize your logo, invoice colors, and estimate colors for a professional, branded experience.
+                </p>
+              </div>
+            )}
+
+            {/* Live Preview */}
+            {subscription.subscribed && (
+              <div className="space-y-3 pt-2">
+                <Label className="text-base font-semibold">Live Preview</Label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="rounded-lg border overflow-hidden">
+                    <div 
+                      className="p-3 text-white text-center text-sm font-semibold"
+                      style={{ backgroundColor: formData.brand_color }}
+                    >
+                      Invoice Preview
+                    </div>
+                    <div className="p-3 bg-card text-xs text-muted-foreground">
+                      <p>INV-00001</p>
+                      <p className="font-bold text-foreground mt-1">$1,250.00</p>
+                    </div>
+                  </div>
+                  <div className="rounded-lg border overflow-hidden">
+                    <div 
+                      className="p-3 text-white text-center text-sm font-semibold"
+                      style={{ backgroundColor: formData.estimate_color }}
+                    >
+                      Estimate Preview
+                    </div>
+                    <div className="p-3 bg-card text-xs text-muted-foreground">
+                      <p>EST-00001</p>
+                      <p className="font-bold text-foreground mt-1">$1,250.00</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 

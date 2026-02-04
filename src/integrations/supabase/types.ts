@@ -186,6 +186,7 @@ export type Database = {
           business_name: string | null
           created_at: string
           email: string | null
+          estimate_color: string | null
           id: string
           logo_url: string | null
           phone: string | null
@@ -201,6 +202,7 @@ export type Database = {
           business_name?: string | null
           created_at?: string
           email?: string | null
+          estimate_color?: string | null
           id: string
           logo_url?: string | null
           phone?: string | null
@@ -216,6 +218,7 @@ export type Database = {
           business_name?: string | null
           created_at?: string
           email?: string | null
+          estimate_color?: string | null
           id?: string
           logo_url?: string | null
           phone?: string | null
