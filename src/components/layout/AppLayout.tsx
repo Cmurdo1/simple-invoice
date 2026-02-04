@@ -80,10 +80,10 @@ export function AppLayout({ children }: AppLayoutProps) {
                   key={item.href}
                   to={item.href}
                   className={cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
                     isActive
-                      ? 'bg-sidebar-primary text-sidebar-primary-foreground'
-                      : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+                      ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-[0_0_15px_hsl(142_72%_50%_/_0.4)]'
+                      : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_20px_hsl(142_72%_50%_/_0.3)] hover:translate-x-1'
                   )}
                 >
                   <Icon className="h-5 w-5" />
@@ -128,7 +128,12 @@ export function AppLayout({ children }: AppLayoutProps) {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 z-30 bg-background pt-16 lg:hidden">
+        <div 
+          className="fixed inset-0 z-30 pt-16 lg:hidden"
+          style={{
+            background: 'linear-gradient(135deg, hsl(var(--background)) 0%, hsl(220 25% 12%) 50%, hsl(142 72% 20% / 0.3) 100%)'
+          }}
+        >
           <nav className="space-y-1 p-4">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -139,10 +144,10 @@ export function AppLayout({ children }: AppLayoutProps) {
                   to={item.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium transition-colors',
+                    'flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium transition-all duration-200',
                     isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-foreground hover:bg-accent'
+                      ? 'bg-primary text-primary-foreground shadow-[0_0_15px_hsl(142_72%_50%_/_0.4)]'
+                      : 'text-foreground hover:bg-accent hover:shadow-[0_0_20px_hsl(142_72%_50%_/_0.3)]'
                   )}
                 >
                   <Icon className="h-5 w-5" />
@@ -163,8 +168,16 @@ export function AppLayout({ children }: AppLayoutProps) {
       )}
 
       {/* Main Content */}
-      <main className="pt-16 lg:ml-64 lg:pt-0">
-        <div className="min-h-screen p-4 lg:p-8">{children}</div>
+      <main 
+        className="pt-16 lg:ml-64 lg:pt-0"
+        style={{
+          background: 'linear-gradient(135deg, hsl(var(--background)) 0%, hsl(220 25% 12%) 50%, hsl(142 72% 20% / 0.3) 100%)'
+        }}
+      >
+        <div className="relative min-h-screen p-4 lg:p-8">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_hsl(142_72%_42%_/_0.08),_transparent_50%)]" />
+          <div className="relative">{children}</div>
+        </div>
       </main>
     </div>
   );
