@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import logoLight from '@/assets/honest-invoice-logo.png';
 import logoDark from '@/assets/honest-invoice-logo-dark.png';
 import { useTheme } from '@/contexts/ThemeContext';
+import { SEOHead } from '@/components/seo/SEOHead';
 
 export default function Privacy() {
   const { resolvedTheme } = useTheme();
@@ -12,6 +13,13 @@ export default function Privacy() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEOHead
+        title="Privacy Policy"
+        description="Learn how Honest Invoice collects, uses, and protects your data. We're committed to transparency and your privacy. Read our full privacy policy."
+        keywords="privacy policy, data protection, invoicing privacy, data security, GDPR compliance"
+        canonicalUrl="/privacy"
+        noIndex={false}
+      />
       {/* Header */}
       <header className="border-b">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
