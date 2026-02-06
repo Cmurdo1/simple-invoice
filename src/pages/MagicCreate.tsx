@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,11 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { useClients } from '@/hooks/useClients';
 import { useCreateInvoice, useAddInvoiceItems, useRecalculateInvoiceTotals } from '@/hooks/useInvoices';
-import { useProfile } from '@/hooks/useProfile';
+import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
-import { Loader2, Wand2, Sparkles, ArrowRight, Mic, MicOff } from 'lucide-react';
+import { useGeolocation, getColMultiplierLabel } from '@/hooks/useGeolocation';
+import { Loader2, Wand2, Sparkles, ArrowRight, Mic, MicOff, MapPin, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { ExtractedLineItem } from '@/types/database';
 import { cn } from '@/lib/utils';
@@ -19,15 +21,35 @@ export default function MagicCreate() {
   const navigate = useNavigate();
   const { data: clients } = useClients();
   const { data: profile } = useProfile();
+  const updateProfile = useUpdateProfile();
   const createInvoice = useCreateInvoice();
   const addInvoiceItems = useAddInvoiceItems();
   const recalculateTotals = useRecalculateInvoiceTotals();
+  const { location, isLoading: isDetectingLocation, detectLocation } = useGeolocation();
 
   const [jobDescription, setJobDescription] = useState('');
   const [selectedClientId, setSelectedClientId] = useState<string>('');
   const [extracting, setExtracting] = useState(false);
   const [extractedItems, setExtractedItems] = useState<ExtractedLineItem[] | null>(null);
   const [creating, setCreating] = useState(false);
+
+  // Auto-detect location on first load if not already set in profile
+  useEffect(() => {
+    if (profile && !profile.city && !profile.state) {
+      detectLocation().then((loc) => {
+        if (loc) {
+          // Save to profile
+          updateProfile.mutate({
+            city: loc.city || null,
+            state: loc.state || null,
+            zip_code: loc.zipCode || null,
+            country: loc.country || null,
+            col_multiplier: loc.colMultiplier || 1.0,
+          });
+        }
+      });
+    }
+  }, [profile?.id]);
 
   const { isListening, isSupported, toggleListening } = useSpeechRecognition({
     onResult: (transcript) => {
@@ -45,6 +67,29 @@ export default function MagicCreate() {
     },
   });
 
+  // Get current location string for display
+  const currentLocation = profile?.city && profile?.state 
+    ? `${profile.city}, ${profile.state}` 
+    : location?.city && location?.state 
+      ? `${location.city}, ${location.state}`
+      : null;
+  
+  const currentColMultiplier = profile?.col_multiplier || location?.colMultiplier || 1.0;
+
+  const handleRefreshLocation = async () => {
+    const loc = await detectLocation();
+    if (loc) {
+      updateProfile.mutate({
+        city: loc.city || null,
+        state: loc.state || null,
+        zip_code: loc.zipCode || null,
+        country: loc.country || null,
+        col_multiplier: loc.colMultiplier || 1.0,
+      });
+      toast.success(`Location updated to ${loc.city}, ${loc.state}`);
+    }
+  };
+
   const handleExtract = async () => {
     if (!jobDescription.trim()) {
       toast.error('Please enter a job description');
@@ -55,6 +100,9 @@ export default function MagicCreate() {
     setExtractedItems(null);
 
     try {
+      // Build location string for pricing context
+      const locationStr = currentLocation || 'United States (national average)';
+      
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/extract-line-items`,
         {
@@ -63,7 +111,11 @@ export default function MagicCreate() {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
-          body: JSON.stringify({ job_description: jobDescription }),
+          body: JSON.stringify({ 
+            job_description: jobDescription,
+            col_multiplier: currentColMultiplier,
+            location: locationStr,
+          }),
         }
       );
 
@@ -73,7 +125,11 @@ export default function MagicCreate() {
 
       const data = await response.json();
       setExtractedItems(data.items);
-      toast.success(`Extracted ${data.items.length} line items`);
+      
+      const colNote = currentColMultiplier !== 1.0 
+        ? ` (${currentColMultiplier}x regional pricing applied)`
+        : '';
+      toast.success(`Extracted ${data.items.length} line items${colNote}`);
     } catch (error) {
       console.error('Extraction error:', error);
       toast.error('Failed to extract items. Please try again.');
@@ -138,6 +194,48 @@ export default function MagicCreate() {
             Describe the job and let AI extract the line items for you
           </p>
         </div>
+
+        {/* Location Card */}
+        <Card>
+          <CardContent className="flex items-center justify-between py-4">
+            <div className="flex items-center gap-3">
+              <MapPin className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium">
+                  {currentLocation ? (
+                    <>
+                      {currentLocation}
+                      <Badge variant="secondary" className="ml-2">
+                        {getColMultiplierLabel(currentColMultiplier)} ({currentColMultiplier}x)
+                      </Badge>
+                    </>
+                  ) : (
+                    <span className="text-muted-foreground">Location not set</span>
+                  )}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {currentLocation 
+                    ? 'Prices adjusted for your region' 
+                    : 'Detect location for accurate regional pricing'}
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefreshLocation}
+              disabled={isDetectingLocation}
+              className="gap-2"
+            >
+              {isDetectingLocation ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              {currentLocation ? 'Update' : 'Detect'}
+            </Button>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>

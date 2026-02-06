@@ -5,7 +5,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const DECOMPOSITION_PROMPT = `You are an expert contractor estimator specializing in work breakdown structures (WBS).
+// Build dynamic prompt based on COL multiplier
+function buildDecompositionPrompt(colMultiplier: number, location: string): string {
+  const colAdjustment = colMultiplier !== 1.0 
+    ? `\n\n## REGIONAL PRICING ADJUSTMENT:\nThe customer is located in ${location} with a Cost of Living multiplier of ${colMultiplier}x.\n**IMPORTANT**: Multiply ALL prices (labor and materials) by ${colMultiplier} to reflect regional costs.\nFor example: If national average labor is $85/hr, use $${Math.round(85 * colMultiplier)}/hr for this region.`
+    : '';
+
+  return `You are an expert contractor estimator specializing in work breakdown structures (WBS).
 
 Your task is to DECOMPOSE job descriptions into granular, auditable line items following industry best practices.
 
@@ -24,7 +30,7 @@ Your task is to DECOMPOSE job descriptions into granular, auditable line items f
 □ Disposal/Cleanup fees
 □ Travel/Mobilization if applicable
 
-## PRICING GUIDELINES (2024 rates, adjust for complexity):
+## BASE PRICING GUIDELINES (2024 national average rates):
 
 **Labor Rates (per hour):**
 - General labor/helper: $45-65
@@ -47,30 +53,38 @@ Your task is to DECOMPOSE job descriptions into granular, auditable line items f
 - Minimum service call: $75-150
 - Disposal fee: $50-150 per load
 - Permit fees: varies by jurisdiction
+${colAdjustment}
 
 ## OUTPUT FORMAT:
 Return ONLY a valid JSON array. Each item must have:
 - description: Detailed description with WHAT + WHERE + specifications
 - quantity: Number (hours, units, sq ft, etc.)
-- unit_price: Price per unit in USD
+- unit_price: Price per unit in USD (already adjusted for regional pricing)
 
 ## SELF-AUDIT BEFORE RESPONDING:
 1. Did I separate ALL materials from labor?
 2. Did I include disposal/cleanup if there's removal?
 3. Did I account for prep work and protection?
 4. Are my quantities realistic (not underestimated)?
-5. Did I include minimum service charges if job is small?`;
+5. Did I include minimum service charges if job is small?
+6. Did I apply the regional pricing multiplier (${colMultiplier}x) to all prices?`;
+}
 
-const AUDIT_PROMPT = `You are a senior estimator auditing a junior estimator's work breakdown.
+function buildAuditPrompt(colMultiplier: number, location: string): string {
+  const regionalNote = colMultiplier !== 1.0 
+    ? `\n6. **Regional Pricing** - Are prices adjusted for the ${location} region (${colMultiplier}x multiplier)?`
+    : '';
+
+  return `You are a senior estimator auditing a junior estimator's work breakdown.
 
 Review this estimate for COMPLETENESS and ACCURACY:
 
 ## AUDIT CHECKLIST:
 1. **Missing Items** - Are there obvious items the junior missed?
 2. **Underestimated Quantities** - Are quantities realistic?
-3. **Price Accuracy** - Are prices within market range?
+3. **Price Accuracy** - Are prices within market range for the region?
 4. **Labor Time** - Is labor time sufficient for the scope?
-5. **Hidden Costs** - Disposal, prep, cleanup, permits included?
+5. **Hidden Costs** - Disposal, prep, cleanup, permits included?${regionalNote}
 
 ## COMMON MISTAKES TO CATCH:
 - Forgetting disposal fees for removal jobs
@@ -78,11 +92,13 @@ Review this estimate for COMPLETENESS and ACCURACY:
 - Missing materials (fasteners, connectors, tape, etc.)
 - No minimum service charge for small jobs
 - Forgetting prep/protection time
+${colMultiplier !== 1.0 ? `- Not applying the ${colMultiplier}x regional pricing multiplier` : ''}
 
 If the estimate is good, return it unchanged.
 If there are issues, add the missing items or adjust quantities/prices.
 
 Return ONLY the corrected JSON array.`;
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -90,7 +106,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { job_description } = await req.json();
+    const { job_description, col_multiplier, location } = await req.json();
 
     if (!job_description) {
       return new Response(
@@ -104,6 +120,16 @@ Deno.serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
+    // Use provided COL multiplier or default to 1.0 (national average)
+    const colMultiplier = typeof col_multiplier === 'number' && col_multiplier > 0 ? col_multiplier : 1.0;
+    const locationStr = location || 'United States (national average)';
+    
+    console.log(`Processing with COL multiplier: ${colMultiplier} for location: ${locationStr}`);
+
+    // Build dynamic prompts based on location
+    const decompositionPrompt = buildDecompositionPrompt(colMultiplier, locationStr);
+    const auditPrompt = buildAuditPrompt(colMultiplier, locationStr);
+
     // Step 1: Initial decomposition with reasoning
     console.log('Step 1: Decomposing job description...');
     const decompositionResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -115,7 +141,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
-          { role: 'system', content: DECOMPOSITION_PROMPT },
+          { role: 'system', content: decompositionPrompt },
           { role: 'user', content: `Decompose this job into line items:\n\n${job_description}` }
         ],
         temperature: 0.2,
@@ -159,10 +185,10 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
-          { role: 'system', content: AUDIT_PROMPT },
+          { role: 'system', content: auditPrompt },
           { 
             role: 'user', 
-            content: `Original job description:\n${job_description}\n\nInitial estimate to audit:\n${JSON.stringify(items, null, 2)}` 
+            content: `Original job description:\n${job_description}\n\nLocation: ${locationStr} (COL: ${colMultiplier}x)\n\nInitial estimate to audit:\n${JSON.stringify(items, null, 2)}` 
           }
         ],
         temperature: 0.1,
@@ -200,7 +226,9 @@ Deno.serve(async (req) => {
       JSON.stringify({ 
         items: validatedItems,
         item_count: validatedItems.length,
-        subtotal: validatedItems.reduce((sum: number, item: any) => sum + (item.quantity * item.unit_price), 0)
+        subtotal: validatedItems.reduce((sum: number, item: any) => sum + (item.quantity * item.unit_price), 0),
+        col_multiplier_applied: colMultiplier,
+        location: locationStr,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
