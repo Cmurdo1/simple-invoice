@@ -346,39 +346,101 @@ export default function MagicCreate() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Regional Pricing Summary */}
+              {currentColMultiplier !== 1.0 && (
+                <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-primary" />
+                        Regional Pricing Applied
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {currentLocation} ({currentColMultiplier}x multiplier)
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-muted-foreground">National Average</p>
+                      <p className="text-sm line-through text-muted-foreground">
+                        ${(estimatedTotal / currentColMultiplier).toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div className="rounded-lg border">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b bg-muted/50">
                       <th className="p-3 text-left text-sm font-medium">Description</th>
                       <th className="p-3 text-right text-sm font-medium">Qty</th>
-                      <th className="p-3 text-right text-sm font-medium">Price</th>
+                      <th className="p-3 text-right text-sm font-medium">
+                        {currentColMultiplier !== 1.0 ? (
+                          <span className="flex flex-col items-end">
+                            <span>Regional</span>
+                            <span className="text-xs font-normal text-muted-foreground">(Nat'l Avg)</span>
+                          </span>
+                        ) : (
+                          'Price'
+                        )}
+                      </th>
                       <th className="p-3 text-right text-sm font-medium">Total</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {extractedItems.map((item, index) => (
-                      <tr key={index} className="border-b last:border-0">
-                        <td className="p-3 text-sm">{item.description}</td>
-                        <td className="p-3 text-right text-sm">{item.quantity}</td>
-                        <td className="p-3 text-right text-sm">
-                          ${item.unit_price.toFixed(2)}
-                        </td>
-                        <td className="p-3 text-right text-sm font-medium">
-                          ${(item.quantity * item.unit_price).toFixed(2)}
-                        </td>
-                      </tr>
-                    ))}
+                    {extractedItems.map((item, index) => {
+                      const nationalPrice = currentColMultiplier !== 1.0 
+                        ? item.unit_price / currentColMultiplier 
+                        : null;
+                      return (
+                        <tr key={index} className="border-b last:border-0">
+                          <td className="p-3 text-sm">{item.description}</td>
+                          <td className="p-3 text-right text-sm">{item.quantity}</td>
+                          <td className="p-3 text-right text-sm">
+                            <span>${item.unit_price.toFixed(2)}</span>
+                            {nationalPrice && (
+                              <span className="block text-xs text-muted-foreground line-through">
+                                ${nationalPrice.toFixed(2)}
+                              </span>
+                            )}
+                          </td>
+                          <td className="p-3 text-right text-sm font-medium">
+                            ${(item.quantity * item.unit_price).toFixed(2)}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                   <tfoot>
+                    {currentColMultiplier !== 1.0 && (
+                      <tr className="border-t">
+                        <td colSpan={3} className="p-3 text-right text-sm text-muted-foreground">
+                          National Average Subtotal
+                        </td>
+                        <td className="p-3 text-right text-sm text-muted-foreground line-through">
+                          ${(estimatedTotal / currentColMultiplier).toFixed(2)}
+                        </td>
+                      </tr>
+                    )}
                     <tr className="bg-muted/50">
                       <td colSpan={3} className="p-3 text-right font-medium">
-                        Subtotal
+                        {currentColMultiplier !== 1.0 ? 'Regional Subtotal' : 'Subtotal'}
                       </td>
                       <td className="p-3 text-right font-bold">
                         ${estimatedTotal.toFixed(2)}
                       </td>
                     </tr>
+                    {currentColMultiplier !== 1.0 && (
+                      <tr>
+                        <td colSpan={4} className="p-3 text-center">
+                          <Badge variant="secondary" className="gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {currentColMultiplier > 1 ? '+' : ''}{((currentColMultiplier - 1) * 100).toFixed(0)}% regional adjustment
+                          </Badge>
+                        </td>
+                      </tr>
+                    )}
                   </tfoot>
                 </table>
               </div>

@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,12 +18,23 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
-import { Loader2, Save, Building2, Percent, Palette, Lock, Upload, X, Image as ImageIcon, FileText, ExternalLink, Trash2, AlertTriangle } from 'lucide-react';
+import { useGeolocation, getColMultiplierLabel } from '@/hooks/useGeolocation';
+import { Loader2, Save, Building2, Percent, Palette, Lock, Upload, X, Image as ImageIcon, FileText, ExternalLink, Trash2, AlertTriangle, MapPin, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { SubscriptionCard } from '@/components/subscription/SubscriptionCard';
 import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
+
+const US_STATES = [
+  'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware',
+  'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky',
+  'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi',
+  'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico',
+  'New York', 'North Carolina', 'North Dakota', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania',
+  'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont',
+  'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'
+];
 
 const BRAND_COLORS = [
   { name: 'Forest Green', value: '#228B22' },
@@ -43,6 +55,8 @@ export default function Settings() {
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
+  const { location: detectedLocation, isLoading: isDetectingLocation, detectLocation } = useGeolocation();
+
   const [formData, setFormData] = useState({
     business_name: '',
     email: '',
@@ -52,6 +66,10 @@ export default function Settings() {
     brand_color: '#228B22',
     estimate_color: '#2563eb',
     logo_url: '',
+    city: '',
+    state: '',
+    zip_code: '',
+    col_multiplier: 1.0,
   });
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -67,6 +85,10 @@ export default function Settings() {
         brand_color: profile.brand_color || '#228B22',
         estimate_color: (profile as any).estimate_color || '#2563eb',
         logo_url: profile.logo_url || '',
+        city: (profile as any).city || '',
+        state: (profile as any).state || '',
+        zip_code: (profile as any).zip_code || '',
+        col_multiplier: (profile as any).col_multiplier || 1.0,
       });
     }
   }, [profile]);
@@ -117,6 +139,20 @@ export default function Settings() {
     setFormData({ ...formData, logo_url: '' });
   };
 
+  const handleDetectLocation = async () => {
+    const loc = await detectLocation();
+    if (loc) {
+      setFormData(prev => ({
+        ...prev,
+        city: loc.city || '',
+        state: loc.state || '',
+        zip_code: loc.zipCode || '',
+        col_multiplier: loc.colMultiplier || 1.0,
+      }));
+      toast.success(`Location detected: ${loc.city}, ${loc.state}`);
+    }
+  };
+
   const handleSave = async () => {
     try {
       await updateProfile.mutateAsync({
@@ -128,6 +164,10 @@ export default function Settings() {
         brand_color: subscription.subscribed ? formData.brand_color : null,
         estimate_color: subscription.subscribed ? formData.estimate_color : null,
         logo_url: subscription.subscribed ? formData.logo_url || null : null,
+        city: formData.city || null,
+        state: formData.state || null,
+        zip_code: formData.zip_code || null,
+        col_multiplier: formData.col_multiplier,
       } as any);
     } catch (error) {
       // Error handled by mutation
@@ -462,6 +502,118 @@ export default function Settings() {
                 </div>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Location & Regional Pricing */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-primary" />
+              Location & Regional Pricing
+            </CardTitle>
+            <CardDescription>
+              Set your location for accurate regional pricing in AI-generated estimates
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between rounded-lg border p-3 bg-muted/30">
+              <div>
+                <p className="text-sm font-medium">
+                  {formData.city && formData.state 
+                    ? `${formData.city}, ${formData.state}` 
+                    : 'Location not set'}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Auto-detect using browser location
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDetectLocation}
+                disabled={isDetectingLocation}
+                className="gap-2"
+              >
+                {isDetectingLocation ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
+                Detect
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="city">City</Label>
+                <Input
+                  id="city"
+                  placeholder="San Francisco"
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="state">State</Label>
+                <Select 
+                  value={formData.state} 
+                  onValueChange={(value) => setFormData({ ...formData, state: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select state" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {US_STATES.map((state) => (
+                      <SelectItem key={state} value={state}>
+                        {state}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="zip_code">ZIP Code</Label>
+              <Input
+                id="zip_code"
+                placeholder="94102"
+                value={formData.zip_code}
+                onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="col_multiplier">Cost of Living Multiplier</Label>
+                <Badge variant="secondary">
+                  {getColMultiplierLabel(formData.col_multiplier)}
+                </Badge>
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  id="col_multiplier"
+                  type="number"
+                  min="0.5"
+                  max="2.5"
+                  step="0.01"
+                  value={formData.col_multiplier}
+                  onChange={(e) => setFormData({ ...formData, col_multiplier: parseFloat(e.target.value) || 1.0 })}
+                  className="flex-1"
+                />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setFormData({ ...formData, col_multiplier: 1.0 })}
+                >
+                  Reset
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Multiplier applied to AI estimates (1.0 = national average). Higher values = higher prices.
+              </p>
+            </div>
           </CardContent>
         </Card>
 
