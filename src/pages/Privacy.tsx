@@ -9,7 +9,7 @@ import { SEOHead } from '@/components/seo/SEOHead';
 export default function Privacy() {
   const { resolvedTheme } = useTheme();
   const logo = resolvedTheme === 'dark' ? logoDark : logoLight;
-  const lastUpdated = 'February 1, 2026';
+  const lastUpdated = 'February 6, 2026';
 
   return (
     <div className="min-h-screen bg-background">
@@ -87,7 +87,21 @@ export default function Privacy() {
               <li><strong>Subscription Information:</strong> Your subscription status and billing history. Note: Payment card details are processed directly by our payment processor (Stripe) and are never stored on our servers.</li>
             </ul>
 
-            <h3 className="text-xl font-medium mb-3">2.3 Automatically Collected Information</h3>
+            <h3 className="text-xl font-medium mb-3">2.3 Location Information</h3>
+            <p className="text-muted-foreground mb-3">
+              With your permission, we collect location data to provide regional pricing:
+            </p>
+            <ul className="list-disc pl-6 text-muted-foreground mb-4 space-y-2">
+              <li><strong>Geolocation Data:</strong> With your explicit consent, we use your device's location services to detect your city, state, and ZIP code.</li>
+              <li><strong>Reverse Geocoding:</strong> We use the OpenStreetMap Nominatim service to convert your coordinates into a readable address. This data is used solely to determine regional pricing adjustments.</li>
+              <li><strong>Cost of Living Index:</strong> Based on your location, we calculate a cost of living multiplier to provide more accurate estimates for your region.</li>
+            </ul>
+            <p className="text-muted-foreground mb-4">
+              <strong>Note:</strong> Location detection is optional and requires your explicit permission. You can manually enter your location in Settings, 
+              and you can update or remove your location data at any time.
+            </p>
+
+            <h3 className="text-xl font-medium mb-3">2.4 Automatically Collected Information</h3>
             <p className="text-muted-foreground mb-3">
               When you use our App, we automatically collect certain information, including:
             </p>
@@ -155,11 +169,24 @@ export default function Privacy() {
               <div className="border rounded-lg p-4">
                 <h4 className="font-medium mb-2">AI Service Providers (Line Item Extraction)</h4>
                 <p className="text-sm text-muted-foreground mb-2">
-                  <strong>Data Shared:</strong> Job descriptions you enter for AI-powered line item extraction.
+                  <strong>Data Shared:</strong> Job descriptions you enter for AI-powered line item extraction, along with your general location (city/state) for regional pricing accuracy.
                 </p>
                 <p className="text-sm text-muted-foreground mb-2">
-                  <strong>Purpose:</strong> To automatically extract invoice line items from your job descriptions using artificial intelligence.
+                  <strong>Purpose:</strong> To automatically extract invoice line items from your job descriptions using artificial intelligence, with prices adjusted for your regional cost of living.
                 </p>
+              </div>
+
+              <div className="border rounded-lg p-4">
+                <h4 className="font-medium mb-2">OpenStreetMap Nominatim (Geocoding)</h4>
+                <p className="text-sm text-muted-foreground mb-2">
+                  <strong>Data Shared:</strong> Your device's latitude and longitude coordinates (only when you click "Detect Location").
+                </p>
+                <p className="text-sm text-muted-foreground mb-2">
+                  <strong>Purpose:</strong> To convert your coordinates into a city, state, and ZIP code for regional pricing. No personal information is shared.
+                </p>
+                <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">
+                  OpenStreetMap Foundation Privacy Policy →
+                </a>
               </div>
             </div>
 
