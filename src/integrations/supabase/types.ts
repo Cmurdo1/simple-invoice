@@ -184,49 +184,64 @@ export type Database = {
           address: string | null
           brand_color: string | null
           business_name: string | null
+          city: string | null
+          col_multiplier: number | null
+          country: string | null
           created_at: string
           email: string | null
           estimate_color: string | null
           id: string
           logo_url: string | null
           phone: string | null
+          state: string | null
           stripe_customer_id: string | null
           subscription_end: string | null
           subscription_status: string | null
           tax_rate: number | null
           updated_at: string
+          zip_code: string | null
         }
         Insert: {
           address?: string | null
           brand_color?: string | null
           business_name?: string | null
+          city?: string | null
+          col_multiplier?: number | null
+          country?: string | null
           created_at?: string
           email?: string | null
           estimate_color?: string | null
           id: string
           logo_url?: string | null
           phone?: string | null
+          state?: string | null
           stripe_customer_id?: string | null
           subscription_end?: string | null
           subscription_status?: string | null
           tax_rate?: number | null
           updated_at?: string
+          zip_code?: string | null
         }
         Update: {
           address?: string | null
           brand_color?: string | null
           business_name?: string | null
+          city?: string | null
+          col_multiplier?: number | null
+          country?: string | null
           created_at?: string
           email?: string | null
           estimate_color?: string | null
           id?: string
           logo_url?: string | null
           phone?: string | null
+          state?: string | null
           stripe_customer_id?: string | null
           subscription_end?: string | null
           subscription_status?: string | null
           tax_rate?: number | null
           updated_at?: string
+          zip_code?: string | null
         }
         Relationships: []
       }

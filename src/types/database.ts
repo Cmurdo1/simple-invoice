@@ -11,6 +11,16 @@ export interface Profile {
   phone: string | null;
   tax_rate: number;
   brand_color: string | null;
+  estimate_color: string | null;
+  stripe_customer_id: string | null;
+  subscription_status: string | null;
+  subscription_end: string | null;
+  // Location fields for regional pricing
+  zip_code: string | null;
+  city: string | null;
+  state: string | null;
+  country: string | null;
+  col_multiplier: number | null;
   created_at: string;
   updated_at: string;
 }
