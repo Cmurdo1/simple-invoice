@@ -1,0 +1,10 @@
+# Cloudflare Pages configuration
+name = "honest-invoice"
+compatibility_date = "2024-01-01"
+
+[build]
+command = "npm install && npm run build"
+output_directory = "dist"
+
+[build.environment]
+NODE_VERSION = "20"
