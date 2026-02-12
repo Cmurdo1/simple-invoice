@@ -42,12 +42,14 @@ export interface Invoice {
   client_id: string | null;
   invoice_number: string | null;
   status: InvoiceStatus;
+  type: 'invoice' | 'estimate';
   total_amount: number;
   tax_amount: number;
   notes: string | null;
   job_description: string | null;
   due_date: string | null;
   feedback_token: string | null;
+  sent_count: number;
   created_at: string;
   updated_at: string;
   client?: Client | null;

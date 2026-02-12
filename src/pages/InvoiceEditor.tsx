@@ -62,6 +62,7 @@ export default function InvoiceEditor() {
           unit_price: Number(item.unit_price),
         }))
       );
+      setSendAsEstimate(invoice.type === 'estimate');
     }
   }, [invoice]);
 
@@ -202,15 +203,19 @@ export default function InvoiceEditor() {
       });
 
       if (error) throw error;
+      if (data?.error) {
+        toast.error(data.error);
+        return;
+      }
       
       // Mark invoice as sent
       await updateInvoice.mutateAsync({ id: invoice.id, status: 'sent' as InvoiceStatus });
       
       const docType = sendAsEstimate ? 'Estimate' : 'Invoice';
       toast.success(`${docType} emailed to ${invoice.client.email}!`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Email sending error:', error);
-      toast.error('Failed to send email. Please try again.');
+      toast.error(error.message || 'Failed to send email. Please try again.');
     } finally {
       setIsSendingEmail(false);
     }
@@ -275,7 +280,7 @@ export default function InvoiceEditor() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold">
-                  {invoice.invoice_number || 'Draft Invoice'}
+                  {invoice.invoice_number || `Draft ${sendAsEstimate ? 'Estimate' : 'Invoice'}`}
                 </h1>
                 <Badge className={cn('capitalize', statusColors[invoice.status])}>
                   {invoice.status}
@@ -471,7 +476,7 @@ export default function InvoiceEditor() {
         <div className="flex justify-end">
           <Button size="lg" onClick={handleSave} className="gap-2">
             <Save className="h-5 w-5" />
-            Save Invoice
+            Save {sendAsEstimate ? 'Estimate' : 'Invoice'}
           </Button>
         </div>
       </div>

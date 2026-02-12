@@ -89,16 +89,15 @@ export default function Privacy() {
 
             <h3 className="text-xl font-medium mb-3">2.3 Location Information</h3>
             <p className="text-muted-foreground mb-3">
-              With your permission, we collect location data to provide regional pricing:
+              We do not automatically track your location. We use manual location input to provide regional pricing:
             </p>
             <ul className="list-disc pl-6 text-muted-foreground mb-4 space-y-2">
-              <li><strong>Geolocation Data:</strong> With your explicit consent, we use your device's location services to detect your city, state, and ZIP code.</li>
-              <li><strong>Reverse Geocoding:</strong> We use the OpenStreetMap Nominatim service to convert your coordinates into a readable address. This data is used solely to determine regional pricing adjustments.</li>
-              <li><strong>Cost of Living Index:</strong> Based on your location, we calculate a cost of living multiplier to provide more accurate estimates for your region.</li>
+              <li><strong>Manual Input:</strong> You may optionally provide your Zip Code, City, and State in the Settings.</li>
+              <li><strong>Regional Pricing:</strong> We use this manual location data solely to determine appropriate cost-of-living adjustments for line item estimates in your region.</li>
+              <li><strong>Cost of Living Index:</strong> Based on the location you provide, we calculate a cost of living multiplier to provide more accurate estimates.</li>
             </ul>
             <p className="text-muted-foreground mb-4">
-              <strong>Note:</strong> Location detection is optional and requires your explicit permission. You can manually enter your location in Settings, 
-              and you can update or remove your location data at any time.
+              <strong>Note:</strong> Providing location information is optional. You can update or remove this data at any time in your Settings.
             </p>
 
             <h3 className="text-xl font-medium mb-3">2.4 Automatically Collected Information</h3>
@@ -122,7 +121,7 @@ export default function Privacy() {
             <ul className="list-disc pl-6 text-muted-foreground space-y-2">
               <li><strong>Core App Functionality:</strong> To enable you to create, manage, send, and track invoices; to generate PDF exports; and to manage your client database.</li>
               <li><strong>Account Management:</strong> To create and manage your account, authenticate your identity, and provide customer support.</li>
-              <li><strong>AI-Powered Features:</strong> To process job descriptions and automatically extract line items using artificial intelligence, improving your invoicing efficiency.</li>
+              <li><strong>Automated Features:</strong> To process job descriptions and automatically extract line items, improving your invoicing efficiency.</li>
               <li><strong>Offline Functionality:</strong> To store data locally on your device so you can use the App without an internet connection.</li>
               <li><strong>Subscription Management:</strong> To process subscription payments, manage your billing, and provide access to premium features.</li>
               <li><strong>Communications:</strong> To send you invoice notifications, account updates, and important service announcements.</li>
@@ -167,26 +166,23 @@ export default function Privacy() {
               </div>
 
               <div className="border rounded-lg p-4">
-                <h4 className="font-medium mb-2">AI Service Providers (Line Item Extraction)</h4>
+                <h4 className="font-medium mb-2">Extraction Service Providers (Line Item Extraction)</h4>
                 <p className="text-sm text-muted-foreground mb-2">
-                  <strong>Data Shared:</strong> Job descriptions you enter for AI-powered line item extraction, along with your general location (city/state) for regional pricing accuracy.
+                  <strong>Data Shared:</strong> Job descriptions you enter for automated line item extraction, along with your general location (city/state) for regional pricing accuracy.
                 </p>
                 <p className="text-sm text-muted-foreground mb-2">
-                  <strong>Purpose:</strong> To automatically extract invoice line items from your job descriptions using artificial intelligence, with prices adjusted for your regional cost of living.
+                  <strong>Purpose:</strong> To automatically extract invoice line items from your job descriptions, with prices adjusted for your regional cost of living.
                 </p>
               </div>
 
               <div className="border rounded-lg p-4">
-                <h4 className="font-medium mb-2">OpenStreetMap Nominatim (Geocoding)</h4>
+                <h4 className="font-medium mb-2">Zippopotam.us (Zip Code Lookup)</h4>
                 <p className="text-sm text-muted-foreground mb-2">
-                  <strong>Data Shared:</strong> Your device's latitude and longitude coordinates (only when you click "Detect Location").
+                  <strong>Data Shared:</strong> The Zip Code you manually enter in Settings.
                 </p>
                 <p className="text-sm text-muted-foreground mb-2">
-                  <strong>Purpose:</strong> To convert your coordinates into a city, state, and ZIP code for regional pricing. No personal information is shared.
+                  <strong>Purpose:</strong> To convert your Zip Code into a City and State for regional pricing configuration. No personal information is associated with this lookup.
                 </p>
-                <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">
-                  OpenStreetMap Foundation Privacy Policy →
-                </a>
               </div>
             </div>
 

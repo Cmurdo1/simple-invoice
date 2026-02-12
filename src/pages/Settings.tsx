@@ -47,6 +47,39 @@ const BRAND_COLORS = [
   { name: 'Charcoal', value: '#36454F' },
 ];
 
+const BRAND_TEMPLATES = [
+  { 
+    name: 'Classic Professional', 
+    invoice: '#228B22', 
+    estimate: '#4169E1',
+    description: 'Traditional business colors'
+  },
+  { 
+    name: 'Midnight Elegance', 
+    invoice: '#36454F', 
+    estimate: '#008080',
+    description: 'Sleek and modern'
+  },
+  { 
+    name: 'Patriotic (USA)', 
+    invoice: '#B22234', // Old Glory Red
+    estimate: '#3C3B6E', // Old Glory Blue
+    description: 'American style'
+  },
+  { 
+    name: 'Royal Gold', 
+    invoice: '#8B4513', 
+    estimate: '#D4AF37',
+    description: 'Luxury feel'
+  },
+  { 
+    name: 'Sunset Glow', 
+    invoice: '#FF8C00', 
+    estimate: '#DC143C',
+    description: 'Warm and energetic'
+  },
+];
+
 export default function Settings() {
   const navigate = useNavigate();
   const { data: profile, isLoading } = useProfile();
@@ -55,7 +88,7 @@ export default function Settings() {
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
-  const { location: detectedLocation, isLoading: isDetectingLocation, detectLocation } = useGeolocation();
+  const { location: detectedLocation, isLoading: isDetectingLocation, lookupZipCode } = useGeolocation();
 
   const [formData, setFormData] = useState({
     business_name: '',
@@ -139,17 +172,17 @@ export default function Settings() {
     setFormData({ ...formData, logo_url: '' });
   };
 
-  const handleDetectLocation = async () => {
-    const loc = await detectLocation();
+  const handleLookupZip = async () => {
+    const loc = await lookupZipCode(formData.zip_code);
     if (loc) {
       setFormData(prev => ({
         ...prev,
         city: loc.city || '',
         state: loc.state || '',
-        zip_code: loc.zipCode || '',
+        zip_code: loc.zipCode || prev.zip_code,
         col_multiplier: loc.colMultiplier || 1.0,
       }));
-      toast.success(`Location detected: ${loc.city}, ${loc.state}`);
+      toast.success(`Location found: ${loc.city}, ${loc.state}`);
     }
   };
 
@@ -296,6 +329,41 @@ export default function Settings() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Branding Templates */}
+            <div className="space-y-3">
+              <Label className="text-base font-semibold">Branding Templates</Label>
+              <p className="text-sm text-muted-foreground">
+                Choose a pre-defined theme for your documents
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {BRAND_TEMPLATES.map((template) => (
+                  <button
+                    key={template.name}
+                    type="button"
+                    disabled={!subscription.subscribed}
+                    onClick={() => setFormData({ 
+                      ...formData, 
+                      brand_color: template.invoice, 
+                      estimate_color: template.estimate 
+                    })}
+                    className={`
+                      flex flex-col gap-2 rounded-lg border p-3 text-left transition-all duration-200
+                      ${!subscription.subscribed ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary hover:bg-muted/50'}
+                    `}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">{template.name}</span>
+                      <div className="flex gap-1">
+                        <div className="h-3 w-3 rounded-full" style={{ backgroundColor: template.invoice }} />
+                        <div className="h-3 w-3 rounded-full" style={{ backgroundColor: template.estimate }} />
+                      </div>
+                    </div>
+                    <span className="text-xs text-muted-foreground">{template.description}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* Logo Upload */}
             <div className="space-y-3">
               <Label className="text-base font-semibold">Business Logo</Label>
@@ -513,26 +581,25 @@ export default function Settings() {
               Location & Regional Pricing
             </CardTitle>
             <CardDescription>
-              Set your location for accurate regional pricing in AI-generated estimates
+              Set your location using Zip Code for accurate regional pricing in your estimates
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between rounded-lg border p-3 bg-muted/30">
-              <div>
-                <p className="text-sm font-medium">
-                  {formData.city && formData.state 
-                    ? `${formData.city}, ${formData.state}` 
-                    : 'Location not set'}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Auto-detect using browser location
-                </p>
+            <div className="flex items-end gap-2">
+              <div className="flex-1 space-y-2">
+                <Label htmlFor="zip_code">ZIP Code</Label>
+                <Input
+                  id="zip_code"
+                  placeholder="94102"
+                  value={formData.zip_code}
+                  onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
+                  onKeyDown={(e) => e.key === 'Enter' && handleLookupZip()}
+                />
               </div>
               <Button
                 variant="outline"
-                size="sm"
-                onClick={handleDetectLocation}
-                disabled={isDetectingLocation}
+                onClick={handleLookupZip}
+                disabled={isDetectingLocation || !formData.zip_code}
                 className="gap-2"
               >
                 {isDetectingLocation ? (
@@ -540,7 +607,7 @@ export default function Settings() {
                 ) : (
                   <RefreshCw className="h-4 w-4" />
                 )}
-                Detect
+                Lookup
               </Button>
             </div>
 
@@ -575,16 +642,6 @@ export default function Settings() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="zip_code">ZIP Code</Label>
-              <Input
-                id="zip_code"
-                placeholder="94102"
-                value={formData.zip_code}
-                onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="col_multiplier">Cost of Living Multiplier</Label>
                 <Badge variant="secondary">
@@ -611,7 +668,7 @@ export default function Settings() {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Multiplier applied to AI estimates (1.0 = national average). Higher values = higher prices.
+                Multiplier applied to estimates (1.0 = national average). Higher values = higher prices.
               </p>
             </div>
           </CardContent>

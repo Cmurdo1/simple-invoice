@@ -7,7 +7,7 @@ import { Check, Crown, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 const proFeatures = [
-  'AI-powered line item extraction',
+  'Automated line item extraction',
   'Unlimited invoices',
   'PDF export & download',
   'Offline mode with sync',

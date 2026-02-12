@@ -5,6 +5,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Plus, 
   DollarSign, 
@@ -12,11 +13,13 @@ import {
   Clock,
   Loader2,
   Star,
-  MessageSquare
+  MessageSquare,
+  ClipboardList
 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { InvoiceStatus } from '@/types/database';
+import { useState } from 'react';
 
 const statusColors: Record<InvoiceStatus, string> = {
   draft: 'bg-muted text-muted-foreground',
@@ -26,28 +29,41 @@ const statusColors: Record<InvoiceStatus, string> = {
 };
 
 export default function Dashboard() {
-  const { data: invoices, isLoading } = useInvoices();
+  const { data: allInvoices, isLoading } = useInvoices();
   const { data: feedback, isLoading: feedbackLoading } = useFeedback();
   const averageRating = useAverageRating();
+  const [activeTab, setActiveTab] = useState('all');
 
-  // Calculate monthly stats
+  // Filter based on tab
+  const invoices = allInvoices?.filter(inv => {
+    if (activeTab === 'all') return true;
+    if (activeTab === 'invoices') return inv.type === 'invoice';
+    if (activeTab === 'estimates') return inv.type === 'estimate';
+    return true;
+  }) || [];
+
+  // Calculate monthly stats (for invoices only)
   const now = new Date();
   const monthStart = startOfMonth(now);
   const monthEnd = endOfMonth(now);
 
-  const monthlyInvoices = invoices?.filter((inv) =>
+  const onlyInvoices = allInvoices?.filter(inv => inv.type === 'invoice') || [];
+  const onlyEstimates = allInvoices?.filter(inv => inv.type === 'estimate') || [];
+
+  const monthlyInvoices = onlyInvoices.filter((inv) =>
     isWithinInterval(new Date(inv.created_at), { start: monthStart, end: monthEnd })
-  ) || [];
+  );
 
   const monthlyRevenue = monthlyInvoices
     .filter((inv) => inv.status === 'paid')
     .reduce((sum, inv) => sum + Number(inv.total_amount), 0);
 
-  const pendingAmount = invoices
-    ?.filter((inv) => inv.status === 'sent')
-    .reduce((sum, inv) => sum + Number(inv.total_amount), 0) || 0;
+  const pendingAmount = onlyInvoices
+    .filter((inv) => inv.status === 'sent')
+    .reduce((sum, inv) => sum + Number(inv.total_amount), 0);
 
-  const draftCount = invoices?.filter((inv) => inv.status === 'draft').length || 0;
+  const estimateAmount = onlyEstimates
+    .reduce((sum, inv) => sum + Number(inv.total_amount), 0);
 
   return (
     <AppLayout>
@@ -60,12 +76,20 @@ export default function Dashboard() {
               {format(now, 'EEEE, MMMM d, yyyy')}
             </p>
           </div>
-          <Button asChild size="lg" className="gap-2">
-            <Link to="/create">
-              <Plus className="h-5 w-5" />
-              New Invoice
-            </Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button asChild variant="outline" className="gap-2">
+              <Link to="/create?type=estimate">
+                <Plus className="h-4 w-4" />
+                New Estimate
+              </Link>
+            </Button>
+            <Button asChild className="gap-2">
+              <Link to="/create?type=invoice">
+                <Plus className="h-4 w-4" />
+                New Invoice
+              </Link>
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -99,7 +123,7 @@ export default function Dashboard() {
                 ${pendingAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
               </div>
               <p className="text-xs text-muted-foreground">
-                {invoices?.filter((i) => i.status === 'sent').length || 0} awaiting payment
+                {onlyInvoices.filter((i) => i.status === 'sent').length} awaiting payment
               </p>
             </CardContent>
           </Card>
@@ -107,46 +131,55 @@ export default function Dashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                Drafts
+                Open Estimates
               </CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <ClipboardList className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{draftCount}</div>
+              <div className="text-2xl font-bold">
+                ${estimateAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              </div>
               <p className="text-xs text-muted-foreground">
-                Ready to complete
+                {onlyEstimates.length} pending estimates
               </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Invoices List */}
+        {/* List with Tabs */}
         <Card>
-          <CardHeader>
-            <CardTitle>Recent Invoices</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
+            <CardTitle>Recent Activity</CardTitle>
+            <Tabs defaultValue="all" onValueChange={setActiveTab} className="w-[400px]">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="invoices">Invoices</TabsTrigger>
+                <TabsTrigger value="estimates">Estimates</TabsTrigger>
+              </TabsList>
+            </Tabs>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
-            ) : invoices?.length === 0 ? (
+            ) : invoices.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
                 <FileText className="mb-4 h-12 w-12 text-muted-foreground/50" />
-                <h3 className="mb-2 text-lg font-semibold">No invoices yet</h3>
+                <h3 className="mb-2 text-lg font-semibold">No {activeTab === 'all' ? 'items' : activeTab} yet</h3>
                 <p className="mb-4 text-sm text-muted-foreground">
-                  Create your first invoice to get started
+                  Create your first {activeTab === 'estimates' ? 'estimate' : 'invoice'} to get started
                 </p>
                 <Button asChild>
-                  <Link to="/create">
+                  <Link to={`/create?type=${activeTab === 'estimates' ? 'estimate' : 'invoice'}`}>
                     <Plus className="mr-2 h-4 w-4" />
-                    Create Invoice
+                    Create {activeTab === 'estimates' ? 'Estimate' : 'Invoice'}
                   </Link>
                 </Button>
               </div>
             ) : (
               <div className="space-y-2">
-                {invoices?.slice(0, 10).map((invoice) => (
+                {invoices.slice(0, 10).map((invoice) => (
                   <Link
                     key={invoice.id}
                     to={`/invoice/${invoice.id}`}
@@ -162,6 +195,9 @@ export default function Dashboard() {
                           className={cn('capitalize', statusColors[invoice.status])}
                         >
                           {invoice.status}
+                        </Badge>
+                        <Badge variant="outline" className="text-[10px] uppercase tracking-wider">
+                          {invoice.type}
                         </Badge>
                       </div>
                       <span className="text-sm text-muted-foreground">

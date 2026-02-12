@@ -64,6 +64,7 @@ export function useCreateInvoice() {
       job_description?: string | null;
       notes?: string | null;
       due_date?: string | null;
+      type?: 'invoice' | 'estimate';
     }) => {
       if (!user) throw new Error('Not authenticated');
 
@@ -76,6 +77,7 @@ export function useCreateInvoice() {
           notes: invoice.notes || null,
           due_date: invoice.due_date || null,
           status: 'draft' as InvoiceStatus,
+          type: invoice.type || 'invoice',
         })
         .select()
         .single();

@@ -64,7 +64,7 @@ serve(async (req) => {
             currency: "usd",
             product_data: {
               name: "HonestInvoice Pro",
-              description: "Professional invoicing for field contractors with AI-powered extraction, unlimited invoices, and PDF export",
+              description: "Professional invoicing for field contractors with automated extraction, unlimited invoices, and PDF export",
             },
             unit_amount: 1999, // $19.99
             recurring: {

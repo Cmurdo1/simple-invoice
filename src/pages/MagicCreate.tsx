@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,13 +19,15 @@ import { cn } from '@/lib/utils';
 
 export default function MagicCreate() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const type = (searchParams.get('type') as 'invoice' | 'estimate') || 'invoice';
+  
   const { data: clients } = useClients();
   const { data: profile } = useProfile();
   const updateProfile = useUpdateProfile();
   const createInvoice = useCreateInvoice();
   const addInvoiceItems = useAddInvoiceItems();
   const recalculateTotals = useRecalculateInvoiceTotals();
-  const { location, isLoading: isDetectingLocation, detectLocation } = useGeolocation();
 
   const [jobDescription, setJobDescription] = useState('');
   const [selectedClientId, setSelectedClientId] = useState<string>('');
@@ -33,23 +35,8 @@ export default function MagicCreate() {
   const [extractedItems, setExtractedItems] = useState<ExtractedLineItem[] | null>(null);
   const [creating, setCreating] = useState(false);
 
-  // Auto-detect location on first load if not already set in profile
-  useEffect(() => {
-    if (profile && !profile.city && !profile.state) {
-      detectLocation().then((loc) => {
-        if (loc) {
-          // Save to profile
-          updateProfile.mutate({
-            city: loc.city || null,
-            state: loc.state || null,
-            zip_code: loc.zipCode || null,
-            country: loc.country || null,
-            col_multiplier: loc.colMultiplier || 1.0,
-          });
-        }
-      });
-    }
-  }, [profile?.id]);
+  const isEstimate = type === 'estimate';
+  const label = isEstimate ? 'Estimate' : 'Invoice';
 
   const { isListening, isSupported, toggleListening } = useSpeechRecognition({
     onResult: (transcript) => {
@@ -70,25 +57,9 @@ export default function MagicCreate() {
   // Get current location string for display
   const currentLocation = profile?.city && profile?.state 
     ? `${profile.city}, ${profile.state}` 
-    : location?.city && location?.state 
-      ? `${location.city}, ${location.state}`
-      : null;
+    : null;
   
-  const currentColMultiplier = profile?.col_multiplier || location?.colMultiplier || 1.0;
-
-  const handleRefreshLocation = async () => {
-    const loc = await detectLocation();
-    if (loc) {
-      updateProfile.mutate({
-        city: loc.city || null,
-        state: loc.state || null,
-        zip_code: loc.zipCode || null,
-        country: loc.country || null,
-        col_multiplier: loc.colMultiplier || 1.0,
-      });
-      toast.success(`Location updated to ${loc.city}, ${loc.state}`);
-    }
-  };
+  const currentColMultiplier = profile?.col_multiplier || 1.0;
 
   const handleExtract = async () => {
     if (!jobDescription.trim()) {
@@ -140,17 +111,18 @@ export default function MagicCreate() {
 
   const handleCreateInvoice = async () => {
     if (!extractedItems || extractedItems.length === 0) {
-      toast.error('Please extract line items first');
+      toast.error(`Please extract line items first`);
       return;
     }
 
     setCreating(true);
 
     try {
-      // Create the invoice
+      // Create the invoice or estimate
       const invoice = await createInvoice.mutateAsync({
         client_id: selectedClientId || null,
         job_description: jobDescription,
+        type: type,
       });
 
       // Add the extracted items
@@ -170,11 +142,11 @@ export default function MagicCreate() {
         tax_rate: profile?.tax_rate || 0,
       });
 
-      toast.success('Invoice created!');
+      toast.success(`${label} created!`);
       navigate(`/invoice/${invoice.id}`);
     } catch (error) {
-      console.error('Create invoice error:', error);
-      toast.error('Failed to create invoice');
+      console.error(`Create ${type} error:`, error);
+      toast.error(`Failed to create ${type}`);
     } finally {
       setCreating(false);
     }
@@ -189,9 +161,9 @@ export default function MagicCreate() {
     <AppLayout>
       <div className="mx-auto max-w-3xl space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Magic Create</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{label} Generator</h1>
           <p className="text-muted-foreground">
-            Describe the job and let AI extract the line items for you
+            Describe the job and let the system extract the line items for you
           </p>
         </div>
 
@@ -215,24 +187,19 @@ export default function MagicCreate() {
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {currentLocation 
-                    ? 'Prices adjusted for your region' 
-                    : 'Detect location for accurate regional pricing'}
+                    ? 'Prices adjusted for your region based on Settings' 
+                    : 'Set your Zip Code in Settings for accurate regional pricing'}
                 </p>
               </div>
             </div>
             <Button
               variant="outline"
               size="sm"
-              onClick={handleRefreshLocation}
-              disabled={isDetectingLocation}
+              onClick={() => navigate('/settings')}
               className="gap-2"
             >
-              {isDetectingLocation ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <RefreshCw className="h-4 w-4" />
-              )}
-              {currentLocation ? 'Update' : 'Detect'}
+              <RefreshCw className="h-4 w-4" />
+              {currentLocation ? 'Change' : 'Configure'}
             </Button>
           </CardContent>
         </Card>
@@ -342,7 +309,7 @@ export default function MagicCreate() {
             <CardHeader>
               <CardTitle>Extracted Line Items</CardTitle>
               <CardDescription>
-                Review and adjust the extracted items before creating the invoice
+                Review and adjust the extracted items before creating the {label.toLowerCase()}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -454,11 +421,11 @@ export default function MagicCreate() {
                 {creating ? (
                   <>
                     <Loader2 className="h-5 w-5 animate-spin" />
-                    Creating Invoice...
+                    Creating {label}...
                   </>
                 ) : (
                   <>
-                    Create Invoice
+                    Create {label}
                     <ArrowRight className="h-5 w-5" />
                   </>
                 )}

@@ -58,7 +58,7 @@ export default function Terms() {
             <p className="text-muted-foreground">
               HonestInvoice is an invoicing application designed for contractors and small business owners. 
               The App allows users to create, manage, and send professional invoices. Features include 
-              AI-powered line item extraction, offline functionality, PDF export, and client management.
+              Automated line item extraction, offline functionality, PDF export, and client management.
             </p>
           </section>
 

@@ -113,16 +113,28 @@ serve(async (req) => {
     
     logStep("Request data validated", { invoice_number, client_email, invoice_id, document_type, primaryColor });
 
-    // Fetch invoice with feedback token
+    // Fetch invoice with feedback token and sent count
     const { data: invoice, error: invoiceError } = await supabaseClient
       .from("invoices")
-      .select("feedback_token")
+      .select("feedback_token, sent_count")
       .eq("id", invoice_id)
       .single();
 
     if (invoiceError) {
-      logStep("Warning: Could not fetch invoice feedback token", { error: invoiceError.message });
+      throw new Error(`Could not fetch invoice details: ${invoiceError.message}`);
     }
+
+    // Check if the email send limit has been reached
+    const sentCount = invoice?.sent_count || 0;
+    if (sentCount >= 5) {
+      return new Response(JSON.stringify({ 
+        error: "This document has reached the maximum number of email sends. Please download the PDF or contact support if you need to send it again." 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 429,
+      });
+    }
+
     const feedbackToken = invoice?.feedback_token;
 
     // Fetch invoice line items for itemized breakdown
@@ -222,7 +234,7 @@ serve(async (req) => {
                       ` : `
                         <h1 style="color: ${primaryColor}; margin: 0; font-size: 24px; font-weight: 700;">${business_name || 'HonestInvoice'}</h1>
                       `}
-                      <p style="color: #666; margin: 8px 0 0 0; font-size: 14px;">Professional ${docLabel}</p>
+                      <p style="color: #666; margin: 8px 0 0 0; font-size: 14px;">Fair Prices. Honest Work.</p>
                     </td>
                   </tr>
                   
@@ -380,6 +392,16 @@ serve(async (req) => {
     });
 
     logStep("Email sent successfully", { emailId: emailResponse.data?.id });
+
+    // Update the sent count in the database
+    const { error: updateError } = await supabaseClient
+      .from("invoices")
+      .update({ sent_count: sentCount + 1 })
+      .eq("id", invoice_id);
+
+    if (updateError) {
+      logStep("Warning: Could not increment sent_count", { error: updateError.message });
+    }
 
     return new Response(JSON.stringify({ 
       success: true, 

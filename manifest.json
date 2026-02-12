@@ -1,7 +1,7 @@
 {
-  "name": "HonestInvoice - Simple Invoicing",
+  "name": "HonestInvoice - Free Invoice & Estimate Generator",
   "short_name": "HonestInvoice",
-  "description": "Create professional invoices in seconds. AI-powered line item extraction, offline support, and beautiful PDF exports for contractors and tradespeople.",
+  "description": "Create professional free invoices and estimates in seconds. Trustworthy automated extraction, offline support. 100% Free.",
   "theme_color": "#22c55e",
   "background_color": "#ffffff",
   "display": "standalone",

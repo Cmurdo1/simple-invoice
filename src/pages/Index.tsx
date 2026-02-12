@@ -11,27 +11,27 @@ import { SEOHead } from '@/components/seo/SEOHead';
 const features = [
   {
     icon: Wand2,
-    title: 'AI-Powered Invoice Line Item Extraction',
-    description: 'Describe your job in plain language and let our AI automatically generate accurate, itemized invoice line items for freelancers and contractors.',
-    altText: 'AI invoice automation tool extracting line items from job description',
+    title: 'Automated Invoice & Estimate Extraction',
+    description: 'Describe your job in plain language and let our system automatically generate accurate, itemized line items for freelancers and contractors.',
+    altText: 'Invoice and estimate automation tool extracting line items from job description',
   },
   {
     icon: Smartphone,
-    title: 'Offline Invoicing for Field Work',
-    description: 'Create, edit, and save invoices without internet connection—perfect for contractors working on remote job sites.',
-    altText: 'Mobile offline invoicing app for contractors and field workers',
+    title: 'Offline Estimates & Invoices',
+    description: 'Create, edit, and save estimates and invoices without internet connection—perfect for contractors working on remote job sites.',
+    altText: 'Mobile offline invoicing and estimate app for contractors and field workers',
   },
   {
     icon: FileText,
-    title: 'Professional PDF Invoice Generator',
-    description: 'Export polished, client-ready PDF invoices instantly. Customizable templates that help freelancers get paid faster.',
-    altText: 'Professional PDF invoice template generator for small businesses',
+    title: 'Professional PDF Generator',
+    description: 'Export polished, client-ready PDF invoices and estimates instantly. Customizable templates that help freelancers get paid faster.',
+    altText: 'Professional PDF invoice and estimate template generator for small businesses',
   },
   {
     icon: CheckCircle2,
     title: 'Fast & Simple Billing Software',
-    description: 'Streamlined invoicing workflow built for busy freelancers, designers, and small business owners who need to bill quickly.',
-    altText: 'Simple billing software dashboard for freelancers and small businesses',
+    description: 'Streamlined workflow built for busy freelancers, designers, and small business owners who need to bill or estimate quickly.',
+    altText: 'Simple billing and estimate software dashboard for freelancers and small businesses',
   },
 ];
 
@@ -83,12 +83,12 @@ export default function Index() {
           <div className="mx-auto max-w-3xl">
             <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
               Free Online{' '}
-              <span className="text-primary">Invoicing</span> &{' '}
-              <span className="text-primary">Billing</span> Software
+              <span className="text-primary">Invoices</span> &{' '}
+              <span className="text-primary">Estimates</span>
             </h1>
             <p className="mb-8 text-lg text-muted-foreground sm:text-xl">
               Stop chasing payments. Automate your billing, track expenses, and get paid 2x faster. 
-              Trusted by 10,000+ freelancers and small businesses worldwide.
+              Trusted by freelancers and small businesses worldwide.
             </p>
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Button size="lg" className="min-w-[200px]" asChild>
@@ -106,10 +106,10 @@ export default function Index() {
       <section className="border-t bg-muted/30 py-20" aria-labelledby="features-heading">
         <div className="container mx-auto px-4">
           <h2 id="features-heading" className="mb-4 text-center text-3xl font-bold">
-            Powerful Invoicing Tools for Freelancers & Small Businesses
+            Powerful Invoicing & Estimate Tools
           </h2>
           <p className="mb-12 text-center text-muted-foreground max-w-2xl mx-auto">
-            Everything you need to create professional invoices, track payments, and manage your business finances.
+            Everything you need to create professional invoices and estimates, track payments, and manage your business finances.
           </p>
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
             {features.map((feature) => {
@@ -141,11 +141,14 @@ export default function Index() {
       {/* CTA */}
       <section className="container mx-auto px-4 py-20 text-center" aria-labelledby="cta-heading">
         <div className="mx-auto max-w-2xl">
+          <p className="mb-6 text-xl font-medium text-primary italic">
+            "Don't trust the estimate you received? Think you're being overcharged? Use Honest Estimate and find out, free of charge."
+          </p>
           <h2 id="cta-heading" className="mb-4 text-3xl font-bold">
-            Ready to Streamline Your Invoicing?
+            Ready to Streamline Your Business?
           </h2>
           <p className="mb-8 text-muted-foreground">
-            Join 10,000+ freelancers, designers, and small business owners who save hours every week with Honest Invoice.
+            Join freelancers, designers, and small business owners who save hours every week with Honest Invoice.
           </p>
           <Button size="lg" asChild>
             <Link to="/signup">Create Your Free Account</Link>

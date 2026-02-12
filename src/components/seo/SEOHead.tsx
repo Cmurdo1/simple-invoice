@@ -14,9 +14,9 @@ const BASE_URL = 'https://honestinvoice.com';
 const DEFAULT_OG_IMAGE = `${BASE_URL}/og-image.png`;
 
 export function SEOHead({
-  title = 'Honest Invoice: Free Online Invoicing & Billing Software for Freelancers',
-  description = 'Stop chasing payments. Use Honest Invoice to automate billing, track expenses, and get paid 2x faster. 100% secure. Join 10,000+ small businesses. Start for free.',
-  keywords = 'free invoicing software, online billing, freelancer invoicing, small business billing, invoice generator, payment tracking, expense management, tax compliance',
+  title = 'Free Invoice & Estimate Generator | Honest Invoice | Trustworthy & Free',
+  description = 'Create free professional invoices and estimates. The most trustworthy free invoice generator. No hidden fees. 100% Free. Get paid faster with our free estimate tool.',
+  keywords = 'free invoice generator, free estimate template, trustworthy invoice software, completely free invoicing, free billing app, free contractor estimate, no credit card invoice, free invoicing software, online billing, freelancer invoicing, small business billing, invoice generator, payment tracking, expense management, tax compliance',
   canonicalUrl,
   ogImage = DEFAULT_OG_IMAGE,
   ogType = 'website',
