@@ -133,9 +133,11 @@ export type Database = {
           invoice_number: string | null
           job_description: string | null
           notes: string | null
+          sent_count: number | null
           status: Database["public"]["Enums"]["invoice_status"]
           tax_amount: number | null
           total_amount: number | null
+          type: string | null
           updated_at: string
           user_id: string
         }
@@ -148,9 +150,11 @@ export type Database = {
           invoice_number?: string | null
           job_description?: string | null
           notes?: string | null
+          sent_count?: number | null
           status?: Database["public"]["Enums"]["invoice_status"]
           tax_amount?: number | null
           total_amount?: number | null
+          type?: string | null
           updated_at?: string
           user_id: string
         }
@@ -163,9 +167,11 @@ export type Database = {
           invoice_number?: string | null
           job_description?: string | null
           notes?: string | null
+          sent_count?: number | null
           status?: Database["public"]["Enums"]["invoice_status"]
           tax_amount?: number | null
           total_amount?: number | null
+          type?: string | null
           updated_at?: string
           user_id?: string
         }
