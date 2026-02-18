@@ -3,22 +3,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { SubscriptionButton } from './SubscriptionButton';
-import { Check, Crown, Loader2 } from 'lucide-react';
+import { Check, Crown, Loader2, Building2 } from 'lucide-react';
 import { format } from 'date-fns';
-
-const proFeatures = [
-  'Automated line item extraction',
-  'Unlimited invoices',
-  'PDF export & download',
-  'Offline mode with sync',
-  'Priority support',
-];
-
-const freeFeatures = [
-  'Up to 5 invoices/month',
-  'Basic invoice creation',
-  'Client management',
-];
+import { TIERS } from '@/lib/subscriptionTiers';
 
 export const SubscriptionCard = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
   (props, ref) => {
@@ -34,37 +21,39 @@ export const SubscriptionCard = React.forwardRef<HTMLDivElement, React.HTMLAttri
       );
     }
 
-    const isPro = subscription.subscribed;
+    const currentTier = subscription.subscriptionStatus;
+    const isPaid = subscription.subscribed;
+    const tierConfig = TIERS[currentTier] || TIERS.free;
 
     return (
-      <Card ref={ref} className={isPro ? 'border-primary' : ''} {...props}>
+      <Card ref={ref} className={isPaid ? 'border-primary' : ''} {...props}>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <CardTitle>
-                {isPro ? 'HonestInvoice Pro' : 'Free Plan'}
+                HonestInvoice {tierConfig.name}
               </CardTitle>
-              {isPro && (
+              {isPaid && (
                 <Badge variant="default" className="gap-1">
-                  <Crown className="h-3 w-3" />
+                  {currentTier === 'business' ? <Building2 className="h-3 w-3" /> : <Crown className="h-3 w-3" />}
                   Active
                 </Badge>
               )}
             </div>
-            {isPro && (
+            {isPaid && (
               <Badge variant="outline">
-                $19/month
+                ${tierConfig.price}/month
               </Badge>
             )}
           </div>
           <CardDescription>
-            {isPro 
-              ? 'You have access to all premium features' 
-              : 'Upgrade to unlock all features'}
+            {isPaid 
+              ? `You have access to all ${tierConfig.name} features` 
+              : 'Upgrade to unlock more features'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {isPro && subscription.subscriptionEnd && (
+          {isPaid && subscription.subscriptionEnd && (
             <p className="text-sm text-muted-foreground">
               Renews on {format(new Date(subscription.subscriptionEnd), 'MMMM d, yyyy')}
             </p>
@@ -72,10 +61,10 @@ export const SubscriptionCard = React.forwardRef<HTMLDivElement, React.HTMLAttri
           
           <div className="space-y-2">
             <p className="text-sm font-medium">
-              {isPro ? 'Your features:' : 'Free plan includes:'}
+              Your features:
             </p>
             <ul className="space-y-1">
-              {(isPro ? proFeatures : freeFeatures).map((feature) => (
+              {tierConfig.features.map((feature) => (
                 <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Check className="h-4 w-4 text-primary" />
                   {feature}
@@ -84,24 +73,23 @@ export const SubscriptionCard = React.forwardRef<HTMLDivElement, React.HTMLAttri
             </ul>
           </div>
 
-          {!isPro && (
-            <div className="pt-2">
-              <p className="text-sm font-medium mb-2">Pro includes:</p>
-              <ul className="space-y-1 mb-4">
-                {proFeatures.map((feature) => (
-                  <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Check className="h-4 w-4 text-muted-foreground" />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
+          {currentTier === 'free' && (
+            <div className="space-y-3 pt-2">
+              <SubscriptionButton targetTier="pro" variant="default" className="w-full" />
+              <SubscriptionButton targetTier="business" variant="outline" className="w-full" />
             </div>
           )}
 
-          <SubscriptionButton 
-            variant={isPro ? 'outline' : 'default'} 
-            className="w-full" 
-          />
+          {currentTier === 'pro' && (
+            <div className="space-y-3 pt-2">
+              <SubscriptionButton variant="outline" className="w-full" />
+              <SubscriptionButton targetTier="business" variant="default" className="w-full" />
+            </div>
+          )}
+
+          {currentTier === 'business' && (
+            <SubscriptionButton variant="outline" className="w-full" />
+          )}
         </CardContent>
       </Card>
     );
