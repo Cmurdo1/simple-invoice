@@ -251,11 +251,48 @@ export type Database = {
         }
         Relationships: []
       }
+      usage_tracking: {
+        Row: {
+          comparison_count: number
+          created_at: string
+          estimate_count: number
+          id: string
+          invoice_count: number
+          month_year: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comparison_count?: number
+          created_at?: string
+          estimate_count?: number
+          id?: string
+          invoice_count?: number
+          month_year: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comparison_count?: number
+          created_at?: string
+          estimate_count?: number
+          id?: string
+          invoice_count?: number
+          month_year?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      increment_usage: {
+        Args: { p_usage_type: string; p_user_id: string }
+        Returns: Json
+      }
       validate_feedback_token: {
         Args: { p_invoice_id: string; p_token: string }
         Returns: boolean
