@@ -12,4 +12,7 @@ verify_jwt = false
 [functions.customer-portal]
 verify_jwt = false
 
+[functions.analyze-estimate]
+verify_jwt = false
+
 	--##skhdbdmyrrpvgxkhytfm

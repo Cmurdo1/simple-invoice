@@ -69,6 +69,9 @@ serve(async (req) => {
     }
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+
+    // Product IDs for tier detection
+    const BUSINESS_PRODUCT_ID = "prod_U0I1nhBRS2qjHY";
     
     // Find customer by email
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
@@ -76,8 +79,7 @@ serve(async (req) => {
     if (customers.data.length === 0) {
       logStep("No Stripe customer found");
       
-      // Only update if not already manually set
-      if (existingProfile?.subscription_status !== "pro") {
+      if (existingProfile?.subscription_status !== "pro" && existingProfile?.subscription_status !== "business") {
         await supabaseClient
           .from("profiles")
           .update({ 
@@ -105,7 +107,7 @@ serve(async (req) => {
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
       status: "active",
-      limit: 1,
+      limit: 10,
     });
 
     const hasActiveSub = subscriptions.data.length > 0;
@@ -115,10 +117,16 @@ serve(async (req) => {
     if (hasActiveSub) {
       const subscription = subscriptions.data[0];
       subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
-      subscriptionStatus = "pro";
+      
+      // Detect tier based on product ID
+      const productId = subscription.items.data[0]?.price?.product;
+      subscriptionStatus = productId === BUSINESS_PRODUCT_ID ? "business" : "pro";
+      
       logStep("Active subscription found", { 
         subscriptionId: subscription.id, 
-        endDate: subscriptionEnd 
+        endDate: subscriptionEnd,
+        productId,
+        tier: subscriptionStatus,
       });
     } else {
       logStep("No active subscription found");
