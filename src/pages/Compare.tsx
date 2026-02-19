@@ -93,7 +93,7 @@ export default function Compare() {
     <>
       <SEOHead
         title="Free Estimate Checker | Honest Invoice"
-        description="Check if your contractor's estimate is fair. AI-powered comparison against regional pricing data."
+        description="Check if any estimate or quote is fair. AI-powered comparison against market pricing data."
         canonicalUrl="/compare"
       />
       <div className="min-h-screen bg-background">
@@ -137,7 +137,7 @@ export default function Compare() {
               Check If Your Estimate Is <span className="text-primary">Honest</span>
             </h1>
             <p className="text-muted-foreground max-w-xl mx-auto">
-              Paste your contractor's estimate below and we'll compare it against regional pricing data to see if you're being overcharged.
+              Paste any estimate or quote below and we'll compare it against market pricing data to see if you're being overcharged.
             </p>
           </div>
 
@@ -173,7 +173,7 @@ export default function Compare() {
                 <Textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder={`Example:\nRoof moss removal and treatment\n- Moss removal, main roof: $850\n- Moss removal, garage: $350\n- Zinc strip installation: $400\n- Gutter cleaning: $200\n- Disposal fees: $150\nTotal: $1,950`}
+                  placeholder={`Example:\nWebsite redesign project\n- UX/UI Design (40 hours): $6,000\n- Frontend development: $8,500\n- Backend API integration: $4,000\n- QA testing: $1,500\n- Project management: $2,000\nTotal: $22,000`}
                   className="min-h-[200px] font-mono text-sm"
                 />
               ) : (
@@ -249,7 +249,7 @@ export default function Compare() {
               <Card>
                 <CardHeader>
                   <CardTitle>Line-by-Line Analysis</CardTitle>
-                  <CardDescription>How each item compares to regional market rates</CardDescription>
+                  <CardDescription>How each item compares to market rates</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">

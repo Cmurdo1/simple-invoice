@@ -14,22 +14,22 @@ const customerFeatures = [
   {
     icon: ShieldCheck,
     title: 'Instant Estimate Checker',
-    description: 'Paste any contractor estimate and get an AI-powered fairness analysis in seconds. Know exactly if you\'re being overcharged.',
+    description: 'Paste any estimate or quote and get an AI-powered fairness analysis in seconds. Know exactly if you\'re being overcharged.',
   },
   {
     icon: Search,
     title: 'Line-by-Line Price Comparison',
-    description: 'Every item on your estimate is compared against regional market rates so you can see exactly where costs are inflated.',
+    description: 'Every item on your estimate is compared against market rates so you can see exactly where costs are inflated.',
   },
   {
     icon: DollarSign,
     title: 'Savings Calculator',
-    description: 'See your potential savings instantly. Use data-backed fair prices to negotiate with your contractor confidently.',
+    description: 'See your potential savings instantly. Use data-backed fair prices to negotiate confidently.',
   },
   {
     icon: Users,
     title: 'Trusted by Thousands',
-    description: 'Homeowners and customers use Honest Invoice to keep their contractors accountable and their budgets on track.',
+    description: 'Customers across every industry use Honest Invoice to keep service providers accountable and budgets on track.',
   },
 ];
 
@@ -38,12 +38,12 @@ const contractorFeatures = [
   {
     icon: Wand2,
     title: 'AI Invoice & Estimate Builder',
-    description: 'Describe the job in plain language and get itemized, professional estimates generated automatically.',
+    description: 'Describe the work in plain language and get itemized, professional estimates generated automatically.',
   },
   {
     icon: Smartphone,
     title: 'Works Offline',
-    description: 'Create and edit invoices without internet — perfect for remote job sites. Syncs when you\'re back online.',
+    description: 'Create and edit invoices without internet — perfect for on-the-go professionals. Syncs when you\'re back online.',
   },
   {
     icon: FileText,
@@ -53,7 +53,7 @@ const contractorFeatures = [
   {
     icon: CheckCircle2,
     title: 'Fast & Simple Billing',
-    description: 'Streamlined workflow built for busy contractors who need to estimate and bill quickly.',
+    description: 'Streamlined workflow built for busy professionals who need to estimate and bill quickly.',
   },
 ];
 
@@ -69,8 +69,8 @@ export default function Index() {
   return (
     <>
       <SEOHead
-        title="Honest Invoice | Check If Your Contractor's Estimate Is Fair"
-        description="Free AI-powered estimate checker. Paste your contractor's quote and instantly see if you're being overcharged. Trusted by homeowners nationwide."
+        title="Honest Invoice | Check If Your Quote or Estimate Is Fair"
+        description="Free AI-powered estimate checker. Paste any quote and instantly see if you're being overcharged. Trusted by customers and professionals everywhere."
         canonicalUrl="/"
       />
       <div className="min-h-screen bg-background">
@@ -110,12 +110,12 @@ export default function Index() {
                 Free Estimate Checker — No Account Required
               </Badge>
               <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-                Is Your Contractor Being{' '}
+                Is Your Quote{' '}
                 <span className="text-primary">Honest?</span>
               </h1>
               <p className="mb-8 text-lg text-muted-foreground sm:text-xl max-w-2xl mx-auto">
-                Don't overpay. Paste any contractor estimate and our AI instantly compares every line item
-                against regional market rates — so you know exactly what's fair.
+                Don't overpay. Paste any estimate or quote and our AI instantly compares every line item
+                against market rates — so you know exactly what's fair.
               </p>
               <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <Button size="lg" className="min-w-[240px] gap-2" asChild>
@@ -125,7 +125,7 @@ export default function Index() {
                   </Link>
                 </Button>
                 <Button size="lg" variant="outline" className="min-w-[200px]" asChild>
-                  <Link to="/signup">I'm a Contractor</Link>
+                  <Link to="/signup">I'm a Service Provider</Link>
                 </Button>
               </div>
               <p className="mt-4 text-sm text-muted-foreground">
@@ -144,8 +144,8 @@ export default function Index() {
             </p>
             <div className="grid gap-8 md:grid-cols-3 max-w-4xl mx-auto">
               {[
-                { step: '1', title: 'Paste Your Estimate', desc: 'Copy the line items and prices from the estimate you received from your contractor.' },
-                { step: '2', title: 'AI Analyzes It', desc: 'Our AI compares every item against regional pricing data and industry standards.' },
+                { step: '1', title: 'Paste Your Estimate', desc: 'Copy the line items and prices from any estimate or quote you\'ve received.' },
+                { step: '2', title: 'AI Analyzes It', desc: 'Our AI compares every item against market pricing data and industry standards.' },
                 { step: '3', title: 'Get Your Fairness Score', desc: 'See a clear score, line-by-line breakdown, and potential savings at a glance.' },
               ].map((item) => (
                 <div key={item.step} className="text-center">
@@ -177,7 +177,7 @@ export default function Index() {
               Protect Yourself From Overcharging
             </h2>
             <p className="mb-12 text-center text-muted-foreground max-w-2xl mx-auto">
-              Whether it's a roof repair, plumbing job, or full renovation — make sure you're paying a fair price.
+              Whether it's a service call, consulting engagement, or major project — make sure you're paying a fair price.
             </p>
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
               {customerFeatures.map((feature) => {
@@ -200,13 +200,13 @@ export default function Index() {
         <section className="border-t bg-muted/30 py-20" aria-labelledby="contractor-features-heading">
           <div className="container mx-auto px-4">
             <Badge variant="outline" className="mx-auto mb-4 flex w-fit gap-2 px-3 py-1">
-              <FileText className="h-3 w-3" /> For Contractors
+              <FileText className="h-3 w-3" /> For Service Providers
             </Badge>
             <h2 id="contractor-features-heading" className="mb-4 text-center text-3xl font-bold">
               Build Trust With Transparent Billing
             </h2>
             <p className="mb-12 text-center text-muted-foreground max-w-2xl mx-auto">
-              Professional invoicing tools that help you win more jobs by proving your pricing is fair and competitive.
+              Professional invoicing tools that help you win more business by proving your pricing is fair and competitive.
             </p>
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
               {contractorFeatures.map((feature) => {
@@ -283,7 +283,7 @@ export default function Index() {
               Know What's Fair Before You Pay
             </h2>
             <p className="mb-8 text-muted-foreground">
-              Join thousands of homeowners and contractors who trust Honest Invoice to keep pricing transparent.
+              Join thousands of customers and service providers who trust Honest Invoice to keep pricing transparent.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button size="lg" asChild>
