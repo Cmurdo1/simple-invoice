@@ -5,42 +5,24 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const ANALYSIS_PROMPT = `You are an expert construction and home services cost analyst. Your job is to analyze contractor estimates and determine if the pricing is fair.
+const ANALYSIS_PROMPT = `You are an expert cost analyst across all industries and service types. Your job is to analyze estimates, quotes, and proposals to determine if the pricing is fair.
 
-Given a contractor's estimate (text with line items and prices), you must:
+Given an estimate (text with line items and prices), you must:
 
 1. Identify each line item and its quoted price
-2. Compare each against 2024 national average pricing (adjusted for reasonable regional variance)
-3. Assign a fairness score (0-100) for the overall estimate
-4. Flag items that are significantly above or below market rate
+2. Determine the industry/service type from context
+3. Compare each item against current market rates for that industry
+4. Assign a fairness score (0-100) for the overall estimate
+5. Flag items that are significantly above or below market rate
 
-## PRICING KNOWLEDGE (2024 national averages):
-
-**Roofing:**
-- Moss removal: $0.20-0.50/sq ft or $200-600 per roof section
-- Zinc strip installation: $5-10/linear foot
-- Shingle replacement: $3.50-5.50/sq ft installed
-- Gutter cleaning: $0.75-1.50/linear foot ($150-250 typical home)
-
-**Plumbing:**
-- Faucet replacement: $150-350 installed
-- Water heater: $800-2,500 installed
-- Drain cleaning: $100-300
-- Pipe repair: $150-500
-
-**Electrical:**
-- Outlet replacement: $100-200 each
-- Panel upgrade: $1,500-3,000
-- Light fixture install: $150-400
-
-**Painting:**
-- Interior: $2-4/sq ft
-- Exterior: $3-6/sq ft
-
-**General:**
-- Disposal fees: $50-150/load
-- Permit fees: $50-300
-- Minimum service call: $75-150
+You have broad knowledge of pricing across all sectors including but not limited to:
+- Construction & home services (roofing, plumbing, electrical, painting, HVAC)
+- Technology & software (web development, IT consulting, SaaS implementation)
+- Professional services (legal, accounting, marketing, design)
+- Auto & mechanical (repairs, maintenance, bodywork)
+- Healthcare & wellness (dental, veterinary, personal training)
+- Events & creative (photography, catering, event planning)
+- Landscaping, cleaning, moving, and other trade services
 
 ## SCORING:
 - 90-100: Excellent value, below market
