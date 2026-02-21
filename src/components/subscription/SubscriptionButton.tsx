@@ -4,17 +4,15 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2, Sparkles, ExternalLink } from 'lucide-react';
-import { SubscriptionTier } from '@/lib/subscriptionTiers';
 
 interface SubscriptionButtonProps {
   variant?: 'default' | 'outline' | 'ghost';
   size?: 'default' | 'sm' | 'lg';
   className?: string;
-  targetTier?: SubscriptionTier;
 }
 
 export const SubscriptionButton = React.forwardRef<HTMLButtonElement, SubscriptionButtonProps>(
-  ({ variant = 'default', size = 'default', className, targetTier = 'pro' }, ref) => {
+  ({ variant = 'default', size = 'default', className }, ref) => {
     const { session, subscription } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
 
@@ -31,10 +29,11 @@ export const SubscriptionButton = React.forwardRef<HTMLButtonElement, Subscripti
           headers: {
             Authorization: `Bearer ${session.access_token}`,
           },
-          body: { tier: targetTier },
         });
 
-        if (error) throw error;
+        if (error) {
+          throw error;
+        }
 
         if (data?.url) {
           window.open(data.url, '_blank');
@@ -64,7 +63,9 @@ export const SubscriptionButton = React.forwardRef<HTMLButtonElement, Subscripti
           },
         });
 
-        if (error) throw error;
+        if (error) {
+          throw error;
+        }
 
         if (data?.url) {
           window.open(data.url, '_blank');
@@ -113,7 +114,7 @@ export const SubscriptionButton = React.forwardRef<HTMLButtonElement, Subscripti
         ) : (
           <Sparkles className="h-4 w-4 mr-2" />
         )}
-        Upgrade to {targetTier === 'business' ? 'Business' : 'Pro'}
+        Upgrade to Pro
       </Button>
     );
   }

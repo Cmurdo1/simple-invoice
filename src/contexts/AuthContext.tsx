@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface SubscriptionInfo {
   subscribed: boolean;
-  subscriptionStatus: 'free' | 'pro' | 'business';
+  subscriptionStatus: 'free' | 'pro';
   subscriptionEnd: string | null;
   isLoading: boolean;
 }

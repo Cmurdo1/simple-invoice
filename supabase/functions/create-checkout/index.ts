@@ -7,11 +7,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const PRICE_IDS: Record<string, string> = {
-  pro: "price_1SPg7rAtFazn277otlRY0Yau",
-  business: "price_1T2HRCAtFazn277owIyfTLmL",
-};
-
 const logStep = (step: string, details?: Record<string, unknown>) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
   console.log(`[CREATE-CHECKOUT] ${step}${detailsStr}`);
@@ -27,6 +22,7 @@ serve(async (req) => {
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
+    logStep("Stripe key verified");
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -35,6 +31,7 @@ serve(async (req) => {
 
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
+    logStep("Authorization header found");
 
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
@@ -44,22 +41,9 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Get requested tier from body
-    let tier = "pro";
-    try {
-      const body = await req.json();
-      if (body.tier && PRICE_IDS[body.tier]) {
-        tier = body.tier;
-      }
-    } catch {
-      // Default to pro if no body
-    }
-
-    const priceId = PRICE_IDS[tier];
-    logStep("Creating checkout for tier", { tier, priceId });
-
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     
+    // Check for existing customer
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     let customerId: string | undefined;
     
@@ -70,12 +54,23 @@ serve(async (req) => {
 
     const origin = req.headers.get("origin") || "https://id-preview--8937857b-915b-4c67-bc3a-85a05fc54ad7.lovable.app";
     
+    // HonestInvoice Pro - $19/month
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
       line_items: [
         {
-          price: priceId,
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: "HonestInvoice Pro",
+              description: "Professional invoicing for field contractors with automated extraction, unlimited invoices, and PDF export",
+            },
+            unit_amount: 1999, // $19.99
+            recurring: {
+              interval: "month",
+            },
+          },
           quantity: 1,
         },
       ],
@@ -84,7 +79,6 @@ serve(async (req) => {
       cancel_url: `${origin}/dashboard?checkout=cancelled`,
       metadata: {
         user_id: user.id,
-        tier: tier,
       },
     });
 
