@@ -21,6 +21,7 @@ import Settings from "./pages/Settings";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Feedback from "./pages/Feedback";
+import NerveCenter from "./pages/NerveCenter";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -82,6 +83,15 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Settings />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/nerve-center"
+              element={
+                <ProtectedRoute>
+                  <NerveCenter />
                 </ProtectedRoute>
               }
             />
