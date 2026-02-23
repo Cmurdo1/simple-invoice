@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { BrainCircuit } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -80,10 +81,12 @@ const BRAND_TEMPLATES = [
   },
 ];
 
+const NERVE_CENTER_EMAIL = 'murdochcpm_08@yahoo.com';
+
 export default function Settings() {
   const navigate = useNavigate();
   const { data: profile, isLoading } = useProfile();
-  const { subscription, signOut } = useAuth();
+  const { user, subscription, signOut } = useAuth();
   const updateProfile = useUpdateProfile();
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
@@ -807,6 +810,29 @@ export default function Settings() {
             </AlertDialog>
           </CardContent>
         </Card>
+
+        {/* Nerve Center - Only visible to authorized user */}
+        {user?.email === NERVE_CENTER_EMAIL && (
+          <Card className="border-primary/30 bg-primary/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BrainCircuit className="h-5 w-5 text-primary" />
+                The Nerve Center
+              </CardTitle>
+              <CardDescription>
+                Automations, signals, and AI task orchestration
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link to="/nerve-center">
+                <Button variant="outline" className="gap-2 border-primary/30 hover:bg-primary/10">
+                  <BrainCircuit className="h-4 w-4" />
+                  Enter The Nerve Center
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Save Button */}
         <div className="flex justify-end">
