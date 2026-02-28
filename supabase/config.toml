@@ -13,3 +13,6 @@ verify_jwt = false
 verify_jwt = false
 
 	--##skhdbdmyrrpvgxkhytfm
+
+[functions.auth-email-hook]
+verify_jwt = false
