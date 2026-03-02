@@ -44,7 +44,7 @@ export const SignupEmail = ({
         <Text style={text}>
           Thanks for signing up for{' '}
           <Link href={siteUrl} style={link}>
-            <strong>{siteName}</strong>
+            <strong>Honest Invoice</strong>
           </Link>
           ! You're almost ready to start invoicing clients.
         </Text>
@@ -57,6 +57,12 @@ export const SignupEmail = ({
         </Text>
         <Button style={button} href={confirmationUrl}>
           Verify Email Address
+        </Button>
+        <Text style={appText}>
+          Want invoicing in your pocket? Get the app and create invoices on the go — even offline.
+        </Text>
+        <Button style={appButton} href="https://play.google.com/store/apps/details?id=com.honestinvoice.app">
+          📲 Get the App
         </Button>
         <Text style={footer}>
           If you didn't create an account, you can safely ignore this email.
@@ -94,5 +100,17 @@ const button = {
   padding: '13px 24px',
   textDecoration: 'none',
   display: 'inline-block',
+}
+const appText = { fontSize: '13px', color: 'hsl(220, 10%, 50%)', margin: '28px 0 8px', fontStyle: 'italic' as const }
+const appButton = {
+  backgroundColor: 'hsl(220, 25%, 15%)',
+  color: '#ffffff',
+  fontSize: '14px',
+  fontWeight: '600' as const,
+  borderRadius: '10px',
+  padding: '11px 22px',
+  textDecoration: 'none',
+  display: 'inline-block',
+  border: '1px solid hsl(142, 72%, 35%)',
 }
 const footer = { fontSize: '12px', color: 'hsl(220, 10%, 56%)', margin: '32px 0 0' }
