@@ -5,15 +5,23 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Build dynamic prompt based on COL multiplier
-function buildDecompositionPrompt(colMultiplier: number, location: string): string {
+interface ImageInput {
+  base64: string;
+  mimeType: string;
+}
+
+function buildDecompositionPrompt(colMultiplier: number, location: string, hasImages: boolean): string {
   const colAdjustment = colMultiplier !== 1.0 
     ? `\n\n## REGIONAL PRICING ADJUSTMENT:\nThe customer is located in ${location} with a Cost of Living multiplier of ${colMultiplier}x.\n**IMPORTANT**: Multiply ALL prices (labor and materials) by ${colMultiplier} to reflect regional costs.\nFor example: If national average labor is $85/hr, use $${Math.round(85 * colMultiplier)}/hr for this region.`
     : '';
 
+  const imageInstruction = hasImages
+    ? `\n\n## PHOTO ANALYSIS INSTRUCTIONS:\nYou have been provided job-site photos. Carefully analyze them to:\n1. Identify the exact scope of work visible (size, condition, materials present)\n2. Estimate surface area, linear footage, or quantities from visual cues\n3. Note any complications (damage, difficult access, hazardous materials, specialty equipment needed)\n4. Identify materials already on site vs. what needs to be sourced\n5. Assess job complexity to calibrate labor hours accurately\nUse the photos as primary evidence. They override vague descriptions.`
+    : '';
+
   return `You are an expert contractor estimator specializing in work breakdown structures (WBS).
 
-Your task is to DECOMPOSE job descriptions into granular, auditable line items following industry best practices.
+Your task is to DECOMPOSE job descriptions into granular, auditable line items following industry best practices.${imageInstruction}
 
 ## CRITICAL RULES:
 
@@ -67,7 +75,8 @@ Return ONLY a valid JSON array. Each item must have:
 3. Did I account for prep work and protection?
 4. Are my quantities realistic (not underestimated)?
 5. Did I include minimum service charges if job is small?
-6. Did I apply the regional pricing multiplier (${colMultiplier}x) to all prices?`;
+6. Did I apply the regional pricing multiplier (${colMultiplier}x) to all prices?
+7. ${hasImages ? 'Did I use the photos to calibrate quantities and scope accurately?' : 'Did I use all details from the description?'}`;
 }
 
 function buildAuditPrompt(colMultiplier: number, location: string): string {
@@ -106,11 +115,11 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { job_description, col_multiplier, location } = await req.json();
+    const { job_description, col_multiplier, location, images } = await req.json();
 
-    if (!job_description) {
+    if (!job_description && (!images || images.length === 0)) {
       return new Response(
-        JSON.stringify({ error: 'Job description is required' }),
+        JSON.stringify({ error: 'Job description or images are required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -120,17 +129,41 @@ Deno.serve(async (req) => {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    // Use provided COL multiplier or default to 1.0 (national average)
     const colMultiplier = typeof col_multiplier === 'number' && col_multiplier > 0 ? col_multiplier : 1.0;
     const locationStr = location || 'United States (national average)';
+    const hasImages = Array.isArray(images) && images.length > 0;
     
-    console.log(`Processing with COL multiplier: ${colMultiplier} for location: ${locationStr}`);
+    console.log(`Processing with COL multiplier: ${colMultiplier} for location: ${locationStr}, images: ${hasImages ? images.length : 0}`);
 
-    // Build dynamic prompts based on location
-    const decompositionPrompt = buildDecompositionPrompt(colMultiplier, locationStr);
+    // Use vision-capable model when images are present
+    const model = hasImages ? 'google/gemini-2.5-flash' : 'google/gemini-2.5-flash';
+
+    const decompositionPrompt = buildDecompositionPrompt(colMultiplier, locationStr, hasImages);
     const auditPrompt = buildAuditPrompt(colMultiplier, locationStr);
 
-    // Step 1: Initial decomposition with reasoning
+    // Build user message — text + optional images
+    const userContent: any[] = [];
+
+    if (hasImages) {
+      // Add all images first so the model sees them in context
+      for (const img of images as ImageInput[]) {
+        userContent.push({
+          type: 'image_url',
+          image_url: {
+            url: `data:${img.mimeType};base64,${img.base64}`,
+          },
+        });
+      }
+    }
+
+    userContent.push({
+      type: 'text',
+      text: hasImages
+        ? `Analyze the job site photos above and this description, then decompose into line items:\n\n${job_description}`
+        : `Decompose this job into line items:\n\n${job_description}`,
+    });
+
+    // Step 1: Initial decomposition
     console.log('Step 1: Decomposing job description...');
     const decompositionResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -139,10 +172,10 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model,
         messages: [
           { role: 'system', content: decompositionPrompt },
-          { role: 'user', content: `Decompose this job into line items:\n\n${job_description}` }
+          { role: 'user', content: hasImages ? userContent : userContent[0].text },
         ],
         temperature: 0.2,
       }),
@@ -157,7 +190,6 @@ Deno.serve(async (req) => {
     const decompositionData = await decompositionResponse.json();
     const initialEstimate = decompositionData.choices?.[0]?.message?.content || '[]';
     
-    // Parse initial estimate
     let items;
     try {
       const cleanContent = initialEstimate.replace(/```json\n?|\n?```/g, '').trim();
@@ -174,7 +206,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Step 2: Self-audit pass
+    // Step 2: Self-audit pass (text only, no need to re-send images)
     console.log('Step 2: Auditing estimate...');
     const auditResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -188,7 +220,7 @@ Deno.serve(async (req) => {
           { role: 'system', content: auditPrompt },
           { 
             role: 'user', 
-            content: `Original job description:\n${job_description}\n\nLocation: ${locationStr} (COL: ${colMultiplier}x)\n\nInitial estimate to audit:\n${JSON.stringify(items, null, 2)}` 
+            content: `Original job description:\n${job_description}\n\nLocation: ${locationStr} (COL: ${colMultiplier}x)\n${hasImages ? `Photos analyzed: ${images.length} image(s)\n` : ''}\nInitial estimate to audit:\n${JSON.stringify(items, null, 2)}` 
           }
         ],
         temperature: 0.1,
@@ -211,7 +243,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Validate and clean items
     const validatedItems = items
       .filter((item: any) => item.description && typeof item.quantity === 'number' && typeof item.unit_price === 'number')
       .map((item: any) => ({
@@ -229,6 +260,7 @@ Deno.serve(async (req) => {
         subtotal: validatedItems.reduce((sum: number, item: any) => sum + (item.quantity * item.unit_price), 0),
         col_multiplier_applied: colMultiplier,
         location: locationStr,
+        photos_analyzed: hasImages ? images.length : 0,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
