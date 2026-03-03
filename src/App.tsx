@@ -6,25 +6,33 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { lazy, Suspense } from "react";
 
-// Pages
-import Index from "./pages/Index";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import Dashboard from "./pages/Dashboard";
-import MagicCreate from "./pages/MagicCreate";
-import InvoiceEditor from "./pages/InvoiceEditor";
-import Clients from "./pages/Clients";
-import Settings from "./pages/Settings";
-import Privacy from "./pages/Privacy";
-import Terms from "./pages/Terms";
-import Feedback from "./pages/Feedback";
-import NerveCenter from "./pages/NerveCenter";
-import NotFound from "./pages/NotFound";
+// Lazy-loaded pages for code splitting (massively reduces initial bundle)
+const Index = lazy(() => import("./pages/Index"));
+const Login = lazy(() => import("./pages/Login"));
+const Signup = lazy(() => import("./pages/Signup"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const MagicCreate = lazy(() => import("./pages/MagicCreate"));
+const InvoiceEditor = lazy(() => import("./pages/InvoiceEditor"));
+const Clients = lazy(() => import("./pages/Clients"));
+const Settings = lazy(() => import("./pages/Settings"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Feedback = lazy(() => import("./pages/Feedback"));
+const NerveCenter = lazy(() => import("./pages/NerveCenter"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 min cache
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <ThemeProvider>
@@ -34,6 +42,13 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <Suspense fallback={
+            <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',background:'hsl(220 25% 6%)',color:'hsl(142 72% 50%)',fontFamily:'sans-serif',flexDirection:'column',gap:'12px'}}>
+              <div style={{width:'32px',height:'32px',border:'3px solid hsl(142 72% 50% / 0.3)',borderTopColor:'hsl(142 72% 50%)',borderRadius:'50%',animation:'spin 0.8s linear infinite'}} />
+              <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+              <span style={{fontSize:'14px',opacity:0.7}}>Loading...</span>
+            </div>
+          }>
           <Routes>
 {/* Public routes */}
             <Route path="/" element={<Index />} />
@@ -99,6 +114,7 @@ const App = () => (
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </Suspense>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
