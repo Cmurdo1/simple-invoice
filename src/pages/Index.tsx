@@ -192,7 +192,7 @@ export default function Index() {
               {/* CTA */}
               <div className="flex-shrink-0 flex flex-col items-center gap-2">
                 <a
-                  href="https://honestinvoice.com/seo"
+                  href="https://honest-seo.com"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="group relative inline-block rounded-2xl bg-black px-8 py-4 text-base font-black text-yellow-400 shadow-2xl transition-all duration-200 hover:scale-105 hover:-translate-y-0.5 hover:shadow-black/40 active:scale-95"
