@@ -156,6 +156,41 @@ export default function Index() {
         </div>
       </section>
 
+      {/* Honest SEO Ad Banner */}
+      <section className="border-t py-10" style={{ background: 'linear-gradient(135deg, hsl(220 25% 10%) 0%, hsl(220 30% 14%) 100%)' }}>
+        <div className="container mx-auto px-4">
+          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r from-[hsl(220_25%_8%)] to-[hsl(220_30%_12%)] p-6 sm:p-8 shadow-2xl">
+            {/* Decorative glow */}
+            <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/20 blur-3xl" aria-hidden="true" />
+            <div className="pointer-events-none absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-primary/10 blur-2xl" aria-hidden="true" />
+            <div className="relative flex flex-col items-center gap-6 text-center sm:flex-row sm:text-left">
+              <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl bg-primary/20 text-4xl shadow-lg">
+                🔍
+              </div>
+              <div className="flex-1">
+                <div className="mb-1 inline-block rounded-full bg-primary/20 px-3 py-0.5 text-xs font-semibold uppercase tracking-widest text-primary">
+                  From the makers of Honest Invoice
+                </div>
+                <h3 className="mt-1 text-xl font-bold text-white sm:text-2xl">
+                  Is Your Website Invisible to Google?
+                </h3>
+                <p className="mt-1 text-sm text-white/60 sm:text-base">
+                  <span className="font-semibold text-primary">Honest SEO</span> — Free, no-BS SEO audit tool. Scan any URL, get a real report with actionable fixes. No upsells. No email required.
+                </p>
+              </div>
+              <a
+                href="https://honestinvoice.com/seo"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-shrink-0 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground shadow-lg transition-all hover:scale-105 hover:shadow-primary/30 hover:shadow-xl active:scale-95"
+              >
+                Scan My Site Free →
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="border-t py-8">
         <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 sm:flex-row">
