@@ -156,36 +156,52 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Honest SEO Ad Banner */}
-      <section className="border-t py-10" style={{ background: 'linear-gradient(135deg, hsl(220 25% 10%) 0%, hsl(220 30% 14%) 100%)' }}>
+      {/* Honest SEO Ad Banner — bold, high-contrast interrupt */}
+      <section className="py-12 overflow-hidden" style={{ background: 'linear-gradient(135deg, hsl(43 96% 52%) 0%, hsl(32 95% 50%) 40%, hsl(14 90% 52%) 100%)' }}>
         <div className="container mx-auto px-4">
-          <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-r from-[hsl(220_25%_8%)] to-[hsl(220_30%_12%)] p-6 sm:p-8 shadow-2xl">
-            {/* Decorative glow */}
-            <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-primary/20 blur-3xl" aria-hidden="true" />
-            <div className="pointer-events-none absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-primary/10 blur-2xl" aria-hidden="true" />
-            <div className="relative flex flex-col items-center gap-6 text-center sm:flex-row sm:text-left">
-              <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl bg-primary/20 text-4xl shadow-lg">
+          <div className="relative">
+            {/* Loud background text watermark */}
+            <div
+              className="pointer-events-none absolute inset-0 flex items-center justify-center select-none overflow-hidden"
+              aria-hidden="true"
+            >
+              <span className="text-[10rem] font-black uppercase tracking-tighter text-black/10 leading-none whitespace-nowrap">
+                FREE SEO AUDIT
+              </span>
+            </div>
+
+            <div className="relative flex flex-col items-center gap-6 text-center lg:flex-row lg:text-left lg:gap-10">
+              {/* Icon block */}
+              <div className="flex-shrink-0 flex h-20 w-20 items-center justify-center rounded-2xl bg-black/20 text-5xl shadow-2xl border-2 border-black/10">
                 🔍
               </div>
+
+              {/* Copy */}
               <div className="flex-1">
-                <div className="mb-1 inline-block rounded-full bg-primary/20 px-3 py-0.5 text-xs font-semibold uppercase tracking-widest text-primary">
-                  From the makers of Honest Invoice
+                <div className="mb-2 inline-block rounded-full bg-black/20 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-black/70">
+                  ⚡ Also free — from the same team
                 </div>
-                <h3 className="mt-1 text-xl font-bold text-white sm:text-2xl">
-                  Is Your Website Invisible to Google?
+                <h3 className="text-3xl font-black text-black leading-tight sm:text-4xl">
+                  Is Google ignoring<br className="hidden sm:block" /> your website?
                 </h3>
-                <p className="mt-1 text-sm text-white/60 sm:text-base">
-                  <span className="font-semibold text-primary">Honest SEO</span> — Free, no-BS SEO audit tool. Scan any URL, get a real report with actionable fixes. No upsells. No email required.
+                <p className="mt-2 text-sm font-semibold text-black/70 sm:text-base max-w-lg">
+                  <span className="text-black font-black">Honest SEO</span> — Paste a URL. Get a brutal, honest audit in seconds. No account. No upsells. No fluff.
                 </p>
               </div>
-              <a
-                href="https://honestinvoice.com/seo"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-shrink-0 rounded-xl bg-primary px-6 py-3 text-sm font-bold text-primary-foreground shadow-lg transition-all hover:scale-105 hover:shadow-primary/30 hover:shadow-xl active:scale-95"
-              >
-                Scan My Site Free →
-              </a>
+
+              {/* CTA */}
+              <div className="flex-shrink-0 flex flex-col items-center gap-2">
+                <a
+                  href="https://honestinvoice.com/seo"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group relative inline-block rounded-2xl bg-black px-8 py-4 text-base font-black text-yellow-400 shadow-2xl transition-all duration-200 hover:scale-105 hover:-translate-y-0.5 hover:shadow-black/40 active:scale-95"
+                >
+                  <span className="relative z-10">Scan My Site Free →</span>
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                </a>
+                <span className="text-[11px] font-bold text-black/50 uppercase tracking-wider">No signup needed</span>
+              </div>
             </div>
           </div>
         </div>
