@@ -1,10 +1,145 @@
+import { useEffect, useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { NerveCenterGate } from '@/components/auth/NerveCenterGate';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Activity, Zap, Radio, BrainCircuit } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Activity, Zap, Radio, BrainCircuit, MapPin, Phone, Mail, ExternalLink, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { formatDistanceToNow } from 'date-fns';
+
+interface Lead {
+  id: string;
+  poster_name: string | null;
+  contact_info: string | null;
+  job_description: string | null;
+  location: string | null;
+  post_url: string | null;
+  date_posted: string | null;
+  estimate_id: string | null;
+  status: string;
+  source: string;
+  created_at: string;
+}
+
+function LeadCard({ lead }: { lead: Lead }) {
+  const isEmail = lead.contact_info?.includes('@');
+  const isPhone = lead.contact_info && !isEmail;
+
+  const statusColor = {
+    new: 'bg-primary/10 text-primary border-primary/20',
+    estimated: 'bg-accent text-accent-foreground border-border',
+    contacted: 'bg-secondary text-secondary-foreground border-border',
+  }[lead.status] || 'bg-muted text-muted-foreground';
+
+  return (
+    <div className="rounded-lg border bg-card p-4 space-y-3 hover:border-primary/30 transition-colors">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="h-2 w-2 rounded-full bg-primary animate-pulse flex-shrink-0" />
+          <span className="font-medium text-sm truncate">{lead.poster_name || 'Anonymous'}</span>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <Badge variant="outline" className={`text-xs ${statusColor}`}>
+            {lead.status}
+          </Badge>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">
+            {formatDistanceToNow(new Date(lead.created_at), { addSuffix: true })}
+          </span>
+        </div>
+      </div>
+
+      <p className="text-sm text-muted-foreground line-clamp-2">{lead.job_description}</p>
+
+      <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+        {lead.location && (
+          <span className="flex items-center gap-1">
+            <MapPin className="h-3 w-3" />
+            {lead.location}
+          </span>
+        )}
+        {lead.contact_info && (
+          <span className="flex items-center gap-1">
+            {isEmail ? <Mail className="h-3 w-3" /> : <Phone className="h-3 w-3" />}
+            {lead.contact_info}
+          </span>
+        )}
+        {lead.post_url && (
+          <a
+            href={lead.post_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-primary hover:underline"
+          >
+            <ExternalLink className="h-3 w-3" />
+            View post
+          </a>
+        )}
+      </div>
+
+      {lead.estimate_id && (
+        <div className="flex items-center gap-1.5 text-xs text-accent-foreground">
+          <CheckCircle className="h-3.5 w-3.5 text-primary" />
+          <span>Estimate auto-generated</span>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function NerveCenter() {
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch initial leads
+    const fetchLeads = async () => {
+      const { data, error } = await supabase
+        .from('leads')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (!error && data) {
+        setLeads(data as Lead[]);
+      }
+      setLoading(false);
+    };
+
+    fetchLeads();
+
+    // Subscribe to realtime inserts
+    const channel = supabase
+      .channel('nerve-center-leads')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'leads' },
+        (payload) => {
+          setLeads((prev) => [payload.new as Lead, ...prev]);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'leads' },
+        (payload) => {
+          setLeads((prev) =>
+            prev.map((l) => (l.id === (payload.new as Lead).id ? (payload.new as Lead) : l))
+          );
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const newLeads = leads.filter((l) => l.status === 'new');
+  const estimatedLeads = leads.filter((l) => l.status === 'estimated');
+
+  // Get the webhook URL for the scraper config
+  const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-lead`;
+
   return (
     <NerveCenterGate>
       <AppLayout>
@@ -21,40 +156,84 @@ export default function NerveCenter() {
             </div>
           </div>
 
-          {/* Incoming Signals */}
+          {/* Stats row */}
+          <div className="grid grid-cols-3 gap-4">
+            <Card className="p-4">
+              <div className="text-2xl font-bold text-primary">{newLeads.length}</div>
+              <div className="text-xs text-muted-foreground mt-1">New signals</div>
+            </Card>
+            <Card className="p-4">
+              <div className="text-2xl font-bold text-foreground">{estimatedLeads.length}</div>
+              <div className="text-xs text-muted-foreground mt-1">Estimates generated</div>
+            </Card>
+            <Card className="p-4">
+              <div className="text-2xl font-bold">{leads.length}</div>
+              <div className="text-xs text-muted-foreground mt-1">Total leads</div>
+            </Card>
+          </div>
+
+          {/* Incoming Signals — live leads feed */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Radio className="h-5 w-5 text-primary" />
                 Incoming Signals
-                <Badge variant="outline" className="ml-auto">0 active</Badge>
+                <Badge variant="outline" className="ml-auto">
+                  {newLeads.length} new
+                </Badge>
               </CardTitle>
               <CardDescription>
-                Endpoint URLs for external services (n8n, Zapier, Make) to push data into the system
+                Live leads from Craigslist Portland — dump runs, mobile mechanic, and more
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-center rounded-lg border border-dashed py-12 text-muted-foreground">
-                No signals configured yet. Coming soon.
-              </div>
+            <CardContent className="space-y-3">
+              {loading ? (
+                <div className="flex items-center justify-center rounded-lg border border-dashed py-12 text-muted-foreground">
+                  Loading signals…
+                </div>
+              ) : leads.length === 0 ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-center rounded-lg border border-dashed py-12 text-muted-foreground">
+                    No signals yet. Start the scraper to pull in leads.
+                  </div>
+                  <div className="rounded-lg bg-muted/50 p-3 space-y-1">
+                    <p className="text-xs font-medium text-muted-foreground">Scraper webhook endpoint:</p>
+                    <code className="text-xs break-all text-primary">{webhookUrl}</code>
+                  </div>
+                </div>
+              ) : (
+                leads.map((lead) => <LeadCard key={lead.id} lead={lead} />)
+              )}
             </CardContent>
           </Card>
 
-          {/* Outgoing Pulses */}
+          {/* Webhook config */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Zap className="h-5 w-5 text-primary" />
                 Outgoing Pulses
-                <Badge variant="outline" className="ml-auto">0 configured</Badge>
+                <Badge variant="outline" className="ml-auto">Webhook ready</Badge>
               </CardTitle>
               <CardDescription>
-                Configure where notifications fire — Slack, email, SMS, or custom targets
+                Configure the scraper's WEBHOOK_URL to push leads here in real time
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-center rounded-lg border border-dashed py-12 text-muted-foreground">
-                No outgoing pulses configured yet. Coming soon.
+            <CardContent className="space-y-3">
+              <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">POST endpoint</p>
+                <code className="text-xs break-all text-primary block">{webhookUrl}</code>
+              </div>
+              <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Expected payload</p>
+                <pre className="text-xs text-muted-foreground overflow-x-auto">{`{
+  "poster_name": "John D.",
+  "contact_info": "john@example.com",
+  "job_description": "Need dump run, 2 pickups worth",
+  "location": "Beaverton, OR",
+  "post_url": "https://portland.craigslist.org/...",
+  "date_posted": "2026-03-03T10:00:00Z"
+}`}</pre>
               </div>
             </CardContent>
           </Card>
@@ -67,13 +246,38 @@ export default function NerveCenter() {
                 Activity Feed
               </CardTitle>
               <CardDescription>
-                Live stream of all signals, task completions, and system events
+                Live stream of all signals and estimate generation events
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-center rounded-lg border border-dashed py-12 text-muted-foreground">
-                No activity yet. The nerve center is quiet.
-              </div>
+            <CardContent className="space-y-2">
+              {leads.length === 0 ? (
+                <div className="flex items-center justify-center rounded-lg border border-dashed py-12 text-muted-foreground">
+                  No activity yet. The nerve center is quiet.
+                </div>
+              ) : (
+                leads.slice(0, 10).map((lead) => (
+                  <div key={lead.id} className="flex items-start gap-3 text-sm py-2 border-b last:border-0">
+                    <div className="mt-0.5 flex-shrink-0">
+                      {lead.estimate_id ? (
+                        <CheckCircle className="h-4 w-4 text-primary" />
+                      ) : (
+                        <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">
+                        {lead.estimate_id ? 'Estimate generated for' : 'New lead received from'}{' '}
+                        <span className="text-muted-foreground">{lead.poster_name || 'unknown'}</span>
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate">{lead.job_description}</p>
+                    </div>
+                    <span className="text-xs text-muted-foreground flex-shrink-0 flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {formatDistanceToNow(new Date(lead.created_at), { addSuffix: true })}
+                    </span>
+                  </div>
+                ))
+              )}
             </CardContent>
           </Card>
 
@@ -85,13 +289,27 @@ export default function NerveCenter() {
                 AI Task Queue
               </CardTitle>
               <CardDescription>
-                Where AI agents pick up assignments and report back with results
+                Estimates queued for AI generation from incoming leads
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-center rounded-lg border border-dashed py-12 text-muted-foreground">
-                No tasks in queue. AI agents are standing by.
-              </div>
+            <CardContent className="space-y-2">
+              {estimatedLeads.length === 0 ? (
+                <div className="flex items-center justify-center rounded-lg border border-dashed py-12 text-muted-foreground">
+                  No tasks in queue. AI agents are standing by.
+                </div>
+              ) : (
+                estimatedLeads.slice(0, 5).map((lead) => (
+                  <div key={lead.id} className="flex items-center justify-between gap-3 rounded-lg border bg-muted/20 p-3 text-sm">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <CheckCircle className="h-4 w-4 text-primary flex-shrink-0" />
+                      <span className="truncate">{lead.job_description?.slice(0, 60)}…</span>
+                    </div>
+                    <Badge variant="outline" className="text-xs flex-shrink-0">
+                      complete
+                    </Badge>
+                  </div>
+                ))
+              )}
             </CardContent>
           </Card>
         </div>

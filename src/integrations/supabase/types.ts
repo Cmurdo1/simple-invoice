@@ -185,6 +185,59 @@ export type Database = {
           },
         ]
       }
+      leads: {
+        Row: {
+          contact_info: string | null
+          created_at: string
+          date_posted: string | null
+          estimate_id: string | null
+          id: string
+          job_description: string | null
+          location: string | null
+          post_url: string | null
+          poster_name: string | null
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          contact_info?: string | null
+          created_at?: string
+          date_posted?: string | null
+          estimate_id?: string | null
+          id?: string
+          job_description?: string | null
+          location?: string | null
+          post_url?: string | null
+          poster_name?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          contact_info?: string | null
+          created_at?: string
+          date_posted?: string | null
+          estimate_id?: string | null
+          id?: string
+          job_description?: string | null
+          location?: string | null
+          post_url?: string | null
+          poster_name?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_estimate_id_fkey"
+            columns: ["estimate_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address: string | null

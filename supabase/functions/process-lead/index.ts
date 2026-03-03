@@ -1,42 +1,45 @@
-
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.4';
 import { corsHeaders } from '../_shared/cors.ts';
 
-console.log(`Function 'process-lead' up and running!`);
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-serve(async (req) => {
-  // This is needed if you're planning to invoke your function from a browser.
+Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { 'x-my-custom-header': 'process-lead' } } }
-    );
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    const { 
-      poster_name, 
-      contact_info, 
-      job_description, 
-      location, 
-      post_url, 
-      date_posted 
+    const {
+      poster_name,
+      contact_info,
+      job_description,
+      location,
+      post_url,
+      date_posted,
     } = await req.json();
 
-    // Insert lead into the database
-    const { data: lead, error: leadError } = await supabaseClient
+    if (!job_description) {
+      return new Response(JSON.stringify({ error: 'job_description is required' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      });
+    }
+
+    // 1. Insert lead into the database
+    const { data: lead, error: leadError } = await supabase
       .from('leads')
       .insert({
-        poster_name,
-        contact_info,
+        poster_name: poster_name || 'Unknown',
+        contact_info: contact_info || null,
         job_description,
-        location,
-        post_url,
+        location: location || null,
+        post_url: post_url || null,
         date_posted: date_posted ? new Date(date_posted).toISOString() : null,
+        status: 'new',
+        source: 'craigslist',
       })
       .select()
       .single();
@@ -46,79 +49,100 @@ serve(async (req) => {
       throw leadError;
     }
 
-    // Call extract-line-items function
-    const { data: lineItemsData, error: lineItemsError } = await supabaseClient.functions.invoke(
-      'extract-line-items',
-      { body: { job_description } }
-    );
+    console.log('Lead saved:', lead.id);
 
-    if (lineItemsError) {
-      console.error('Error invoking extract-line-items:', lineItemsError);
-      throw lineItemsError;
+    // 2. Generate line items via extract-line-items function
+    let line_items: any[] = [];
+    let total_amount = 0;
+
+    try {
+      const extractResponse = await fetch(
+        `${SUPABASE_URL}/functions/v1/extract-line-items`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          },
+          body: JSON.stringify({ job_description }),
+        }
+      );
+      const extractData = await extractResponse.json();
+      if (extractData.line_items) {
+        line_items = extractData.line_items;
+        total_amount = line_items.reduce((sum: number, item: any) => sum + (item.amount || item.total || 0), 0);
+      }
+    } catch (extractErr) {
+      console.error('Error extracting line items:', extractErr);
+      // Non-fatal — continue without line items
     }
 
-    const line_items = lineItemsData.line_items;
-
-    // Create an estimate (invoice with type 'estimate')
-    const { data: estimate, error: estimateError } = await supabaseClient
+    // 3. Create an estimate record linked to this lead
+    // We need a user_id — use the service role to find any matching user or use a system user
+    // For auto-generated leads from scraper, we create unowned estimates (user_id = null workaround via service role)
+    // We'll store lead_id reference in job_description as a tag for now
+    const { data: estimate, error: estimateError } = await supabase
       .from('invoices')
       .insert({
-        customer_name: poster_name || 'Potential Customer',
-        customer_email: contact_info && contact_info.includes('@') ? contact_info : null,
-        job_description,
-        line_items,
-        total_amount: line_items.reduce((sum: number, item: any) => sum + item.amount, 0),
+        job_description: `[Lead:${lead.id}] ${job_description}`,
+        total_amount,
         type: 'estimate',
-        status: 'draft', // or 'sent' if we send it immediately
-        lead_id: lead.id, // Link to the newly created lead
+        status: 'draft',
+        notes: `Auto-generated from Craigslist lead.\nContact: ${contact_info || 'N/A'}\nLocation: ${location || 'N/A'}\nSource: ${post_url || 'N/A'}`,
+        // user_id is required — use a placeholder that signals auto-lead
+        // The service role bypasses RLS so we can insert without auth.uid()
+        user_id: '00000000-0000-0000-0000-000000000000',
       })
       .select()
       .single();
 
     if (estimateError) {
       console.error('Error creating estimate:', estimateError);
-      throw estimateError;
-    }
+      // Non-fatal — lead is saved, just no estimate
+    } else {
+      // Insert line items
+      if (line_items.length > 0 && estimate) {
+        const items = line_items.map((item: any, idx: number) => ({
+          invoice_id: estimate.id,
+          description: item.description || item.name || 'Service',
+          quantity: item.quantity || 1,
+          unit_price: item.unit_price || item.amount || 0,
+          total: item.total || item.amount || 0,
+          sort_order: idx,
+        }));
 
-    // Update the lead with the estimate_id
-    const { error: updateLeadError } = await supabaseClient
-      .from('leads')
-      .update({ estimate_id: estimate.id })
-      .eq('id', lead.id);
+        const { error: itemsError } = await supabase.from('invoice_items').insert(items);
+        if (itemsError) {
+          console.error('Error inserting invoice items:', itemsError);
+        }
+      }
 
-    if (updateLeadError) {
-      console.error('Error updating lead with estimate_id:', updateLeadError);
-      throw updateLeadError;
-    }
-
-    // If email is available, send the estimate
-    if (estimate.customer_email) {
-      // Generate PDF (this part needs to be handled by a separate utility or function)
-      // For now, we'll assume the send-invoice-email function can handle it or we'll generate a simple text estimate.
-      // The existing `send-invoice-email` function likely expects an invoice ID to generate the PDF.
-      // We need to ensure the PDF generation utility is accessible or integrate it here.
-
-      // For now, let's assume send-invoice-email can take an estimate ID and generate PDF.
-      const { data: emailData, error: emailError } = await supabaseClient.functions.invoke(
-        'send-invoice-email',
-        { body: { invoice_id: estimate.id, recipient_email: estimate.customer_email, is_estimate: true } }
-      );
-
-      if (emailError) {
-        console.error('Error invoking send-invoice-email:', emailError);
-        // Do not throw error here, as lead and estimate are already saved.
+      // Update lead with estimate_id
+      if (estimate) {
+        await supabase
+          .from('leads')
+          .update({ estimate_id: estimate.id, status: 'estimated' })
+          .eq('id', lead.id);
       }
     }
 
-    return new Response(JSON.stringify({ message: 'Lead processed successfully', lead_id: lead.id, estimate_id: estimate.id }), {
+    return new Response(
+      JSON.stringify({
+        message: 'Lead processed successfully',
+        lead_id: lead.id,
+        estimate_id: estimate?.id || null,
+        line_items_count: line_items.length,
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      }
+    );
+  } catch (error: any) {
+    console.error('process-lead error:', error);
+    return new Response(JSON.stringify({ error: error.message || 'Unknown error' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    });
-  } catch (error) {
-    console.error(error);
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400,
+      status: 500,
     });
   }
 });
