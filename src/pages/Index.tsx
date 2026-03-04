@@ -1,7 +1,7 @@
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { FileText, Wand2, Smartphone, Camera, Eye, Zap } from 'lucide-react';
+import { FileText, Wand2, Smartphone, Camera, Eye, Zap, Bot, MonitorSmartphone, CreditCard } from 'lucide-react';
 import logoLight from '@/assets/honest-invoice-logo.png';
 import logoDark from '@/assets/honest-invoice-logo-dark.png';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -148,6 +148,55 @@ export default function Index() {
                 </article>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="py-20" aria-labelledby="how-it-works-heading">
+        <div className="container mx-auto px-4">
+          <h2 id="how-it-works-heading" className="mb-4 text-center text-3xl font-bold">
+            How It Works
+          </h2>
+          <p className="mb-14 text-center text-muted-foreground max-w-xl mx-auto">
+            Three steps. From first wrench turn to cash in hand.
+          </p>
+          <div className="relative flex flex-col gap-0 md:flex-row md:items-start md:gap-0">
+            {/* Connector line — desktop only */}
+            <div className="hidden md:block absolute top-10 left-[16.66%] right-[16.66%] h-0.5 bg-border z-0" aria-hidden="true" />
+
+            {[
+              {
+                step: '01',
+                icon: Bot,
+                title: 'Create Invoice with AI',
+                description: 'Describe the job in plain English. Our AI generates a fully itemized invoice with accurate line items, labor, and parts in seconds.',
+              },
+              {
+                step: '02',
+                icon: MonitorSmartphone,
+                title: 'Client Watches in Real-Time',
+                description: 'Share a live link. Your client sees tasks checked off as you complete them, with photo proof attached to every line item.',
+              },
+              {
+                step: '03',
+                icon: CreditCard,
+                title: 'Get Paid Instantly',
+                description: 'Mark the job complete and trigger a one-click payment request. No more "I\'ll pay you later." Settlement happens on the spot.',
+              },
+            ].map(({ step, icon: Icon, title, description }) => (
+              <div key={step} className="relative z-10 flex flex-col items-center text-center flex-1 px-6 pb-12 md:pb-0">
+                {/* Step badge */}
+                <div className="mb-4 flex h-20 w-20 flex-col items-center justify-center rounded-full border-2 border-primary bg-background shadow-md">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-primary">{step}</span>
+                  <Icon className="mt-0.5 h-6 w-6 text-primary" aria-hidden="true" />
+                </div>
+                <h3 className="mb-2 text-lg font-bold">{title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">{description}</p>
+                {/* Mobile connector */}
+                <div className="md:hidden mt-6 h-10 w-0.5 bg-border mx-auto last:hidden" aria-hidden="true" />
+              </div>
+            ))}
           </div>
         </div>
       </section>
