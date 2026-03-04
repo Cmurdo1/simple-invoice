@@ -1,37 +1,49 @@
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { FileText, Wand2, Smartphone, CheckCircle2 } from 'lucide-react';
+import { FileText, Wand2, Smartphone, Camera, Eye, Zap } from 'lucide-react';
 import logoLight from '@/assets/honest-invoice-logo.png';
 import logoDark from '@/assets/honest-invoice-logo-dark.png';
 import { useTheme } from '@/contexts/ThemeContext';
 import { SEOHead } from '@/components/seo/SEOHead';
 
-// Feature data with SEO-optimized descriptions and alt text
+// Core product features
 const features = [
   {
+    icon: Camera,
+    title: 'Live Proof-of-Work',
+    description: 'Attach photo and video timestamps directly to line items. Every charge has visual evidence—disputes become impossible.',
+    altText: 'Photo and video proof attached to invoice line items for transparent billing',
+  },
+  {
+    icon: Eye,
+    title: 'Real-Time Client View',
+    description: 'A live dashboard your client can watch as you check off tasks. No more mystery charges—they see the work as it happens.',
+    altText: 'Real-time client view showing live invoice progress for field service workers',
+  },
+  {
+    icon: Zap,
+    title: 'Frictionless Settlement',
+    description: 'One-click payment triggered the moment the job is marked complete. No more "I\'ll pay you when I get home."',
+    altText: 'One-click invoice payment on job completion for contractors and mechanics',
+  },
+  {
     icon: Wand2,
-    title: 'Automated Invoice & Estimate Extraction',
-    description: 'Describe your job in plain language and let our system automatically generate accurate, itemized line items for freelancers and contractors.',
-    altText: 'Invoice and estimate automation tool extracting line items from job description',
+    title: 'AI-Powered Line Items',
+    description: 'Describe your job in plain language and let our AI generate accurate, itemized line items—from labor to parts.',
+    altText: 'AI invoice and estimate automation tool for field service professionals',
   },
   {
     icon: Smartphone,
-    title: 'Offline Estimates & Invoices',
-    description: 'Create, edit, and save estimates and invoices without internet connection—perfect for contractors working on remote job sites.',
-    altText: 'Mobile offline invoicing and estimate app for contractors and field workers',
+    title: 'Works Offline',
+    description: 'Create, edit, and save estimates and invoices without internet—built for remote job sites and dead zones.',
+    altText: 'Offline invoicing app for contractors working in areas without internet',
   },
   {
     icon: FileText,
-    title: 'Professional PDF Generator',
-    description: 'Export polished, client-ready PDF invoices and estimates instantly. Customizable templates that help freelancers get paid faster.',
-    altText: 'Professional PDF invoice and estimate template generator for small businesses',
-  },
-  {
-    icon: CheckCircle2,
-    title: 'Fast & Simple Billing Software',
-    description: 'Streamlined workflow built for busy freelancers, designers, and small business owners who need to bill or estimate quickly.',
-    altText: 'Simple billing and estimate software dashboard for freelancers and small businesses',
+    title: 'Professional PDFs',
+    description: 'Export polished, client-ready PDF invoices and estimates instantly. Built for the field, not the office.',
+    altText: 'Professional PDF invoice generator for trades and field service workers',
   },
 ];
 
@@ -106,31 +118,33 @@ export default function Index() {
       <section className="border-t bg-muted/30 py-20" aria-labelledby="features-heading">
         <div className="container mx-auto px-4">
           <h2 id="features-heading" className="mb-4 text-center text-3xl font-bold">
-            Powerful Invoicing & Estimate Tools
+            Built for the Field. Trusted in the Trades.
           </h2>
           <p className="mb-12 text-center text-muted-foreground max-w-2xl mx-auto">
-            Everything you need to create professional invoices and estimates, track payments, and manage your business finances.
+            Every feature exists because a mechanic needed it on a real job site. Proof, transparency, and instant payment—baked into every invoice.
           </p>
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {features.map((feature) => {
               const Icon = feature.icon;
               return (
                 <article
                   key={feature.title}
-                  className="rounded-lg border bg-card p-6 text-center"
+                  className="rounded-xl border bg-card p-6 flex gap-4 items-start hover:border-primary/40 transition-colors"
                   aria-label={feature.altText}
                 >
                   <div 
-                    className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10"
+                    className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10"
                     role="img"
                     aria-label={feature.altText}
                   >
-                    <Icon className="h-6 w-6 text-primary" aria-hidden="true" />
+                    <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
                   </div>
-                  <h3 className="mb-2 font-semibold">{feature.title}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {feature.description}
-                  </p>
+                  <div>
+                    <h3 className="mb-1 font-semibold">{feature.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </div>
                 </article>
               );
             })}
