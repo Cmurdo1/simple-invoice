@@ -7,31 +7,52 @@ import logoDark from '@/assets/honest-invoice-logo-dark.png';
 import { useTheme } from '@/contexts/ThemeContext';
 import { SEOHead } from '@/components/seo/SEOHead';
 
-// Feature data with SEO-optimized descriptions and alt text
+import { Link, Navigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { FileText, Wand2, Smartphone, CheckCircle2, Camera, Eye, Zap, TrendingUp } from 'lucide-react';
+import logoLight from '@/assets/honest-invoice-logo.png';
+import logoDark from '@/assets/honest-invoice-logo-dark.png';
+import { useTheme } from '@/contexts/ThemeContext';
+import { SEOHead } from '@/components/seo/SEOHead';
+
+// Core product features
 const features = [
   {
+    icon: Camera,
+    title: 'Live Proof-of-Work',
+    description: 'Attach photo and video timestamps directly to line items. Every charge has visual evidence—disputes become impossible.',
+    altText: 'Photo and video proof attached to invoice line items for transparent billing',
+  },
+  {
+    icon: Eye,
+    title: 'Real-Time Client View',
+    description: 'A live dashboard your client can watch as you check off tasks. No more mystery charges—they see the work as it happens.',
+    altText: 'Real-time client view showing live invoice progress for field service workers',
+  },
+  {
+    icon: Zap,
+    title: 'Frictionless Settlement',
+    description: 'One-click payment triggered the moment the job is marked complete. No more "I\'ll pay you when I get home."',
+    altText: 'One-click invoice payment on job completion for contractors and mechanics',
+  },
+  {
     icon: Wand2,
-    title: 'Automated Invoice & Estimate Extraction',
-    description: 'Describe your job in plain language and let our system automatically generate accurate, itemized line items for freelancers and contractors.',
-    altText: 'Invoice and estimate automation tool extracting line items from job description',
+    title: 'AI-Powered Line Items',
+    description: 'Describe your job in plain language and let our AI generate accurate, itemized line items—from labor to parts.',
+    altText: 'AI invoice and estimate automation tool for field service professionals',
   },
   {
     icon: Smartphone,
-    title: 'Offline Estimates & Invoices',
-    description: 'Create, edit, and save estimates and invoices without internet connection—perfect for contractors working on remote job sites.',
-    altText: 'Mobile offline invoicing and estimate app for contractors and field workers',
+    title: 'Works Offline',
+    description: 'Create, edit, and save estimates and invoices without internet—built for remote job sites and dead zones.',
+    altText: 'Offline invoicing app for contractors working in areas without internet',
   },
   {
     icon: FileText,
-    title: 'Professional PDF Generator',
-    description: 'Export polished, client-ready PDF invoices and estimates instantly. Customizable templates that help freelancers get paid faster.',
-    altText: 'Professional PDF invoice and estimate template generator for small businesses',
-  },
-  {
-    icon: CheckCircle2,
-    title: 'Fast & Simple Billing Software',
-    description: 'Streamlined workflow built for busy freelancers, designers, and small business owners who need to bill or estimate quickly.',
-    altText: 'Simple billing and estimate software dashboard for freelancers and small businesses',
+    title: 'Professional PDFs',
+    description: 'Export polished, client-ready PDF invoices and estimates instantly. Built for the field, not the office.',
+    altText: 'Professional PDF invoice generator for trades and field service workers',
   },
 ];
 
