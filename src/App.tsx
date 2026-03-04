@@ -23,6 +23,7 @@ const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Feedback = lazy(() => import("./pages/Feedback"));
 const NerveCenter = lazy(() => import("./pages/NerveCenter"));
+const PitchDeck = lazy(() => import("./pages/PitchDeck"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -59,6 +60,7 @@ const App = () => (
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/feedback" element={<Feedback />} />
+            <Route path="/pitch" element={<PitchDeck />} />
 
             {/* Protected routes */}
             <Route
