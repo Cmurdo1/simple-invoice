@@ -1,16 +1,7 @@
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { FileText, Wand2, Smartphone, CheckCircle2 } from 'lucide-react';
-import logoLight from '@/assets/honest-invoice-logo.png';
-import logoDark from '@/assets/honest-invoice-logo-dark.png';
-import { useTheme } from '@/contexts/ThemeContext';
-import { SEOHead } from '@/components/seo/SEOHead';
-
-import { Link, Navigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { FileText, Wand2, Smartphone, CheckCircle2, Camera, Eye, Zap, TrendingUp } from 'lucide-react';
+import { FileText, Wand2, Smartphone, Camera, Eye, Zap } from 'lucide-react';
 import logoLight from '@/assets/honest-invoice-logo.png';
 import logoDark from '@/assets/honest-invoice-logo-dark.png';
 import { useTheme } from '@/contexts/ThemeContext';
