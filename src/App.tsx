@@ -60,6 +60,7 @@ const App = () => (
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/feedback" element={<Feedback />} />
+            <Route path="/pitch" element={<PitchDeck />} />
 
             {/* Protected routes */}
             <Route
