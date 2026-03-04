@@ -118,31 +118,33 @@ export default function Index() {
       <section className="border-t bg-muted/30 py-20" aria-labelledby="features-heading">
         <div className="container mx-auto px-4">
           <h2 id="features-heading" className="mb-4 text-center text-3xl font-bold">
-            Powerful Invoicing & Estimate Tools
+            Built for the Field. Trusted in the Trades.
           </h2>
           <p className="mb-12 text-center text-muted-foreground max-w-2xl mx-auto">
-            Everything you need to create professional invoices and estimates, track payments, and manage your business finances.
+            Every feature exists because a mechanic needed it on a real job site. Proof, transparency, and instant payment—baked into every invoice.
           </p>
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {features.map((feature) => {
               const Icon = feature.icon;
               return (
                 <article
                   key={feature.title}
-                  className="rounded-lg border bg-card p-6 text-center"
+                  className="rounded-xl border bg-card p-6 flex gap-4 items-start hover:border-primary/40 transition-colors"
                   aria-label={feature.altText}
                 >
                   <div 
-                    className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10"
+                    className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10"
                     role="img"
                     aria-label={feature.altText}
                   >
-                    <Icon className="h-6 w-6 text-primary" aria-hidden="true" />
+                    <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
                   </div>
-                  <h3 className="mb-2 font-semibold">{feature.title}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {feature.description}
-                  </p>
+                  <div>
+                    <h3 className="mb-1 font-semibold">{feature.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </div>
                 </article>
               );
             })}
