@@ -23,7 +23,7 @@ serve(async (req) => {
   );
 
   const signature = req.headers.get("stripe-signature");
-  const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+  const webhookSecret = Deno.env.get("STRIPE_INVOICE_WEBHOOK");
   const body = await req.text();
 
   let event: Stripe.Event;
