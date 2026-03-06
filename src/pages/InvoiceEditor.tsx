@@ -16,7 +16,7 @@ import {
 } from '@/hooks/useInvoices';
 import { useClients } from '@/hooks/useClients';
 import { useProfile } from '@/hooks/useProfile';
-import { Loader2, Plus, Trash2, Save, Download, ArrowLeft, Send, Mail } from 'lucide-react';
+import { Loader2, Plus, Trash2, Save, Download, ArrowLeft, Send, Mail, Link, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { InvoiceStatus } from '@/types/database';
@@ -174,6 +174,19 @@ export default function InvoiceEditor() {
 
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [sendAsEstimate, setSendAsEstimate] = useState(false);
+  const [isCopyingLink, setIsCopyingLink] = useState(false);
+
+  const handleCopyPaymentLink = () => {
+    if (!id) return;
+    const url = `${window.location.origin}/pay/${id}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setIsCopyingLink(true);
+      toast.success('Payment link copied to clipboard!');
+      setTimeout(() => setIsCopyingLink(false), 2000);
+    }).catch(() => {
+      toast.error('Failed to copy link');
+    });
+  };
 
   const handleSendEmail = async () => {
     if (!subscription.subscribed) {
@@ -331,6 +344,19 @@ export default function InvoiceEditor() {
             <Button variant="outline" onClick={handleExportPDF} className="gap-2">
               <Download className="h-4 w-4" />
               Export PDF
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleCopyPaymentLink}
+              className="gap-2"
+              title="Copy payment link to share with client"
+            >
+              {isCopyingLink ? (
+                <Copy className="h-4 w-4 text-primary" />
+              ) : (
+                <Link className="h-4 w-4" />
+              )}
+              {isCopyingLink ? 'Copied!' : 'Payment Link'}
             </Button>
           </div>
         </div>
