@@ -35,6 +35,17 @@ export default function PayInvoice() {
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const paymentUrl = typeof window !== 'undefined' ? `${window.location.origin}/pay/${id}` : '';
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(paymentUrl).then(() => {
+      setCopied(true);
+      toast.success('Payment link copied!');
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   useEffect(() => {
     const fetchInvoice = async () => {
