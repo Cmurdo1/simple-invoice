@@ -174,6 +174,19 @@ export default function InvoiceEditor() {
 
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [sendAsEstimate, setSendAsEstimate] = useState(false);
+  const [isCopyingLink, setIsCopyingLink] = useState(false);
+
+  const handleCopyPaymentLink = () => {
+    if (!id) return;
+    const url = `${window.location.origin}/pay/${id}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setIsCopyingLink(true);
+      toast.success('Payment link copied to clipboard!');
+      setTimeout(() => setIsCopyingLink(false), 2000);
+    }).catch(() => {
+      toast.error('Failed to copy link');
+    });
+  };
 
   const handleSendEmail = async () => {
     if (!subscription.subscribed) {
