@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Error checking subscription:', error);
       setSubscription(prev => ({ ...prev, isLoading: false }));
     }
-  }, [session?.access_token]);
+  }, []);
 
   useEffect(() => {
     // Set up auth state listener FIRST
