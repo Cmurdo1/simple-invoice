@@ -345,6 +345,19 @@ export default function InvoiceEditor() {
               <Download className="h-4 w-4" />
               Export PDF
             </Button>
+            <Button
+              variant="outline"
+              onClick={handleCopyPaymentLink}
+              className="gap-2"
+              title="Copy payment link to share with client"
+            >
+              {isCopyingLink ? (
+                <Copy className="h-4 w-4 text-primary" />
+              ) : (
+                <Link className="h-4 w-4" />
+              )}
+              {isCopyingLink ? 'Copied!' : 'Payment Link'}
+            </Button>
           </div>
         </div>
 
