@@ -170,9 +170,9 @@ export default function PayInvoice() {
           <Badge
             className={
               isPaid
-                ? 'bg-green-100 text-green-700'
+                ? 'bg-green-100 text-green-800'
                 : invoice.status === 'sent'
-                ? 'bg-blue-100 text-blue-700'
+                ? 'bg-primary/10 text-primary'
                 : 'bg-muted text-muted-foreground'
             }
           >

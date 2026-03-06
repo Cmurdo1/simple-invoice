@@ -62,6 +62,7 @@ const App = () => (
             <Route path="/terms" element={<Terms />} />
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/pitch" element={<PitchDeck />} />
+            <Route path="/pay/:id" element={<PayInvoice />} />
 
             {/* Protected routes */}
             <Route
