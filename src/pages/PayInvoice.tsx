@@ -94,12 +94,12 @@ export default function PayInvoice() {
       <div className="min-h-screen flex items-center justify-center bg-background px-4">
         <Card className="w-full max-w-md text-center">
           <CardContent className="pt-10 pb-8 space-y-4">
-            <CheckCircle2 className="h-16 w-16 text-green-500 mx-auto" />
+            <CheckCircle2 className="h-16 w-16 text-primary mx-auto" />
             <h1 className="text-2xl font-bold">Payment Successful!</h1>
             <p className="text-muted-foreground">
               Your payment has been processed. You'll receive a confirmation email shortly.
             </p>
-            <Badge className="bg-green-100 text-green-700 text-sm px-3 py-1">Invoice Paid</Badge>
+            <Badge className="bg-primary/10 text-primary text-sm px-3 py-1">Invoice Paid</Badge>
           </CardContent>
         </Card>
       </div>
