@@ -1,49 +1,49 @@
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { FileText, Wand2, Smartphone, Camera, Eye, Zap, Bot, MonitorSmartphone, CreditCard } from 'lucide-react';
+import { FileText, Wand2, Smartphone, CreditCard, Users, Mail, Zap, Bot, MonitorSmartphone } from 'lucide-react';
 import logoLight from '@/assets/honest-invoice-logo.png';
 import logoDark from '@/assets/honest-invoice-logo-dark.png';
 import { useTheme } from '@/contexts/ThemeContext';
 import { SEOHead } from '@/components/seo/SEOHead';
 
-// Core product features
+// Core product features — all are real, working features in the app
 const features = [
-  {
-    icon: Camera,
-    title: 'Live Proof-of-Work',
-    description: 'Attach photo and video timestamps directly to line items. Every charge has visual evidence—disputes become impossible.',
-    altText: 'Photo and video proof attached to invoice line items for transparent billing',
-  },
-  {
-    icon: Eye,
-    title: 'Real-Time Client View',
-    description: 'A live dashboard your client can watch as you check off tasks. No more mystery charges—they see the work as it happens.',
-    altText: 'Real-time client view showing live invoice progress for field service workers',
-  },
-  {
-    icon: Zap,
-    title: 'Frictionless Settlement',
-    description: 'One-click payment triggered the moment the job is marked complete. No more "I\'ll pay you when I get home."',
-    altText: 'One-click invoice payment on job completion for contractors and mechanics',
-  },
   {
     icon: Wand2,
     title: 'AI-Powered Line Items',
-    description: 'Describe your job in plain language and let our AI generate accurate, itemized line items—from labor to parts.',
+    description: 'Describe your job in plain language and our AI generates a fully itemized invoice—labor, parts, and regional pricing—in seconds.',
     altText: 'AI invoice and estimate automation tool for field service professionals',
+  },
+  {
+    icon: CreditCard,
+    title: 'Stripe Payment Collection',
+    description: 'Pro users get a unique payment link on every invoice. Clients pay by card directly—funds go straight to your Stripe account.',
+    altText: 'Stripe payment link on invoice for contractors to collect payments online',
+  },
+  {
+    icon: Mail,
+    title: 'Send Invoices by Email',
+    description: 'Email professional, branded invoices directly to clients with a Pay Now button included. No manual copy-pasting.',
+    altText: 'Email invoice with pay now button for small business owners',
+  },
+  {
+    icon: FileText,
+    title: 'Professional PDF Export',
+    description: 'Export polished, client-ready PDF invoices and estimates in one tap—your logo, brand color, and itemized breakdown included.',
+    altText: 'Professional PDF invoice generator for trades and field service workers',
   },
   {
     icon: Smartphone,
     title: 'Works Offline',
-    description: 'Create, edit, and save estimates and invoices without internet—built for remote job sites and dead zones.',
+    description: 'Create, edit, and save invoices without internet. Built for remote job sites and dead zones—syncs automatically when you reconnect.',
     altText: 'Offline invoicing app for contractors working in areas without internet',
   },
   {
-    icon: FileText,
-    title: 'Professional PDFs',
-    description: 'Export polished, client-ready PDF invoices and estimates instantly. Built for the field, not the office.',
-    altText: 'Professional PDF invoice generator for trades and field service workers',
+    icon: Users,
+    title: 'Client Management',
+    description: 'Store client names, emails, phone numbers, and addresses. Reuse them on any invoice with a single tap—no re-typing.',
+    altText: 'Client management CRM for freelancers and contractors',
   },
 ];
 
