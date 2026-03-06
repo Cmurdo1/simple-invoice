@@ -57,9 +57,26 @@ export default function Index() {
     return <Navigate to="/dashboard" replace />;
   }
 
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Free Invoice Generator — Honest Invoice",
+    "description": "Create free professional invoices and estimates online. AI-powered, Stripe payments, email delivery, PDF export, offline support. 100% free.",
+    "url": "https://honestinvoice.com",
+    "breadcrumb": {
+      "@type": "BreadcrumbList",
+      "itemListElement": [{ "@type": "ListItem", "position": 1, "name": "Free Invoice Generator", "item": "https://honestinvoice.com" }]
+    }
+  };
+
   return (
     <>
-      <SEOHead canonicalUrl="/" />
+      <SEOHead
+        canonicalUrl="/"
+        title="Free Invoice Generator — Create & Send Invoices Online | Honest Invoice"
+        description="Honest Invoice is the #1 free invoice generator. Create professional invoices & estimates in seconds, send by email with a Pay Now button, and collect payments via Stripe. 100% free. No credit card needed."
+        structuredData={structuredData}
+      />
       <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b">
@@ -94,9 +111,9 @@ export default function Index() {
         <div className="container relative mx-auto px-4 text-center">
           <div className="mx-auto max-w-3xl">
             <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-              Free Online{' '}
-              <span className="text-primary">Invoices</span> &{' '}
-              <span className="text-primary">Estimates</span>
+              Free Invoice{' '}
+              <span className="text-primary">Generator</span> &{' '}
+              <span className="text-primary">Estimator</span>
             </h1>
             <p className="mb-8 text-lg text-muted-foreground sm:text-xl">
               Stop chasing payments. Automate your billing, track expenses, and get paid 2x faster. 
