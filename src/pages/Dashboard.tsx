@@ -14,7 +14,9 @@ import {
   Loader2,
   Star,
   MessageSquare,
-  ClipboardList
+  ClipboardList,
+  CreditCard,
+  CheckCircle2
 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { cn } from '@/lib/utils';
