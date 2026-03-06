@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, CheckCircle2, XCircle, CreditCard, Building2 } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, CreditCard, Building2, Link, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -35,6 +35,17 @@ export default function PayInvoice() {
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const paymentUrl = typeof window !== 'undefined' ? `${window.location.origin}/pay/${id}` : '';
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(paymentUrl).then(() => {
+      setCopied(true);
+      toast.success('Payment link copied!');
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
 
   useEffect(() => {
     const fetchInvoice = async () => {
@@ -231,6 +242,22 @@ export default function PayInvoice() {
             )}
           </CardContent>
         </Card>
+
+        {/* Payment link */}
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Payment Link</p>
+          <div className="flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-2">
+            <Link className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <span className="text-xs text-muted-foreground truncate flex-1">{paymentUrl}</span>
+            <button
+              onClick={handleCopyLink}
+              className="shrink-0 text-muted-foreground hover:text-foreground transition-colors"
+              title="Copy payment link"
+            >
+              {copied ? <Check className="h-3.5 w-3.5 text-primary" /> : <Copy className="h-3.5 w-3.5" />}
+            </button>
+          </div>
+        </div>
 
         {/* Pay button */}
         {isPaid ? (
