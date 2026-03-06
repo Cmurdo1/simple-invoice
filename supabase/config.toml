@@ -16,3 +16,12 @@ verify_jwt = false
 
 [functions.auth-email-hook]
 verify_jwt = false
+
+[functions.stripe-invoice-webhook]
+verify_jwt = false
+
+[functions.create-public-invoice-payment]
+verify_jwt = false
+
+[functions.get-public-invoice]
+verify_jwt = false
