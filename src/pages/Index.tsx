@@ -111,9 +111,9 @@ export default function Index() {
         <div className="container relative mx-auto px-4 text-center">
           <div className="mx-auto max-w-3xl">
             <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-              Free Online{' '}
-              <span className="text-primary">Invoices</span> &{' '}
-              <span className="text-primary">Estimates</span>
+              Free Invoice{' '}
+              <span className="text-primary">Generator</span> &{' '}
+              <span className="text-primary">Estimator</span>
             </h1>
             <p className="mb-8 text-lg text-muted-foreground sm:text-xl">
               Stop chasing payments. Automate your billing, track expenses, and get paid 2x faster. 
