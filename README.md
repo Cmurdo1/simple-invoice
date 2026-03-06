@@ -6,7 +6,7 @@
 
 ## 🚀 Project Overview
 
-HonestInvoice is a full-stack invoicing and estimate app built with React + Vite, Tailwind CSS, TypeScript, and Lovable Cloud (Supabase). It ships as both a web app and a native Android app via Capacitor.
+HonestInvoice is a full-stack invoicing and estimate app built for contractors, mobile mechanics, and small business owners. Built with React + Vite, Tailwind CSS, TypeScript, and a cloud backend. Ships as both a web app and a native Android app via Capacitor.
 
 ---
 
@@ -143,8 +143,8 @@ npm run dev
 npm run build && npx cap sync android && npx cap run android
 ```
 
-### Hot-reload on device (via Lovable Cloud preview)
-The `capacitor.config.ts` points to the live Lovable preview URL, so changes reflect immediately on device without rebuilding.
+### Hot-reload on device (via preview URL)
+The `capacitor.config.ts` points to the live preview URL, so changes reflect immediately on device without rebuilding.
 
 ---
 
@@ -155,12 +155,14 @@ The `capacitor.config.ts` points to the live Lovable preview URL, so changes ref
 | Frontend | React 18, Vite, TypeScript |
 | Styling | Tailwind CSS, shadcn/ui |
 | Native | Capacitor 8, Android |
-| Backend | Lovable Cloud (Supabase) |
-| Database | PostgreSQL (via Lovable Cloud) |
+| Backend | HonestInvoice Cloud |
+| Database | PostgreSQL |
 | Offline | IndexedDB (idb) |
-| Auth | Lovable Cloud Auth |
+| Auth | Email / Google OAuth |
 | Payments | Stripe |
 | PDF Export | jsPDF |
+| Email | Resend |
+| AI | OpenAI GPT (line-item extraction) |
 
 ---
 
@@ -173,7 +175,7 @@ The `capacitor.config.ts` points to the live Lovable preview URL, so changes ref
 │   ├── contexts/       # Auth & Theme context
 │   ├── hooks/          # Custom hooks
 │   ├── lib/            # offlineDb, syncEngine, pdfExport
-│   └── integrations/   # Supabase client + types
+│   └── integrations/   # Cloud client + types
 ├── supabase/
 │   ├── functions/      # Edge functions (auto-deployed)
 │   └── migrations/     # DB migrations
@@ -185,13 +187,13 @@ The `capacitor.config.ts` points to the live Lovable preview URL, so changes ref
 
 ## 🔐 Environment Variables
 
-All secrets are managed via **Lovable Cloud → Settings → Secrets**. Required:
+All secrets are managed via **HonestInvoice Cloud → Settings → Secrets**. Required:
 
 | Variable | Description |
 |----------|-------------|
 | `STRIPE_SECRET_KEY` | Stripe payments |
-| `RESEND_API_KEY` | Email sending |
-| `OPENAI_API_KEY` | AI line-item extraction |
+| `RESEND_API_KEY` | Email sending via Resend |
+| `LOVABLE_API_KEY` | AI line-item extraction |
 
 ---
 
