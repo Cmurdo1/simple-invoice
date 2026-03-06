@@ -52,12 +52,12 @@ export default function Dashboard() {
   const onlyInvoices = allInvoices?.filter(inv => inv.type === 'invoice') || [];
   const onlyEstimates = allInvoices?.filter(inv => inv.type === 'estimate') || [];
 
-  const monthlyInvoices = onlyInvoices.filter((inv) =>
-    isWithinInterval(new Date(inv.created_at), { start: monthStart, end: monthEnd })
+  const monthlyPaidInvoices = onlyInvoices.filter((inv) =>
+    inv.status === 'paid' &&
+    isWithinInterval(new Date(inv.updated_at), { start: monthStart, end: monthEnd })
   );
 
-  const monthlyRevenue = monthlyInvoices
-    .filter((inv) => inv.status === 'paid')
+  const monthlyRevenue = monthlyPaidInvoices
     .reduce((sum, inv) => sum + Number(inv.total_amount), 0);
 
   const pendingAmount = onlyInvoices
@@ -108,7 +108,7 @@ export default function Dashboard() {
                 ${monthlyRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
               </div>
               <p className="text-xs text-muted-foreground">
-                {monthlyInvoices.filter((i) => i.status === 'paid').length} paid invoices
+                {monthlyPaidInvoices.length} paid invoices
               </p>
             </CardContent>
           </Card>

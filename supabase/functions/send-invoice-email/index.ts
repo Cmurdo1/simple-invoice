@@ -330,7 +330,7 @@ serve(async (req) => {
                             <td style="background: linear-gradient(135deg, ${primaryColor} 0%, ${darkerColor} 100%); border-radius: 10px; padding: 24px; text-align: center;">
                               <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 0 0 6px 0;">Amount Due: <strong style="font-size: 22px; color: #ffffff;">$${total_amount.toFixed(2)}</strong></p>
                               <p style="color: rgba(255,255,255,0.85); font-size: 13px; margin: 0 0 18px 0;">Due: ${dueDateText}</p>
-                              <a href="https://id-preview--8937857b-915b-4c67-bc3a-85a05fc54ad7.lovable.app/pay/${invoice_id}" style="display: inline-block; background-color: #ffffff; color: ${primaryColor}; padding: 14px 40px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 16px; letter-spacing: 0.3px;">💳 Pay Now</a>
+                              <a href="https://honestinvoice.com/pay/${invoice_id}" style="display: inline-block; background-color: #ffffff; color: ${primaryColor}; padding: 14px 40px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 16px; letter-spacing: 0.3px;">💳 Pay Now</a>
                             </td>
                           </tr>
                         </table>
