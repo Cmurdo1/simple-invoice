@@ -498,6 +498,37 @@ export default function InvoiceEditor() {
           </CardContent>
         </Card>
 
+        {/* Payment Link */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Link className="h-5 w-5 text-primary" />
+              Payment Link
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-3">Share this link with your client so they can pay online.</p>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 flex items-center gap-2 rounded-md border bg-muted px-3 py-2 text-sm font-mono text-muted-foreground overflow-hidden">
+                <Link className="h-4 w-4 shrink-0 text-primary" />
+                <span className="truncate">{`${window.location.origin}/pay/${id}`}</span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCopyPaymentLink}
+                className="gap-2 shrink-0"
+              >
+                {isCopyingLink ? (
+                  <><Copy className="h-4 w-4 text-primary" /> Copied!</>
+                ) : (
+                  <><Copy className="h-4 w-4" /> Copy</>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Save Button */}
         <div className="flex justify-end">
           <Button size="lg" onClick={handleSave} className="gap-2">
