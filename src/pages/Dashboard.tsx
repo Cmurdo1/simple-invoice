@@ -108,7 +108,7 @@ export default function Dashboard() {
                 ${monthlyRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
               </div>
               <p className="text-xs text-muted-foreground">
-                {monthlyInvoices.filter((i) => i.status === 'paid').length} paid invoices
+                {monthlyPaidInvoices.length} paid invoices
               </p>
             </CardContent>
           </Card>
