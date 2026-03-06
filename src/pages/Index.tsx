@@ -170,19 +170,19 @@ export default function Index() {
                 step: '01',
                 icon: Bot,
                 title: 'Create Invoice with AI',
-                description: 'Describe the job in plain English. Our AI generates a fully itemized invoice with accurate line items, labor, and parts in seconds.',
+                description: 'Describe the job in plain English. AI generates a fully itemized invoice with accurate line items, labor, and parts in seconds.',
               },
               {
                 step: '02',
                 icon: MonitorSmartphone,
-                title: 'Client Watches in Real-Time',
-                description: 'Share a live link. Your client sees tasks checked off as you complete them, with photo proof attached to every line item.',
+                title: 'Send & Share',
+                description: 'Email the invoice to your client with a branded Pay Now button, or export as PDF to share on the spot.',
               },
               {
                 step: '03',
                 icon: CreditCard,
-                title: 'Get Paid Instantly',
-                description: 'Mark the job complete and trigger a one-click payment request. No more "I\'ll pay you later." Settlement happens on the spot.',
+                title: 'Get Paid via Stripe',
+                description: 'Clients pay by card through your unique payment link. Funds go directly to your Stripe account—instant, secure, zero friction.',
               },
             ].map(({ step, icon: Icon, title, description }) => (
               <div key={step} className="relative z-10 flex flex-col items-center text-center flex-1 px-6 pb-12 md:pb-0">

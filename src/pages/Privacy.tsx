@@ -140,16 +140,13 @@ export default function Privacy() {
             <h3 className="text-xl font-medium mb-3">4.1 Service Providers</h3>
             <div className="space-y-4 mb-4">
               <div className="border rounded-lg p-4">
-                <h4 className="font-medium mb-2">Supabase (Cloud Infrastructure)</h4>
+                <h4 className="font-medium mb-2">HonestInvoice Cloud Infrastructure</h4>
                 <p className="text-sm text-muted-foreground mb-2">
                   <strong>Data Shared:</strong> All user data, including account information, business profiles, client data, and invoices.
                 </p>
                 <p className="text-sm text-muted-foreground mb-2">
-                  <strong>Purpose:</strong> Database hosting, user authentication, file storage, and backend infrastructure.
+                  <strong>Purpose:</strong> Database hosting, user authentication, file storage, and backend infrastructure. All data is stored securely with encryption at rest and in transit.
                 </p>
-                <a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer" className="text-sm text-primary hover:underline">
-                  Supabase Privacy Policy →
-                </a>
               </div>
 
               <div className="border rounded-lg p-4">
