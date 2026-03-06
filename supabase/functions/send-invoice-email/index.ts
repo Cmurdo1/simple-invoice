@@ -31,6 +31,33 @@ interface InvoiceItem {
   total: number | null;
 }
 
+function adjustColorBrightness(hex: string, percent: number): string {
+  hex = hex.replace(/^#/, '');
+  let r = parseInt(hex.substring(0, 2), 16);
+  let g = parseInt(hex.substring(2, 4), 16);
+  let b = parseInt(hex.substring(4, 6), 16);
+  r = Math.max(0, Math.min(255, r + (r * percent / 100)));
+  g = Math.max(0, Math.min(255, g + (g * percent / 100)));
+  b = Math.max(0, Math.min(255, b + (b * percent / 100)));
+  return `#${Math.round(r).toString(16).padStart(2, '0')}${Math.round(g).toString(16).padStart(2, '0')}${Math.round(b).toString(16).padStart(2, '0')}`;
+}
+
+function hexToRgba(hex: string, alpha: number): string {
+  hex = hex.replace(/^#/, '');
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// Get business initials for monogram
+function getInitials(name: string): string {
+  if (!name) return 'HI';
+  const words = name.trim().split(/\s+/);
+  if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
+  return (words[0][0] + words[1][0]).toUpperCase();
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -41,7 +68,6 @@ serve(async (req) => {
 
     const resendKey = Deno.env.get("RESEND_API_KEY");
     if (!resendKey) throw new Error("RESEND_API_KEY is not set");
-    logStep("Resend key verified");
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -49,19 +75,15 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    // Authenticate user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("No authorization header provided");
 
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError) throw new Error(`Authentication error: ${userError.message}`);
-    
     const user = userData.user;
     if (!user) throw new Error("User not authenticated");
-    logStep("User authenticated", { userId: user.id });
 
-    // Check subscription status and get brand colors from database
     const { data: profile, error: profileError } = await supabaseClient
       .from("profiles")
       .select("subscription_status, subscription_end, email, brand_color, estimate_color, logo_url, phone, address")
@@ -70,23 +92,22 @@ serve(async (req) => {
 
     if (profileError) throw new Error(`Profile fetch error: ${profileError.message}`);
 
-    const isPro = profile?.subscription_status === 'pro' && 
+    const isPro = profile?.subscription_status === 'pro' &&
       (!profile.subscription_end || new Date(profile.subscription_end) > new Date());
 
     if (!isPro) {
-      return new Response(JSON.stringify({ 
-        error: "Email sending is a Pro feature. Please upgrade to send invoices via email." 
+      return new Response(JSON.stringify({
+        error: "Email sending is a Pro feature. Please upgrade to send invoices via email."
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 403,
       });
     }
-    logStep("Pro subscription verified");
 
-    const { 
+    const {
       invoice_id,
-      client_email, 
-      client_name, 
+      client_email,
+      client_name,
       invoice_number,
       total_amount,
       due_date,
@@ -98,37 +119,31 @@ serve(async (req) => {
     if (!client_email || !invoice_number || !invoice_id) {
       throw new Error("Missing required fields: client_email, invoice_number, and invoice_id are required");
     }
-    
+
     const isEstimate = document_type === 'estimate';
     const docLabel = isEstimate ? 'Estimate' : 'Invoice';
     const docLabelLower = isEstimate ? 'estimate' : 'invoice';
-    
-    // Use custom brand colors from profile (Pro feature)
+
     const invoiceColor = profile?.brand_color || '#228B22';
     const estimateColor = profile?.estimate_color || '#2563eb';
     const primaryColor = isEstimate ? estimateColor : invoiceColor;
-    
-    // Create a darker shade for gradients
-    const darkerColor = adjustColorBrightness(primaryColor, -20);
-    
-    logStep("Request data validated", { invoice_number, client_email, invoice_id, document_type, primaryColor });
+    const lighterColor = adjustColorBrightness(primaryColor, 60);
+    const darkerColor = adjustColorBrightness(primaryColor, -25);
+    const bgTint = hexToRgba(primaryColor, 0.06);
+    const initials = getInitials(business_name);
 
-    // Fetch invoice with feedback token and sent count
     const { data: invoice, error: invoiceError } = await supabaseClient
       .from("invoices")
       .select("feedback_token, sent_count")
       .eq("id", invoice_id)
       .single();
 
-    if (invoiceError) {
-      throw new Error(`Could not fetch invoice details: ${invoiceError.message}`);
-    }
+    if (invoiceError) throw new Error(`Could not fetch invoice details: ${invoiceError.message}`);
 
-    // Check if the email send limit has been reached
     const sentCount = invoice?.sent_count || 0;
     if (sentCount >= 5) {
-      return new Response(JSON.stringify({ 
-        error: "This document has reached the maximum number of email sends. Please download the PDF or contact support if you need to send it again." 
+      return new Response(JSON.stringify({
+        error: "This document has reached the maximum number of email sends."
       }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 429,
@@ -137,287 +152,289 @@ serve(async (req) => {
 
     const feedbackToken = invoice?.feedback_token;
 
-    // Fetch invoice line items for itemized breakdown
     const { data: lineItems, error: itemsError } = await supabaseClient
       .from("invoice_items")
       .select("description, quantity, unit_price, total")
       .eq("invoice_id", invoice_id)
       .order("sort_order", { ascending: true });
 
-    if (itemsError) {
-      logStep("Warning: Could not fetch line items", { error: itemsError.message });
-    }
-    logStep("Line items fetched", { count: lineItems?.length || 0 });
+    if (itemsError) logStep("Warning: Could not fetch line items", { error: itemsError.message });
 
     const resend = new Resend(resendKey);
 
-    const dueDateText = due_date 
+    const dueDateText = due_date
       ? new Date(due_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
       : 'Upon Job Completion';
 
-    // Calculate subtotal from line items
-    const subtotal = lineItems?.reduce(
-      (sum, item) => sum + (item.quantity * item.unit_price),
-      0
-    ) || total_amount;
+    const subtotal = lineItems?.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0) || total_amount;
+    const taxAmount = total_amount - subtotal;
 
-    // Build the itemized line items HTML - MOBILE OPTIMIZED
-    const lineItemsHtml = lineItems && lineItems.length > 0 
-      ? lineItems.map((item: InvoiceItem) => `
-          <tr>
-            <td style="padding: 10px 8px; border-bottom: 1px solid #eee; color: #333; font-size: 14px; word-break: break-word;">${item.description}</td>
-            <td style="padding: 10px 8px; border-bottom: 1px solid #eee; text-align: center; color: #666; font-size: 14px; white-space: nowrap;">${item.quantity}</td>
-            <td style="padding: 10px 8px; border-bottom: 1px solid #eee; text-align: right; color: #666; font-size: 14px; white-space: nowrap;">$${item.unit_price.toFixed(2)}</td>
-            <td style="padding: 10px 8px; border-bottom: 1px solid #eee; text-align: right; font-weight: 600; color: #333; font-size: 14px; white-space: nowrap;">$${(item.quantity * item.unit_price).toFixed(2)}</td>
-          </tr>
-        `).join('')
+    // Build line item rows
+    const lineItemRows = lineItems && lineItems.length > 0
+      ? lineItems.map((item: InvoiceItem, i: number) => `
+        <tr style="background-color: ${i % 2 === 0 ? '#ffffff' : '#fafafa'};">
+          <td style="padding: 12px 16px; border-bottom: 1px solid #ececec; color: #2d2d2d; font-size: 14px; line-height: 1.5; word-break: break-word;">
+            ${item.description}
+          </td>
+          <td style="padding: 12px 16px; border-bottom: 1px solid #ececec; text-align: center; color: #666; font-size: 14px; white-space: nowrap; width: 50px;">
+            ${item.quantity}
+          </td>
+          <td style="padding: 12px 16px; border-bottom: 1px solid #ececec; text-align: right; color: #666; font-size: 14px; white-space: nowrap; width: 80px;">
+            $${item.unit_price.toFixed(2)}
+          </td>
+          <td style="padding: 12px 16px; border-bottom: 1px solid #ececec; text-align: right; font-weight: 600; color: #2d2d2d; font-size: 14px; white-space: nowrap; width: 80px;">
+            $${(item.quantity * item.unit_price).toFixed(2)}
+          </td>
+        </tr>
+      `).join('')
       : '';
 
-    // Mobile-first, fully responsive email template
     const emailHtml = `
-      <!DOCTYPE html>
-      <html lang="en">
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-          <meta http-equiv="X-UA-Compatible" content="IE=edge">
-          <title>${docLabel} ${invoice_number}</title>
-          <!--[if mso]>
-          <noscript>
-            <xml>
-              <o:OfficeDocumentSettings>
-                <o:PixelsPerInch>96</o:PixelsPerInch>
-              </o:OfficeDocumentSettings>
-            </xml>
-          </noscript>
-          <![endif]-->
-          <style type="text/css">
-            /* Reset styles */
-            body, table, td, p, a, li, blockquote { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
-            table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
-            img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
-            body { margin: 0 !important; padding: 0 !important; width: 100% !important; }
-            
-            /* Mobile styles */
-            @media only screen and (max-width: 600px) {
-              .email-container { width: 100% !important; max-width: 100% !important; }
-              .mobile-padding { padding: 20px 16px !important; }
-              .mobile-stack { display: block !important; width: 100% !important; }
-              .mobile-center { text-align: center !important; }
-              .mobile-full-width { width: 100% !important; }
-              .header-amount { font-size: 28px !important; }
-              .table-responsive { font-size: 13px !important; }
-              .table-responsive td { padding: 8px 6px !important; }
-              .hide-mobile { display: none !important; }
-            }
-          </style>
-        </head>
-        <body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-          <!-- Preview text -->
-          <div style="display: none; max-height: 0; overflow: hidden;">
-            ${docLabel} ${invoice_number} - $${total_amount.toFixed(2)} from ${business_name || 'HonestInvoice'}
-          </div>
-          
-          <!-- Main wrapper -->
-          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f5f5;">
-            <tr>
-              <td align="center" style="padding: 20px 10px;">
-                
-                <!-- Email container -->
-                <table role="presentation" cellspacing="0" cellpadding="0" border="0" class="email-container" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
-                  
-                  <!-- Header with branding -->
-                  <tr>
-                    <td class="mobile-padding" style="padding: 30px 40px; text-align: center; border-bottom: 1px solid #eee;">
-                      ${profile?.logo_url ? `
-                        <img src="${profile.logo_url}" alt="${business_name}" style="max-width: 150px; max-height: 60px; margin-bottom: 10px;">
-                      ` : `
-                        <h1 style="color: ${primaryColor}; margin: 0; font-size: 24px; font-weight: 700;">${business_name || 'HonestInvoice'}</h1>
-                      `}
-                      <p style="color: #666; margin: 8px 0 0 0; font-size: 14px;">Fair Prices. Honest Work.</p>
-                    </td>
-                  </tr>
-                  
-                  <!-- Amount banner -->
-                  <tr>
-                    <td class="mobile-padding" style="padding: 0;">
-                      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                        <tr>
-                          <td style="background: linear-gradient(135deg, ${primaryColor} 0%, ${darkerColor} 100%); padding: 25px 30px; text-align: center;">
-                            <h2 style="color: #ffffff; margin: 0 0 8px 0; font-size: 18px; font-weight: 600;">${docLabel} ${invoice_number}</h2>
-                            <p class="header-amount" style="color: #ffffff; margin: 0; font-size: 36px; font-weight: 700;">$${total_amount.toFixed(2)}</p>
-                            <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 14px;">${isEstimate ? 'Estimated Total' : `Due: ${dueDateText}`}</p>
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-                  
-                  <!-- Content -->
-                  <tr>
-                    <td class="mobile-padding" style="padding: 30px 40px;">
-                      <p style="color: #333; font-size: 16px; line-height: 1.6; margin: 0 0 16px 0;">
-                        Hello ${client_name || 'there'},
-                      </p>
-                      
-                      <p style="color: #333; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
-                        Please find your itemized ${docLabelLower} from <strong>${business_name || 'HonestInvoice'}</strong> below.
-                      </p>
-                      
-                      ${job_description ? `
-                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 25px;">
-                          <tr>
-                            <td style="background-color: #f9f9f9; padding: 16px; border-radius: 8px; border-left: 4px solid ${primaryColor};">
-                              <strong style="color: #333; font-size: 14px;">Job Summary:</strong>
-                              <p style="color: #666; margin: 8px 0 0 0; font-size: 14px; line-height: 1.5;">${job_description}</p>
-                            </td>
-                          </tr>
-                        </table>
-                      ` : ''}
-                      
-                      ${lineItems && lineItems.length > 0 ? `
-                        <h3 style="color: #333; margin: 0 0 15px 0; font-size: 16px; font-weight: 600;">Itemized Breakdown</h3>
-                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" class="table-responsive" style="border: 1px solid #eee; border-radius: 8px; overflow: hidden;">
-                          <thead>
-                            <tr style="background-color: #f9f9f9;">
-                              <th style="padding: 12px 8px; text-align: left; font-weight: 600; color: #333; border-bottom: 2px solid ${primaryColor}; font-size: 13px;">Description</th>
-                              <th style="padding: 12px 8px; text-align: center; font-weight: 600; color: #333; border-bottom: 2px solid ${primaryColor}; font-size: 13px; width: 50px;">Qty</th>
-                              <th style="padding: 12px 8px; text-align: right; font-weight: 600; color: #333; border-bottom: 2px solid ${primaryColor}; font-size: 13px; width: 70px;">Price</th>
-                              <th style="padding: 12px 8px; text-align: right; font-weight: 600; color: #333; border-bottom: 2px solid ${primaryColor}; font-size: 13px; width: 80px;">Total</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            ${lineItemsHtml}
-                          </tbody>
-                          <tfoot>
-                            <tr style="background-color: #f9f9f9;">
-                              <td colspan="3" style="padding: 12px 8px; text-align: right; font-weight: 600; color: #333; font-size: 14px;">Subtotal:</td>
-                              <td style="padding: 12px 8px; text-align: right; font-weight: 600; color: #333; font-size: 14px;">$${subtotal.toFixed(2)}</td>
-                            </tr>
-                            ${total_amount !== subtotal ? `
-                              <tr style="background-color: #f9f9f9;">
-                                <td colspan="3" style="padding: 10px 8px; text-align: right; font-weight: 500; color: #666; font-size: 14px;">Tax:</td>
-                                <td style="padding: 10px 8px; text-align: right; font-weight: 500; color: #666; font-size: 14px;">$${(total_amount - subtotal).toFixed(2)}</td>
-                              </tr>
-                            ` : ''}
-                            <tr style="background-color: ${primaryColor};">
-                              <td colspan="3" style="padding: 14px 8px; text-align: right; font-weight: 700; color: #ffffff; font-size: 15px;">Total ${isEstimate ? 'Estimate' : 'Due'}:</td>
-                              <td style="padding: 14px 8px; text-align: right; font-weight: 700; color: #ffffff; font-size: 17px;">$${total_amount.toFixed(2)}</td>
-                            </tr>
-                          </tfoot>
-                        </table>
-                      ` : `
-                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0;">
-                          <tr>
-                            <td style="padding: 12px 0; border-bottom: 1px solid #eee; color: #666; font-size: 14px;">${docLabel} Number:</td>
-                            <td style="padding: 12px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: 600; color: #333; font-size: 14px;">${invoice_number}</td>
-                          </tr>
-                          <tr>
-                            <td style="padding: 12px 0; border-bottom: 1px solid #eee; color: #666; font-size: 14px;">${isEstimate ? 'Estimated Amount' : 'Amount Due'}:</td>
-                            <td style="padding: 12px 0; border-bottom: 1px solid #eee; text-align: right; font-weight: 600; color: ${primaryColor}; font-size: 14px;">$${total_amount.toFixed(2)}</td>
-                          </tr>
-                          ${!isEstimate ? `<tr>
-                            <td style="padding: 12px 0; color: #666; font-size: 14px;">Due Date:</td>
-                            <td style="padding: 12px 0; text-align: right; font-weight: 600; color: #333; font-size: 14px;">${dueDateText}</td>
-                          </tr>` : ''}
-                        </table>
-                      `}
-                      
-                      ${!isEstimate ? `
-                        <!-- Pay Now CTA -->
-                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 28px 0;">
-                          <tr>
-                            <td style="background: linear-gradient(135deg, ${primaryColor} 0%, ${darkerColor} 100%); border-radius: 10px; padding: 24px; text-align: center;">
-                              <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 0 0 6px 0;">Amount Due: <strong style="font-size: 22px; color: #ffffff;">$${total_amount.toFixed(2)}</strong></p>
-                              <p style="color: rgba(255,255,255,0.85); font-size: 13px; margin: 0 0 18px 0;">Due: ${dueDateText}</p>
-                              <a href="https://honestinvoice.com/pay/${invoice_id}" style="display: inline-block; background-color: #ffffff; color: ${primaryColor}; padding: 14px 40px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 16px; letter-spacing: 0.3px;">💳 Pay Now</a>
-                            </td>
-                          </tr>
-                        </table>
-                      ` : ''}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>${docLabel} ${invoice_number}</title>
+  <style>
+    body, table, td, p, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    body { margin: 0; padding: 0; background-color: #ede8e0; font-family: Georgia, 'Times New Roman', serif; }
+    @media only screen and (max-width: 600px) {
+      .email-card { width: 100% !important; border-radius: 0 !important; }
+      .content-pad { padding: 24px 20px !important; }
+      .header-pad { padding: 20px !important; }
+      .amount-text { font-size: 32px !important; }
+      .hide-mobile { display: none !important; }
+      .table-sm td { padding: 10px 10px !important; font-size: 13px !important; }
+    }
+  </style>
+</head>
+<body style="margin:0;padding:0;background-color:#ede8e0;">
+  <!-- Preview text -->
+  <div style="display:none;max-height:0;overflow:hidden;font-size:1px;color:#ede8e0;">
+    ${docLabel} ${invoice_number} · $${total_amount.toFixed(2)} from ${business_name || 'HonestInvoice'}
+  </div>
 
-                      <p style="color: #666; font-size: 14px; line-height: 1.6; margin: 25px 0 0 0;">
-                        Thank you for your business! If you have any questions, please don't hesitate to reach out.
-                      </p>
-                      
-                      ${profile?.phone || profile?.email ? `
-                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top: 15px;">
-                          <tr>
-                            <td style="color: #666; font-size: 13px;">
-                              ${profile?.phone ? `<span>📞 ${profile.phone}</span>` : ''}
-                              ${profile?.phone && profile?.email ? ` &nbsp;|&nbsp; ` : ''}
-                              ${profile?.email ? `<span>✉️ ${profile.email}</span>` : ''}
-                            </td>
-                          </tr>
-                        </table>
-                      ` : ''}
-                    </td>
+  <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color:#ede8e0;">
+    <tr>
+      <td align="center" style="padding: 32px 16px;">
+
+        <!-- Card -->
+        <table role="presentation" class="email-card" cellspacing="0" cellpadding="0" border="0"
+          style="max-width:580px;width:100%;background-color:#ffffff;border-radius:4px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.10),0 1px 4px rgba(0,0,0,0.06);">
+
+          <!-- ===== HEADER ===== -->
+          <tr>
+            <td class="header-pad" style="padding: 32px 40px 24px; text-align: center; border-bottom: 1px solid #ececec;">
+              ${profile?.logo_url
+                ? `<img src="${profile.logo_url}" alt="${business_name}" style="max-width:120px;max-height:56px;margin:0 auto 12px;display:block;">`
+                : `
+                <!-- Monogram circle -->
+                <div style="display:inline-block;width:60px;height:60px;border-radius:50%;border:2px solid ${primaryColor};background-color:#ffffff;text-align:center;line-height:56px;margin:0 auto 12px;">
+                  <span style="color:${primaryColor};font-family:Georgia,serif;font-size:20px;font-weight:600;letter-spacing:1px;">${initials}</span>
+                </div>
+              `}
+              <p style="color:#888;margin:0;font-size:13px;font-style:italic;letter-spacing:0.3px;">Fair Prices. Honest Work.</p>
+            </td>
+          </tr>
+
+          <!-- ===== AMOUNT BANNER ===== -->
+          <tr>
+            <td style="padding:0;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td style="background:linear-gradient(135deg,${primaryColor} 0%,${darkerColor} 100%);padding:24px 30px;text-align:center;position:relative;">
+                    <p style="color:rgba(255,255,255,0.85);font-size:15px;font-weight:600;margin:0 0 6px 0;font-family:Georgia,serif;letter-spacing:0.5px;">
+                      ${docLabel} ${invoice_number}
+                    </p>
+                    <p class="amount-text" style="color:#ffffff;font-size:40px;font-weight:700;margin:0 0 8px 0;font-family:Georgia,serif;letter-spacing:-1px;">
+                      $${total_amount.toFixed(2)}
+                    </p>
+                    <p style="color:rgba(255,255,255,0.80);font-size:13px;margin:0;font-style:italic;">
+                      ${isEstimate ? 'Estimated Total' : `Due: ${dueDateText}`}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ===== BODY ===== -->
+          <tr>
+            <td class="content-pad" style="padding:30px 40px;">
+
+              <p style="color:#2d2d2d;font-size:15px;line-height:1.6;margin:0 0 8px 0;font-family:Georgia,serif;">
+                Hello ${client_name || 'there'},
+              </p>
+              <p style="color:#555;font-size:14px;line-height:1.7;margin:0 0 24px 0;font-family:Arial,sans-serif;">
+                Please find your itemized ${docLabelLower} from <strong style="color:#2d2d2d;">${business_name || 'HonestInvoice'}</strong> below.
+              </p>
+
+              ${job_description ? `
+              <!-- Job summary -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom:24px;">
+                <tr>
+                  <td style="background-color:#f8f6f2;border-left:3px solid ${primaryColor};padding:14px 16px;border-radius:0 4px 4px 0;">
+                    <p style="color:#2d2d2d;font-size:13px;font-weight:600;margin:0 0 5px 0;font-family:Arial,sans-serif;letter-spacing:0.3px;">🔧 Job Summary:</p>
+                    <p style="color:#555;font-size:13px;line-height:1.6;margin:0;font-family:Arial,sans-serif;">${job_description}</p>
+                  </td>
+                </tr>
+              </table>
+              ` : ''}
+
+              ${lineItems && lineItems.length > 0 ? `
+              <!-- Line items table -->
+              <p style="color:#2d2d2d;font-size:14px;font-weight:700;margin:0 0 10px 0;font-family:Arial,sans-serif;letter-spacing:0.3px;text-transform:uppercase;">Itemized Breakdown</p>
+              <table role="presentation" class="table-sm" cellspacing="0" cellpadding="0" border="0" width="100%"
+                style="border:1px solid #e0ddd8;border-radius:4px;overflow:hidden;margin-bottom:0;">
+                <thead>
+                  <tr style="background-color:#f8f6f2;">
+                    <th style="padding:10px 16px;text-align:left;font-size:12px;font-weight:600;color:#888;letter-spacing:0.5px;text-transform:uppercase;border-bottom:2px solid ${primaryColor};font-family:Arial,sans-serif;">Description</th>
+                    <th style="padding:10px 16px;text-align:center;font-size:12px;font-weight:600;color:#888;letter-spacing:0.5px;text-transform:uppercase;border-bottom:2px solid ${primaryColor};font-family:Arial,sans-serif;width:50px;">Qty</th>
+                    <th style="padding:10px 16px;text-align:right;font-size:12px;font-weight:600;color:#888;letter-spacing:0.5px;text-transform:uppercase;border-bottom:2px solid ${primaryColor};font-family:Arial,sans-serif;width:80px;">Price</th>
+                    <th style="padding:10px 16px;text-align:right;font-size:12px;font-weight:600;color:#888;letter-spacing:0.5px;text-transform:uppercase;border-bottom:2px solid ${primaryColor};font-family:Arial,sans-serif;width:80px;">Total</th>
                   </tr>
-                  
-                  ${feedbackToken ? `
-                    <!-- Feedback CTA -->
-                    <tr>
-                      <td class="mobile-padding" style="padding: 0 40px 30px 40px;">
-                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                          <tr>
-                            <td style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; text-align: center;">
-                              <p style="color: #333; font-size: 14px; margin: 0 0 15px 0;">How was your experience?</p>
-                              <a href="https://honestinvoice.com/feedback?invoice=${invoice_id}&token=${feedbackToken}" style="display: inline-block; background-color: ${primaryColor}; color: #ffffff; padding: 12px 28px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 14px;">Leave Feedback</a>
-                            </td>
-                          </tr>
-                        </table>
-                      </td>
-                    </tr>
+                </thead>
+                <tbody>
+                  ${lineItemRows}
+                </tbody>
+                <tfoot>
+                  <tr style="background-color:#f8f6f2;">
+                    <td colspan="3" style="padding:11px 16px;text-align:right;color:#888;font-size:13px;font-family:Arial,sans-serif;">Subtotal:</td>
+                    <td style="padding:11px 16px;text-align:right;color:#2d2d2d;font-weight:600;font-size:13px;font-family:Arial,sans-serif;">$${subtotal.toFixed(2)}</td>
+                  </tr>
+                  ${taxAmount > 0.005 ? `
+                  <tr style="background-color:#f8f6f2;">
+                    <td colspan="3" style="padding:8px 16px;text-align:right;color:#888;font-size:13px;font-family:Arial,sans-serif;">Tax:</td>
+                    <td style="padding:8px 16px;text-align:right;color:#2d2d2d;font-weight:500;font-size:13px;font-family:Arial,sans-serif;">$${taxAmount.toFixed(2)}</td>
+                  </tr>
                   ` : ''}
-                  
-                  <!-- Footer -->
-                  <tr>
-                    <td style="padding: 20px 30px; background-color: #f9f9f9; border-top: 1px solid #eee; text-align: center;">
-                      <p style="color: #999; font-size: 12px; margin: 0 0 8px 0;">
-                        Powered by <strong style="color: ${primaryColor};">HonestInvoice</strong> — Transparent invoicing made simple
-                      </p>
-                      <p style="color: #999; font-size: 11px; margin: 0;">
-                        <a href="https://honestinvoice.com" style="color: ${primaryColor}; text-decoration: none;">Website</a>
-                        &nbsp;•&nbsp;
-                        <a href="mailto:support@honestinvoice.com" style="color: ${primaryColor}; text-decoration: none;">Support</a>
-                        &nbsp;•&nbsp;
-                        <a href="https://honestinvoice.com/privacy" style="color: ${primaryColor}; text-decoration: none;">Privacy</a>
-                      </p>
+                  <tr style="background-color:${primaryColor};">
+                    <td colspan="3" style="padding:14px 16px;text-align:right;color:#ffffff;font-size:15px;font-weight:700;font-family:Georgia,serif;">
+                      Total ${isEstimate ? 'Estimate' : 'Due'}:
+                    </td>
+                    <td style="padding:14px 16px;text-align:right;color:#ffffff;font-size:17px;font-weight:700;font-family:Georgia,serif;white-space:nowrap;">
+                      $${total_amount.toFixed(2)}
                     </td>
                   </tr>
-                  
-                </table>
-              </td>
-            </tr>
-          </table>
-        </body>
-      </html>
+                </tfoot>
+              </table>
+              ` : `
+              <!-- Simple total card when no line items -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border:1px solid #e0ddd8;border-radius:4px;overflow:hidden;margin-bottom:0;">
+                <tr>
+                  <td style="padding:12px 16px;border-bottom:1px solid #ececec;color:#888;font-size:14px;font-family:Arial,sans-serif;">${docLabel} Number</td>
+                  <td style="padding:12px 16px;border-bottom:1px solid #ececec;text-align:right;font-weight:600;color:#2d2d2d;font-size:14px;font-family:Arial,sans-serif;">${invoice_number}</td>
+                </tr>
+                <tr style="background-color:${primaryColor};">
+                  <td style="padding:14px 16px;color:#fff;font-size:15px;font-weight:700;font-family:Georgia,serif;">${isEstimate ? 'Estimated Amount' : 'Amount Due'}</td>
+                  <td style="padding:14px 16px;text-align:right;color:#fff;font-size:17px;font-weight:700;font-family:Georgia,serif;">$${total_amount.toFixed(2)}</td>
+                </tr>
+              </table>
+              `}
+
+              ${!isEstimate ? `
+              <!-- Pay Now CTA -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top:28px;">
+                <tr>
+                  <td style="text-align:center;padding:24px;background-color:#f8f6f2;border-radius:4px;border:1px solid #e0ddd8;">
+                    <p style="color:#888;font-size:13px;margin:0 0 4px 0;font-family:Arial,sans-serif;">Ready to pay?</p>
+                    <p style="color:#2d2d2d;font-size:22px;font-weight:700;margin:0 0 16px 0;font-family:Georgia,serif;">$${total_amount.toFixed(2)}</p>
+                    <a href="https://honestinvoice.com/pay/${invoice_id}"
+                      style="display:inline-block;background-color:${primaryColor};color:#ffffff;padding:14px 44px;border-radius:4px;text-decoration:none;font-weight:700;font-size:15px;font-family:Arial,sans-serif;letter-spacing:0.3px;">
+                      Pay Now
+                    </a>
+                    <p style="color:#aaa;font-size:11px;margin:12px 0 0 0;font-family:Arial,sans-serif;">Secure payment via HonestInvoice</p>
+                  </td>
+                </tr>
+              </table>
+              ` : ''}
+
+              <p style="color:#666;font-size:13px;line-height:1.7;margin:28px 0 0 0;font-family:Arial,sans-serif;">
+                Thank you for your business! If you have any questions, please don't hesitate to reach out.
+              </p>
+
+              ${profile?.phone || profile?.email ? `
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top:12px;">
+                <tr>
+                  <td style="color:#555;font-size:13px;font-family:Arial,sans-serif;padding-top:8px;border-top:1px solid #ececec;">
+                    ${profile?.phone ? `<span>📞 <strong>${profile.phone}</strong></span>` : ''}
+                    ${profile?.phone && profile?.email ? `&nbsp; &nbsp;|&nbsp; &nbsp;` : ''}
+                    ${profile?.email ? `<a href="mailto:${profile.email}" style="color:${primaryColor};text-decoration:none;">✉️ ${profile.email}</a>` : ''}
+                  </td>
+                </tr>
+              </table>
+              ` : ''}
+            </td>
+          </tr>
+
+          ${feedbackToken ? `
+          <!-- ===== FEEDBACK ===== -->
+          <tr>
+            <td style="padding:0 40px 32px;">
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr>
+                  <td style="background-color:#f8f6f2;border:1px solid #e0ddd8;border-radius:4px;padding:24px;text-align:center;">
+                    <p style="color:#2d2d2d;font-size:14px;font-weight:600;margin:0 0 8px 0;font-family:Arial,sans-serif;">How was your experience?</p>
+                    <p style="color:#aaa;font-size:20px;margin:0 0 16px 0;letter-spacing:4px;">★ ★ ★ ★ ★</p>
+                    <a href="https://honestinvoice.com/feedback?invoice=${invoice_id}&token=${feedbackToken}"
+                      style="display:inline-block;background-color:${primaryColor};color:#ffffff;padding:11px 30px;border-radius:4px;text-decoration:none;font-weight:600;font-size:13px;font-family:Arial,sans-serif;">
+                      Leave Feedback
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          ` : ''}
+
+          <!-- ===== FOOTER ===== -->
+          <tr>
+            <td style="padding:16px 30px;background-color:#f8f6f2;border-top:1px solid #e0ddd8;text-align:center;">
+              <p style="color:#aaa;font-size:11px;margin:0 0 6px 0;font-family:Arial,sans-serif;">
+                Powered by <strong style="color:${primaryColor};">HonestInvoice</strong> — Transparent invoicing made simple
+              </p>
+              <p style="color:#bbb;font-size:11px;margin:0;font-family:Arial,sans-serif;">
+                <a href="https://honestinvoice.com" style="color:#aaa;text-decoration:none;">Website</a>
+                &nbsp;•&nbsp;
+                <a href="mailto:support@honestinvoice.com" style="color:#aaa;text-decoration:none;">Support</a>
+                &nbsp;•&nbsp;
+                <a href="https://honestinvoice.com/privacy" style="color:#aaa;text-decoration:none;">Privacy</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+        <!-- End card -->
+
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
     `;
 
-    // Send from HonestInvoice domain with user's business name for personalization
     const fromName = business_name ? `${business_name} via HonestInvoice` : 'HonestInvoice';
     const emailResponse = await resend.emails.send({
       from: `${fromName} <invoices@honestinvoice.com>`,
       to: [client_email],
       reply_to: profile?.email || undefined,
-      subject: `${docLabel} ${invoice_number} from ${business_name || 'HonestInvoice'} - $${total_amount.toFixed(2)}`,
+      subject: `${docLabel} ${invoice_number} from ${business_name || 'HonestInvoice'} — $${total_amount.toFixed(2)}`,
       html: emailHtml,
     });
 
     logStep("Email sent successfully", { emailId: emailResponse.data?.id });
 
-    // Update the sent count in the database
     const { error: updateError } = await supabaseClient
       .from("invoices")
       .update({ sent_count: sentCount + 1 })
       .eq("id", invoice_id);
 
-    if (updateError) {
-      logStep("Warning: Could not increment sent_count", { error: updateError.message });
-    }
+    if (updateError) logStep("Warning: Could not increment sent_count", { error: updateError.message });
 
-    return new Response(JSON.stringify({ 
-      success: true, 
+    return new Response(JSON.stringify({
+      success: true,
       message: "Invoice email sent successfully",
       email_id: emailResponse.data?.id
     }), {
@@ -433,22 +450,3 @@ serve(async (req) => {
     });
   }
 });
-
-// Helper function to adjust color brightness
-function adjustColorBrightness(hex: string, percent: number): string {
-  // Remove # if present
-  hex = hex.replace(/^#/, '');
-  
-  // Parse the hex color
-  let r = parseInt(hex.substring(0, 2), 16);
-  let g = parseInt(hex.substring(2, 4), 16);
-  let b = parseInt(hex.substring(4, 6), 16);
-  
-  // Adjust brightness
-  r = Math.max(0, Math.min(255, r + (r * percent / 100)));
-  g = Math.max(0, Math.min(255, g + (g * percent / 100)));
-  b = Math.max(0, Math.min(255, b + (b * percent / 100)));
-  
-  // Convert back to hex
-  return `#${Math.round(r).toString(16).padStart(2, '0')}${Math.round(g).toString(16).padStart(2, '0')}${Math.round(b).toString(16).padStart(2, '0')}`;
-}
