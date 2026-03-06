@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, CheckCircle2, XCircle, CreditCard, Building2 } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, CreditCard, Building2, Link, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
