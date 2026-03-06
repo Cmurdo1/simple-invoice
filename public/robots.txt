@@ -1,4 +1,4 @@
-# Honest Invoice - SEO Optimized Robots.txt
+# Honest Invoice — robots.txt
 # https://honestinvoice.com
 
 User-agent: Googlebot
@@ -29,12 +29,15 @@ User-agent: *
 Allow: /
 Crawl-delay: 5
 
-# Sitemap location
-Sitemap: https://honestinvoice.com/sitemap.xml
-
-# Disallow private/authenticated routes from indexing
+# Block private app routes from indexing
 Disallow: /dashboard
 Disallow: /create
 Disallow: /invoice/
 Disallow: /clients
 Disallow: /settings
+Disallow: /nerve-center
+Disallow: /pitch
+Disallow: /reset-password
+
+# Sitemap
+Sitemap: https://honestinvoice.com/sitemap.xml
