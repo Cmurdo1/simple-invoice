@@ -152,16 +152,81 @@ export default function Dashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
             <CardTitle>Recent Activity</CardTitle>
-            <Tabs defaultValue="all" onValueChange={setActiveTab} className="w-[400px]">
-              <TabsList className="grid w-full grid-cols-3">
+            <Tabs defaultValue="all" onValueChange={setActiveTab} className="w-[480px]">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="all">All</TabsTrigger>
                 <TabsTrigger value="invoices">Invoices</TabsTrigger>
                 <TabsTrigger value="estimates">Estimates</TabsTrigger>
+                <TabsTrigger value="payments" className="flex items-center gap-1.5">
+                  <CreditCard className="h-3.5 w-3.5" />
+                  Payments
+                </TabsTrigger>
               </TabsList>
             </Tabs>
           </CardHeader>
           <CardContent className="pt-6">
-            {isLoading ? (
+            {activeTab === 'payments' ? (
+              (() => {
+                const paidInvoices = (allInvoices || [])
+                  .filter(inv => inv.status === 'paid' && inv.type === 'invoice')
+                  .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+                const totalPaid = paidInvoices.reduce((sum, inv) => sum + Number(inv.total_amount), 0);
+                return isLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  </div>
+                ) : paidInvoices.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <CreditCard className="mb-4 h-12 w-12 text-muted-foreground/50" />
+                    <h3 className="mb-2 text-lg font-semibold">No payments yet</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Payments will appear here once clients pay their invoices
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between rounded-lg bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 px-4 py-3">
+                      <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+                        <CheckCircle2 className="h-4 w-4" />
+                        <span className="text-sm font-medium">{paidInvoices.length} payment{paidInvoices.length !== 1 ? 's' : ''} received</span>
+                      </div>
+                      <span className="font-bold text-green-700 dark:text-green-400">
+                        ${totalPaid.toLocaleString('en-US', { minimumFractionDigits: 2 })} total
+                      </span>
+                    </div>
+                    <div className="space-y-2">
+                      {paidInvoices.map((invoice) => (
+                        <Link
+                          key={invoice.id}
+                          to={`/invoice/${invoice.id}`}
+                          className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-accent"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
+                              <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                            </div>
+                            <div className="flex flex-col gap-0.5">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">{invoice.client?.name || 'No client'}</span>
+                                <span className="text-xs text-muted-foreground">{invoice.invoice_number}</span>
+                              </div>
+                              <span className="text-xs text-muted-foreground">
+                                {format(new Date(invoice.updated_at), 'MMM d, yyyy • h:mm a')}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="font-semibold text-green-600 dark:text-green-400">
+                              +${Number(invoice.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()
+            ) : isLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
