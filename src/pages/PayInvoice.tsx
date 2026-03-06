@@ -236,7 +236,7 @@ export default function PayInvoice() {
         {isPaid ? (
           <Card>
             <CardContent className="py-6 text-center space-y-2">
-              <CheckCircle2 className="h-10 w-10 text-green-500 mx-auto" />
+              <CheckCircle2 className="h-10 w-10 text-primary mx-auto" />
               <p className="font-semibold">This invoice has been paid. Thank you!</p>
             </CardContent>
           </Card>
