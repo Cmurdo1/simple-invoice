@@ -57,9 +57,26 @@ export default function Index() {
     return <Navigate to="/dashboard" replace />;
   }
 
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "Free Invoice Generator — Honest Invoice",
+    "description": "Create free professional invoices and estimates online. AI-powered, Stripe payments, email delivery, PDF export, offline support. 100% free.",
+    "url": "https://honestinvoice.com",
+    "breadcrumb": {
+      "@type": "BreadcrumbList",
+      "itemListElement": [{ "@type": "ListItem", "position": 1, "name": "Free Invoice Generator", "item": "https://honestinvoice.com" }]
+    }
+  };
+
   return (
     <>
-      <SEOHead canonicalUrl="/" />
+      <SEOHead
+        canonicalUrl="/"
+        title="Free Invoice Generator — Create & Send Invoices Online | Honest Invoice"
+        description="Honest Invoice is the #1 free invoice generator. Create professional invoices & estimates in seconds, send by email with a Pay Now button, and collect payments via Stripe. 100% free. No credit card needed."
+        structuredData={structuredData}
+      />
       <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b">
