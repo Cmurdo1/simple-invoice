@@ -16,7 +16,7 @@ import {
 } from '@/hooks/useInvoices';
 import { useClients } from '@/hooks/useClients';
 import { useProfile } from '@/hooks/useProfile';
-import { Loader2, Plus, Trash2, Save, Download, ArrowLeft, Send, Mail } from 'lucide-react';
+import { Loader2, Plus, Trash2, Save, Download, ArrowLeft, Send, Mail, Link, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { InvoiceStatus } from '@/types/database';
