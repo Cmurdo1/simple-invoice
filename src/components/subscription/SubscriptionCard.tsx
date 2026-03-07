@@ -7,17 +7,20 @@ import { Check, Crown, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 
 const proFeatures = [
-  'Automated line item extraction',
-  'Unlimited invoices',
+  'Unlimited invoices & estimates',
+  'AI-powered line item extraction',
+  'Stripe payment links (get paid online)',
   'PDF export & download',
   'Offline mode with sync',
+  'Regional pricing (COL multiplier)',
   'Priority support',
 ];
 
 const freeFeatures = [
   'Up to 5 invoices/month',
-  'Basic invoice creation',
+  'Basic invoice & estimate creation',
   'Client management',
+  'Manual PDF export',
 ];
 
 export const SubscriptionCard = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
