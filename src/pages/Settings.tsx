@@ -522,8 +522,8 @@ export default function Settings() {
             <div className="space-y-3 rounded-lg border p-4" style={{ borderColor: formData.estimate_color + '40' }}>
               <div className="flex items-center gap-3">
                 <div
-                  className="h-5 w-5 rounded-full shadow-inner ring-2 ring-offset-2 ring-offset-background"
-                  style={{ backgroundColor: formData.estimate_color, ringColor: formData.estimate_color }}
+                  className="h-5 w-5 rounded-full shadow-inner"
+                  style={{ backgroundColor: formData.estimate_color }}
                 />
                 <Label className="text-base font-semibold">Estimate Accent Color</Label>
               </div>
