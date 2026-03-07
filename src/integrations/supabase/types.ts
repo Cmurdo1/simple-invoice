@@ -250,6 +250,7 @@ export type Database = {
           email: string | null
           estimate_color: string | null
           id: string
+          invoice_template: string
           logo_url: string | null
           phone: string | null
           state: string | null
@@ -271,6 +272,7 @@ export type Database = {
           email?: string | null
           estimate_color?: string | null
           id: string
+          invoice_template?: string
           logo_url?: string | null
           phone?: string | null
           state?: string | null
@@ -292,6 +294,7 @@ export type Database = {
           email?: string | null
           estimate_color?: string | null
           id?: string
+          invoice_template?: string
           logo_url?: string | null
           phone?: string | null
           state?: string | null

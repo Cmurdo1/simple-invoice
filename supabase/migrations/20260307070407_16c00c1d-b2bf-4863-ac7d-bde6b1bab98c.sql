@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS invoice_template text NOT NULL DEFAULT 'classic';
