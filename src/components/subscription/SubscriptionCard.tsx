@@ -10,9 +10,11 @@ const proFeatures = [
   'Unlimited invoices & estimates',
   'AI-powered line item extraction',
   'Stripe payment links (get paid online)',
+  'Invoice design templates (4 layouts)',
+  'Custom brand colors & logo',
   'PDF export & download',
-  'Offline mode with sync',
   'Regional pricing (COL multiplier)',
+  'Offline mode with sync',
   'Priority support',
 ];
 
@@ -61,8 +63,8 @@ export const SubscriptionCard = React.forwardRef<HTMLDivElement, React.HTMLAttri
             )}
           </div>
           <CardDescription>
-            {isPro 
-              ? 'You have access to all premium features' 
+            {isPro
+              ? 'You have access to all premium features'
               : 'Upgrade to unlock all features'}
           </CardDescription>
         </CardHeader>
@@ -72,7 +74,7 @@ export const SubscriptionCard = React.forwardRef<HTMLDivElement, React.HTMLAttri
               Renews on {format(new Date(subscription.subscriptionEnd), 'MMMM d, yyyy')}
             </p>
           )}
-          
+
           <div className="space-y-2">
             <p className="text-sm font-medium">
               {isPro ? 'Your features:' : 'Free plan includes:'}
@@ -80,7 +82,7 @@ export const SubscriptionCard = React.forwardRef<HTMLDivElement, React.HTMLAttri
             <ul className="space-y-1">
               {(isPro ? proFeatures : freeFeatures).map((feature) => (
                 <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Check className="h-4 w-4 text-primary" />
+                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
                   {feature}
                 </li>
               ))}
@@ -93,7 +95,7 @@ export const SubscriptionCard = React.forwardRef<HTMLDivElement, React.HTMLAttri
               <ul className="space-y-1 mb-4">
                 {proFeatures.map((feature) => (
                   <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Check className="h-4 w-4 text-muted-foreground" />
+                    <Check className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     {feature}
                   </li>
                 ))}
@@ -101,9 +103,9 @@ export const SubscriptionCard = React.forwardRef<HTMLDivElement, React.HTMLAttri
             </div>
           )}
 
-          <SubscriptionButton 
-            variant={isPro ? 'outline' : 'default'} 
-            className="w-full" 
+          <SubscriptionButton
+            variant={isPro ? 'outline' : 'default'}
+            className="w-full"
           />
         </CardContent>
       </Card>
