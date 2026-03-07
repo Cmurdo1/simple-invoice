@@ -201,6 +201,7 @@ export default function Settings() {
         state: formData.state || null,
         zip_code: formData.zip_code || null,
         col_multiplier: formData.col_multiplier,
+        invoice_template: subscription.subscribed ? formData.invoice_template : 'classic',
       } as any);
     } catch (error) {
       // Error handled by mutation
