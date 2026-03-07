@@ -101,6 +101,7 @@ export default function Settings() {
     state: '',
     zip_code: '',
     col_multiplier: 1.0,
+    invoice_template: 'classic' as InvoiceTemplate,
   });
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -120,6 +121,7 @@ export default function Settings() {
         state: (profile as any).state || '',
         zip_code: (profile as any).zip_code || '',
         col_multiplier: (profile as any).col_multiplier || 1.0,
+        invoice_template: ((profile as any).invoice_template || 'classic') as InvoiceTemplate,
       });
     }
   }, [profile]);
