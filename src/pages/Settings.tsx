@@ -38,47 +38,41 @@ const US_STATES = [
   'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'
 ];
 
-const BRAND_COLORS = [
-  { name: 'Forest Green', value: '#228B22' },
-  { name: 'Royal Blue', value: '#4169E1' },
-  { name: 'Crimson', value: '#DC143C' },
-  { name: 'Dark Orange', value: '#FF8C00' },
-  { name: 'Purple', value: '#9932CC' },
-  { name: 'Teal', value: '#008080' },
-  { name: 'Navy', value: '#000080' },
-  { name: 'Charcoal', value: '#36454F' },
+const COLOR_THEMES = [
+  { name: 'Classic', invoice: '#228B22', estimate: '#4169E1', description: 'Traditional business' },
+  { name: 'Midnight', invoice: '#36454F', estimate: '#008080', description: 'Sleek & modern' },
+  { name: 'Patriotic', invoice: '#B22234', estimate: '#3C3B6E', description: 'American style' },
+  { name: 'Royal Gold', invoice: '#8B4513', estimate: '#D4AF37', description: 'Luxury feel' },
+  { name: 'Sunset', invoice: '#FF8C00', estimate: '#DC143C', description: 'Warm & energetic' },
+  { name: 'Ocean', invoice: '#0369a1', estimate: '#059669', description: 'Cool & calm' },
 ];
 
-const BRAND_TEMPLATES = [
-  { 
-    name: 'Classic Professional', 
-    invoice: '#228B22', 
-    estimate: '#4169E1',
-    description: 'Traditional business colors'
+export type InvoiceTemplate = 'classic' | 'modern' | 'minimal' | 'bold';
+
+const INVOICE_TEMPLATES: { id: InvoiceTemplate; name: string; description: string; preview: string }[] = [
+  {
+    id: 'classic',
+    name: 'Classic',
+    description: 'Traditional layout with colored header banner',
+    preview: 'classic',
   },
-  { 
-    name: 'Midnight Elegance', 
-    invoice: '#36454F', 
-    estimate: '#008080',
-    description: 'Sleek and modern'
+  {
+    id: 'modern',
+    name: 'Modern',
+    description: 'Clean sidebar accent with gradient header',
+    preview: 'modern',
   },
-  { 
-    name: 'Patriotic (USA)', 
-    invoice: '#B22234', // Old Glory Red
-    estimate: '#3C3B6E', // Old Glory Blue
-    description: 'American style'
+  {
+    id: 'minimal',
+    name: 'Minimal',
+    description: 'Ultra-clean with a single accent line',
+    preview: 'minimal',
   },
-  { 
-    name: 'Royal Gold', 
-    invoice: '#8B4513', 
-    estimate: '#D4AF37',
-    description: 'Luxury feel'
-  },
-  { 
-    name: 'Sunset Glow', 
-    invoice: '#FF8C00', 
-    estimate: '#DC143C',
-    description: 'Warm and energetic'
+  {
+    id: 'bold',
+    name: 'Bold',
+    description: 'Dark full-width header, high contrast',
+    preview: 'bold',
   },
 ];
 
