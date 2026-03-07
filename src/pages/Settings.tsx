@@ -330,36 +330,117 @@ export default function Settings() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Branding Templates */}
+            {/* Invoice Design Templates */}
             <div className="space-y-3">
-              <Label className="text-base font-semibold">Branding Templates</Label>
+              <div className="flex items-center gap-2">
+                <Label className="text-base font-semibold">Invoice Design Template</Label>
+                {!subscription.subscribed && (
+                  <Badge variant="outline" className="gap-1 text-xs">
+                    <Lock className="h-3 w-3" /> Pro
+                  </Badge>
+                )}
+              </div>
               <p className="text-sm text-muted-foreground">
-                Choose a pre-defined theme for your documents
+                Choose the layout style for your exported PDF invoices & estimates
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {BRAND_TEMPLATES.map((template) => (
+              <div className="grid grid-cols-2 gap-3">
+                {INVOICE_TEMPLATES.map((tmpl) => {
+                  const isSelected = formData.invoice_template === tmpl.id;
+                  return (
+                    <button
+                      key={tmpl.id}
+                      type="button"
+                      disabled={!subscription.subscribed}
+                      onClick={() => setFormData({ ...formData, invoice_template: tmpl.id })}
+                      className={`
+                        relative flex flex-col gap-2 rounded-lg border-2 p-3 text-left transition-all duration-200 overflow-hidden
+                        ${isSelected ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/30'}
+                        ${!subscription.subscribed ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                      `}
+                    >
+                      {/* Mini PDF preview */}
+                      <div className="w-full rounded overflow-hidden bg-white shadow-sm border border-black/10 aspect-[3/2] relative">
+                        {tmpl.id === 'classic' && (
+                          <>
+                            <div className="h-1/3 w-full" style={{ backgroundColor: formData.brand_color }} />
+                            <div className="absolute top-1 left-2 text-white font-bold" style={{ fontSize: 5 }}>ACME Co.</div>
+                            <div className="absolute top-1 right-2 text-white font-bold" style={{ fontSize: 5 }}>INVOICE</div>
+                            <div className="p-1.5 space-y-0.5">
+                              <div className="h-0.5 w-3/4 bg-gray-200 rounded" />
+                              <div className="h-0.5 w-1/2 bg-gray-200 rounded" />
+                              <div className="h-0.5 w-5/6 bg-gray-100 rounded" />
+                            </div>
+                          </>
+                        )}
+                        {tmpl.id === 'modern' && (
+                          <>
+                            <div className="absolute left-0 top-0 bottom-0 w-1/4" style={{ background: `linear-gradient(to bottom, ${formData.brand_color}, ${formData.brand_color}88)` }} />
+                            <div className="absolute left-1 top-1 text-white" style={{ fontSize: 4, fontWeight: 700 }}>ACME</div>
+                            <div className="ml-6 p-1 space-y-0.5 mt-1">
+                              <div className="h-0.5 w-full bg-gray-200 rounded" />
+                              <div className="h-0.5 w-3/4 bg-gray-200 rounded" />
+                              <div className="h-0.5 w-5/6 bg-gray-100 rounded" />
+                            </div>
+                          </>
+                        )}
+                        {tmpl.id === 'minimal' && (
+                          <>
+                            <div className="h-1 w-full" style={{ backgroundColor: formData.brand_color }} />
+                            <div className="p-1.5 space-y-0.5">
+                              <div className="flex justify-between">
+                                <span style={{ fontSize: 4, fontWeight: 700, color: '#111' }}>ACME Co.</span>
+                                <span style={{ fontSize: 4, color: formData.brand_color, fontWeight: 700 }}>INVOICE</span>
+                              </div>
+                              <div className="h-0.5 w-full bg-gray-200 rounded" />
+                              <div className="h-0.5 w-3/4 bg-gray-100 rounded" />
+                            </div>
+                          </>
+                        )}
+                        {tmpl.id === 'bold' && (
+                          <>
+                            <div className="h-2/5 w-full bg-gray-900 flex items-center px-2 justify-between">
+                              <span style={{ fontSize: 4, color: 'white', fontWeight: 700 }}>ACME Co.</span>
+                              <span style={{ fontSize: 4, color: formData.brand_color, fontWeight: 700 }}>INVOICE</span>
+                            </div>
+                            <div className="p-1.5 space-y-0.5">
+                              <div className="h-0.5 w-3/4 bg-gray-200 rounded" />
+                              <div className="h-0.5 w-1/2 bg-gray-100 rounded" />
+                            </div>
+                          </>
+                        )}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-semibold">{tmpl.name}</span>
+                          {isSelected && <div className="h-2 w-2 rounded-full bg-primary" />}
+                        </div>
+                        <span className="text-xs text-muted-foreground">{tmpl.description}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Color Themes Quick-Pick */}
+            <div className="space-y-3">
+              <Label className="text-base font-semibold">Color Themes</Label>
+              <p className="text-sm text-muted-foreground">Quick-apply a coordinated color palette</p>
+              <div className="flex flex-wrap gap-2">
+                {COLOR_THEMES.map((theme) => (
                   <button
-                    key={template.name}
+                    key={theme.name}
                     type="button"
                     disabled={!subscription.subscribed}
-                    onClick={() => setFormData({ 
-                      ...formData, 
-                      brand_color: template.invoice, 
-                      estimate_color: template.estimate 
-                    })}
-                    className={`
-                      flex flex-col gap-2 rounded-lg border p-3 text-left transition-all duration-200
-                      ${!subscription.subscribed ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary hover:bg-muted/50'}
-                    `}
+                    onClick={() => setFormData({ ...formData, brand_color: theme.invoice, estimate_color: theme.estimate })}
+                    className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-all
+                      ${!subscription.subscribed ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary hover:bg-muted/50 cursor-pointer'}`}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">{template.name}</span>
-                      <div className="flex gap-1">
-                        <div className="h-3 w-3 rounded-full" style={{ backgroundColor: template.invoice }} />
-                        <div className="h-3 w-3 rounded-full" style={{ backgroundColor: template.estimate }} />
-                      </div>
+                    <div className="flex gap-0.5">
+                      <div className="h-3.5 w-3.5 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: theme.invoice }} />
+                      <div className="h-3.5 w-3.5 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: theme.estimate }} />
                     </div>
-                    <span className="text-xs text-muted-foreground">{template.description}</span>
+                    {theme.name}
                   </button>
                 ))}
               </div>
@@ -371,9 +452,9 @@ export default function Settings() {
               <div className="flex items-center gap-4">
                 {formData.logo_url ? (
                   <div className="relative h-20 w-20 overflow-hidden rounded-lg border bg-muted">
-                    <img 
-                      src={formData.logo_url} 
-                      alt="Business logo" 
+                    <img
+                      src={formData.logo_url}
+                      alt="Business logo"
                       className="h-full w-full object-contain"
                     />
                     {subscription.subscribed && (
@@ -422,111 +503,37 @@ export default function Settings() {
             {/* Invoice Color */}
             <div className="space-y-3 rounded-lg border p-4" style={{ borderColor: formData.brand_color + '40' }}>
               <div className="flex items-center gap-3">
-                <div 
-                  className="h-6 w-6 rounded-full shadow-inner" 
-                  style={{ backgroundColor: formData.brand_color }}
+                <div
+                  className="h-5 w-5 rounded-full shadow-inner ring-2 ring-offset-2 ring-offset-background"
+                  style={{ backgroundColor: formData.brand_color, ringColor: formData.brand_color }}
                 />
-                <Label className="text-base font-semibold">Invoice Color</Label>
+                <Label className="text-base font-semibold">Invoice Accent Color</Label>
               </div>
-              <p className="text-sm text-muted-foreground">
-                This color will appear on invoice headers, buttons, and accents
-              </p>
-              <div className="grid grid-cols-4 gap-3">
-                {BRAND_COLORS.map((color) => (
-                  <button
-                    key={color.value}
-                    type="button"
-                    disabled={!subscription.subscribed}
-                    onClick={() => setFormData({ ...formData, brand_color: color.value })}
-                    className={`
-                      relative h-12 rounded-lg border-2 transition-all duration-200
-                      ${formData.brand_color === color.value 
-                        ? 'border-foreground ring-2 ring-foreground ring-offset-2' 
-                        : 'border-transparent hover:border-muted-foreground/50'}
-                      ${!subscription.subscribed ? 'cursor-not-allowed' : 'cursor-pointer'}
-                    `}
-                    style={{ backgroundColor: color.value }}
-                    title={color.name}
-                  >
-                    {formData.brand_color === color.value && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="h-3 w-3 rounded-full bg-white shadow-md" />
-                      </div>
-                    )}
-                  </button>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  type="color"
-                  disabled={!subscription.subscribed}
-                  value={formData.brand_color}
-                  onChange={(e) => setFormData({ ...formData, brand_color: e.target.value })}
-                  className="h-10 w-16 cursor-pointer p-1"
-                />
-                <Input
-                  placeholder="#228B22"
-                  disabled={!subscription.subscribed}
-                  value={formData.brand_color}
-                  onChange={(e) => setFormData({ ...formData, brand_color: e.target.value })}
-                  className="flex-1"
-                />
-              </div>
+              <p className="text-sm text-muted-foreground">Used for headers, table banners, and totals on invoices</p>
+              <ColorPicker
+                value={formData.brand_color}
+                onChange={(hex) => setFormData({ ...formData, brand_color: hex })}
+                disabled={!subscription.subscribed}
+                label="Invoice"
+              />
             </div>
 
             {/* Estimate Color */}
             <div className="space-y-3 rounded-lg border p-4" style={{ borderColor: formData.estimate_color + '40' }}>
               <div className="flex items-center gap-3">
-                <div 
-                  className="h-6 w-6 rounded-full shadow-inner" 
-                  style={{ backgroundColor: formData.estimate_color }}
+                <div
+                  className="h-5 w-5 rounded-full shadow-inner ring-2 ring-offset-2 ring-offset-background"
+                  style={{ backgroundColor: formData.estimate_color, ringColor: formData.estimate_color }}
                 />
-                <Label className="text-base font-semibold">Estimate Color</Label>
+                <Label className="text-base font-semibold">Estimate Accent Color</Label>
               </div>
-              <p className="text-sm text-muted-foreground">
-                This color will appear on estimate headers, buttons, and accents
-              </p>
-              <div className="grid grid-cols-4 gap-3">
-                {BRAND_COLORS.map((color) => (
-                  <button
-                    key={color.value}
-                    type="button"
-                    disabled={!subscription.subscribed}
-                    onClick={() => setFormData({ ...formData, estimate_color: color.value })}
-                    className={`
-                      relative h-12 rounded-lg border-2 transition-all duration-200
-                      ${formData.estimate_color === color.value 
-                        ? 'border-foreground ring-2 ring-foreground ring-offset-2' 
-                        : 'border-transparent hover:border-muted-foreground/50'}
-                      ${!subscription.subscribed ? 'cursor-not-allowed' : 'cursor-pointer'}
-                    `}
-                    style={{ backgroundColor: color.value }}
-                    title={color.name}
-                  >
-                    {formData.estimate_color === color.value && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="h-3 w-3 rounded-full bg-white shadow-md" />
-                      </div>
-                    )}
-                  </button>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  type="color"
-                  disabled={!subscription.subscribed}
-                  value={formData.estimate_color}
-                  onChange={(e) => setFormData({ ...formData, estimate_color: e.target.value })}
-                  className="h-10 w-16 cursor-pointer p-1"
-                />
-                <Input
-                  placeholder="#2563eb"
-                  disabled={!subscription.subscribed}
-                  value={formData.estimate_color}
-                  onChange={(e) => setFormData({ ...formData, estimate_color: e.target.value })}
-                  className="flex-1"
-                />
-              </div>
+              <p className="text-sm text-muted-foreground">Used for headers, table banners, and totals on estimates</p>
+              <ColorPicker
+                value={formData.estimate_color}
+                onChange={(hex) => setFormData({ ...formData, estimate_color: hex })}
+                disabled={!subscription.subscribed}
+                label="Estimate"
+              />
             </div>
 
             {!subscription.subscribed && (
@@ -534,7 +541,7 @@ export default function Settings() {
                 <Lock className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
                 <p className="text-sm font-medium text-foreground">Unlock Premium Branding</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Upgrade to Pro to customize your logo, invoice colors, and estimate colors for a professional, branded experience.
+                  Upgrade to Pro to choose invoice templates, customize colors, and upload your logo.
                 </p>
               </div>
             )}
@@ -545,7 +552,7 @@ export default function Settings() {
                 <Label className="text-base font-semibold">Live Preview</Label>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="rounded-lg border overflow-hidden">
-                    <div 
+                    <div
                       className="p-3 text-white text-center text-sm font-semibold"
                       style={{ backgroundColor: formData.brand_color }}
                     >
@@ -557,7 +564,7 @@ export default function Settings() {
                     </div>
                   </div>
                   <div className="rounded-lg border overflow-hidden">
-                    <div 
+                    <div
                       className="p-3 text-white text-center text-sm font-semibold"
                       style={{ backgroundColor: formData.estimate_color }}
                     >
