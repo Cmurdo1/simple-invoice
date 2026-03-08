@@ -282,31 +282,43 @@ export default function InvoiceEditor() {
   const total = subtotal + taxAmount;
 
   const isEstimateMode = sendAsEstimate;
+  const accentColor = isEstimateMode
+    ? (profile?.estimate_color || '#2563eb')
+    : (profile?.brand_color || '#228B22');
 
   return (
     <AppLayout>
       <div className="mx-auto max-w-4xl space-y-6">
-        {/* Colored top banner indicating doc type */}
-        <div className={cn(
-          'rounded-xl px-5 py-4 flex items-center justify-between border',
-          isEstimateMode
-            ? 'bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800'
-            : 'bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800'
-        )}>
-          <div className="flex items-center gap-3">
-            <div className={cn(
-              'h-3 w-3 rounded-full',
-              isEstimateMode ? 'bg-blue-500' : 'bg-green-500'
-            )} />
-            <span className={cn(
-              'text-sm font-semibold uppercase tracking-widest',
-              isEstimateMode ? 'text-blue-700 dark:text-blue-300' : 'text-green-700 dark:text-green-300'
-            )}>
-              {isEstimateMode ? 'Estimate' : 'Invoice'}
-            </span>
+        {/* Full-width accent banner — colour comes from profile branding */}
+        <div
+          className="rounded-xl px-6 py-5 flex items-center justify-between shadow-sm"
+          style={{
+            background: `linear-gradient(135deg, ${accentColor}22 0%, ${accentColor}08 100%)`,
+            borderLeft: `4px solid ${accentColor}`,
+            border: `1px solid ${accentColor}33`,
+            borderLeftWidth: '4px',
+          }}
+        >
+          <div className="flex items-center gap-4">
+            <div
+              className="h-10 w-10 rounded-lg flex items-center justify-center text-white text-lg font-bold shadow-sm"
+              style={{ backgroundColor: accentColor }}
+            >
+              {isEstimateMode ? '📋' : '📄'}
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: accentColor }}>
+                {isEstimateMode ? 'Estimate Document' : 'Invoice Document'}
+              </p>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {isEstimateMode
+                  ? 'Non-binding cost breakdown sent before work begins'
+                  : 'Request for payment — legally binding upon sending'}
+              </p>
+            </div>
           </div>
           <Select value={sendAsEstimate ? 'estimate' : 'invoice'} onValueChange={(v) => setSendAsEstimate(v === 'estimate')}>
-            <SelectTrigger className="w-[130px] h-8 text-sm">
+            <SelectTrigger className="w-[140px] h-9 text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
