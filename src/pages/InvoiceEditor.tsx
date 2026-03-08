@@ -348,31 +348,20 @@ export default function InvoiceEditor() {
                 Mark as Paid
               </Button>
             )}
-            <div className="flex items-center gap-2">
-              <Select value={sendAsEstimate ? 'estimate' : 'invoice'} onValueChange={(v) => setSendAsEstimate(v === 'estimate')}>
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="invoice">Invoice</SelectItem>
-                  <SelectItem value="estimate">Estimate</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button 
-                variant="outline" 
-                onClick={handleSendEmail}
-                disabled={isSendingEmail || !invoice.client?.email}
-                className="gap-2"
-                title={!invoice.client?.email ? "Client needs an email address" : `Send ${sendAsEstimate ? 'estimate' : 'invoice'} via email`}
-              >
-                {isSendingEmail ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Mail className="h-4 w-4" />
-                )}
-                Email
-              </Button>
-            </div>
+            <Button 
+              variant="outline" 
+              onClick={handleSendEmail}
+              disabled={isSendingEmail || !invoice.client?.email}
+              className="gap-2"
+              title={!invoice.client?.email ? "Client needs an email address" : `Send ${isEstimateMode ? 'estimate' : 'invoice'} via email`}
+            >
+              {isSendingEmail ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Mail className="h-4 w-4" />
+              )}
+              Email
+            </Button>
             <Button variant="outline" onClick={handleExportPDF} className="gap-2">
               <Download className="h-4 w-4" />
               Export PDF
