@@ -12,99 +12,96 @@ interface ImageInput {
 
 function buildDecompositionPrompt(colMultiplier: number, location: string, hasImages: boolean): string {
   const colAdjustment = colMultiplier !== 1.0 
-    ? `\n\n## REGIONAL PRICING ADJUSTMENT:\nThe customer is located in ${location} with a Cost of Living multiplier of ${colMultiplier}x.\n**IMPORTANT**: Multiply ALL prices (labor and materials) by ${colMultiplier} to reflect regional costs.\nFor example: If national average labor is $85/hr, use $${Math.round(85 * colMultiplier)}/hr for this region.`
+    ? `\n\n## REGIONAL PRICING ADJUSTMENT:\nThe customer is located in ${location} with a Cost of Living multiplier of ${colMultiplier}x.\n**IMPORTANT**: Multiply ALL prices (labor and materials) by ${colMultiplier} to reflect regional costs.\nFor example: If national average labor is $65/hr, use $${Math.round(65 * colMultiplier)}/hr for this region.`
     : '';
 
   const imageInstruction = hasImages
-    ? `\n\n## PHOTO ANALYSIS INSTRUCTIONS:\nYou have been provided job-site photos. Carefully analyze them to:\n1. Identify the exact scope of work visible (size, condition, materials present)\n2. Estimate surface area, linear footage, or quantities from visual cues\n3. Note any complications (damage, difficult access, hazardous materials, specialty equipment needed)\n4. Identify materials already on site vs. what needs to be sourced\n5. Assess job complexity to calibrate labor hours accurately\nUse the photos as primary evidence. They override vague descriptions.`
+    ? `\n\n## PHOTO ANALYSIS INSTRUCTIONS:\nYou have been provided job-site photos. Carefully analyze them to:\n1. Identify the EXACT scope of work visible — measure only what's shown\n2. Estimate surface area or quantities from visual cues — be conservative\n3. Note complications only if clearly visible (damage, difficult access, hazmat)\n4. Identify materials already on site vs. what needs to be sourced\n5. Calibrate labor hours to match the visible scope — don't over-inflate\nUse the photos as primary evidence. Do NOT assume work beyond what is visible.`
     : '';
 
-  return `You are an expert contractor estimator specializing in work breakdown structures (WBS).
+  return `You are an expert contractor estimator. Your job is to produce ACCURATE, REALISTIC line item breakdowns that match real-world job costs.${imageInstruction}
 
-Your task is to DECOMPOSE job descriptions into granular, auditable line items following industry best practices.${imageInstruction}
+## #1 RULE — STAY IN SCOPE:
+Read the description carefully. Estimate ONLY what is described. Do NOT add scope that was not mentioned. A small repair job should produce a small estimate. A $500 job should not come back as $5,000.
+
+## SCOPE CALIBRATION — USE THIS TO SIZE YOUR ESTIMATE:
+- Small jobs (patch, fix, clean, minor repair, simple install): $75–$800 total
+- Medium jobs (room repaint, fixture swap, small deck repair, appliance install): $500–$3,000 total
+- Large jobs (full room remodel, roof section, HVAC install, whole-house paint): $3,000–$15,000 total
+- Major projects (full bathroom gut, large addition, full HVAC system): $10,000–$50,000 total
+
+Read the description, decide which tier it belongs to, then generate ONLY items that fit that tier's total.
 
 ## CRITICAL RULES:
+1. **MATCH THE DESCRIBED SCOPE** — If a small area is mentioned, price for that area only
+2. **REALISTIC QUANTITIES** — Don't inflate hours or materials. A 2-hour job is 2 hours.
+3. **SEPARATE LABOR FROM MATERIALS** — Distinct line items for each
+4. **INCLUDE HIDDEN COSTS** — Only add disposal, permits, or mobilization if the job clearly requires them
+5. **NO SCOPE CREEP** — Do not add items for work not mentioned or implied by the description
+${colAdjustment}
 
-1. **SEPARATE LABOR FROM MATERIALS** - Always create distinct line items
-2. **INCLUDE HIDDEN COSTS** - Don't forget: disposal, prep work, cleanup, permits, travel
-3. **BE SPECIFIC WITH QUANTITIES** - Use actual measurements when given, estimate conservatively when not
-4. **LOCATION MATTERS** - Include WHERE the work is being done (roof section, room, etc.)
-
-## DECOMPOSITION CHECKLIST (apply to every job):
-□ Materials (itemize each material separately)
-□ Labor (break down by task type)
-□ Equipment/Tool rental if needed
-□ Preparation work (protection, moving items, access setup)
-□ Disposal/Cleanup fees
-□ Travel/Mobilization if applicable
-
-## BASE PRICING GUIDELINES (2024 national average rates):
+## BASE PRICING GUIDELINES (2024 national averages):
 
 **Labor Rates (per hour):**
-- General labor/helper: $45-65
-- Skilled trades (plumbing, electrical, HVAC): $85-125
-- Roofing labor: $65-95
-- Painting labor: $55-75
-- Specialized/licensed work: $100-150
+- General labor/helper: $45–65/hr
+- Skilled trades (plumbing, electrical, HVAC): $85–125/hr
+- Roofing labor: $65–95/hr
+- Painting labor: $55–75/hr
+- Specialized/licensed work: $100–150/hr
 
-**Common Material Estimates:**
-- Standard receptacle/outlet: $3-8 each
-- GFCI outlet: $15-25 each
-- Light switch: $3-10 each
-- Wire (12/2 Romex): $0.80-1.20/ft
-- Paint (quality): $35-55/gallon (covers ~350 sq ft)
-- Roofing shingles: $30-45/bundle (covers ~33 sq ft)
-- Drywall sheet (4x8): $12-18
-- Caulk/sealant: $5-12/tube
-
-**Service Minimums:**
-- Minimum service call: $75-150
-- Disposal fee: $50-150 per load
-- Permit fees: varies by jurisdiction
-${colAdjustment}
+**Common Materials:**
+- Paint (quality): $35–55/gallon (covers ~350 sq ft)
+- Roofing shingles: $30–45/bundle (covers ~33 sq ft)
+- Drywall sheet (4x8): $12–18
+- Wire (12/2 Romex): $0.80–1.20/ft
+- Caulk/sealant: $5–12/tube
+- GFCI outlet: $15–25 each
+- Standard outlet/switch: $3–10 each
 
 ## OUTPUT FORMAT:
 Return ONLY a valid JSON array. Each item must have:
-- description: Detailed description with WHAT + WHERE + specifications
-- quantity: Number (hours, units, sq ft, etc.)
-- unit_price: Price per unit in USD (already adjusted for regional pricing)
+- description: Clear description with WHAT + WHERE
+- quantity: Realistic number (hours, units, sq ft, etc.)
+- unit_price: Price per unit in USD (adjusted for regional pricing if applicable)
 
-## SELF-AUDIT BEFORE RESPONDING:
-1. Did I separate ALL materials from labor?
-2. Did I include disposal/cleanup if there's removal?
-3. Did I account for prep work and protection?
-4. Are my quantities realistic (not underestimated)?
-5. Did I include minimum service charges if job is small?
-6. Did I apply the regional pricing multiplier (${colMultiplier}x) to all prices?
-7. ${hasImages ? 'Did I use the photos to calibrate quantities and scope accurately?' : 'Did I use all details from the description?'}`;
+## MANDATORY SELF-CHECK BEFORE RESPONDING:
+1. What is the realistic real-world cost for this job? Does my TOTAL match that?
+2. Are my labor hours proportional to the scope (not padded)?
+3. Are quantities tied to actual measurements or reasonable estimates — not inflated?
+4. Did I add items only for what was explicitly described?
+5. Did I apply the regional pricing multiplier (${colMultiplier}x) to all prices?
+6. ${hasImages ? 'Did I use the photos to calibrate scope — not over-estimating beyond what is visible?' : 'Is my total within a sane range for what was described?'}`;
 }
 
 function buildAuditPrompt(colMultiplier: number, location: string): string {
   const regionalNote = colMultiplier !== 1.0 
-    ? `\n6. **Regional Pricing** - Are prices adjusted for the ${location} region (${colMultiplier}x multiplier)?`
+    ? `\n6. **Regional Pricing** — Are prices correctly adjusted for the ${location} region (${colMultiplier}x multiplier)?`
     : '';
 
-  return `You are a senior estimator auditing a junior estimator's work breakdown.
+  return `You are a senior estimator reviewing a junior estimator's bid for ACCURACY and REALISM.
 
-Review this estimate for COMPLETENESS and ACCURACY:
+## YOUR JOB:
+- Verify the total makes sense for the described scope
+- Catch inflated quantities or labor hours
+- Catch missing items (disposal, prep) only if the job clearly requires them
+- Catch scope creep — items added that were NOT in the original description
 
 ## AUDIT CHECKLIST:
-1. **Missing Items** - Are there obvious items the junior missed?
-2. **Underestimated Quantities** - Are quantities realistic?
-3. **Price Accuracy** - Are prices within market range for the region?
-4. **Labor Time** - Is labor time sufficient for the scope?
-5. **Hidden Costs** - Disposal, prep, cleanup, permits included?${regionalNote}
+1. **Scope match** — Does the total reflect the size of job described? A small job should have a small total.
+2. **Labor hours** — Are they realistic, not padded?
+3. **Quantities** — Are they tied to real measurements, not inflated?
+4. **Price accuracy** — Are unit prices within 2024 market range?
+5. **No scope creep** — Are all items traceable back to the description?${regionalNote}
 
 ## COMMON MISTAKES TO CATCH:
-- Forgetting disposal fees for removal jobs
-- Underestimating labor hours
-- Missing materials (fasteners, connectors, tape, etc.)
-- No minimum service charge for small jobs
-- Forgetting prep/protection time
+- Inflating a 3-hour job to 20+ hours
+- Adding mobilization, permits, or disposal when not needed for the described job
+- Multiplying quantities without justification
+- Generating 15+ line items for a simple 2-item job
 ${colMultiplier !== 1.0 ? `- Not applying the ${colMultiplier}x regional pricing multiplier` : ''}
 
-If the estimate is good, return it unchanged.
-If there are issues, add the missing items or adjust quantities/prices.
+If the estimate total is disproportionate to the described scope, REDUCE it to match reality.
+If the estimate is accurate, return it unchanged.
 
 Return ONLY the corrected JSON array.`;
 }
@@ -135,8 +132,7 @@ Deno.serve(async (req) => {
     
     console.log(`Processing with COL multiplier: ${colMultiplier} for location: ${locationStr}, images: ${hasImages ? images.length : 0}`);
 
-    // Use vision-capable model when images are present
-    const model = hasImages ? 'google/gemini-2.5-flash' : 'google/gemini-2.5-flash';
+    const model = 'google/gemini-2.5-flash';
 
     const decompositionPrompt = buildDecompositionPrompt(colMultiplier, locationStr, hasImages);
     const auditPrompt = buildAuditPrompt(colMultiplier, locationStr);
@@ -145,7 +141,6 @@ Deno.serve(async (req) => {
     const userContent: any[] = [];
 
     if (hasImages) {
-      // Add all images first so the model sees them in context
       for (const img of images as ImageInput[]) {
         userContent.push({
           type: 'image_url',
@@ -177,7 +172,7 @@ Deno.serve(async (req) => {
           { role: 'system', content: decompositionPrompt },
           { role: 'user', content: hasImages ? userContent : userContent[0].text },
         ],
-        temperature: 0.2,
+        temperature: 0.1,
       }),
     });
 
@@ -206,7 +201,10 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Step 2: Self-audit pass (text only, no need to re-send images)
+    const initialTotal = items.reduce((sum: number, item: any) => sum + ((item.quantity || 0) * (item.unit_price || 0)), 0);
+    console.log(`Initial estimate total: $${initialTotal.toFixed(2)}, items: ${items.length}`);
+
+    // Step 2: Self-audit pass
     console.log('Step 2: Auditing estimate...');
     const auditResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -220,7 +218,7 @@ Deno.serve(async (req) => {
           { role: 'system', content: auditPrompt },
           { 
             role: 'user', 
-            content: `Original job description:\n${job_description}\n\nLocation: ${locationStr} (COL: ${colMultiplier}x)\n${hasImages ? `Photos analyzed: ${images.length} image(s)\n` : ''}\nInitial estimate to audit:\n${JSON.stringify(items, null, 2)}` 
+            content: `Original job description:\n${job_description}\n\nLocation: ${locationStr} (COL: ${colMultiplier}x)\n${hasImages ? `Photos analyzed: ${images.length} image(s)\n` : ''}\nInitial estimate to audit (total: $${initialTotal.toFixed(2)}):\n${JSON.stringify(items, null, 2)}` 
           }
         ],
         temperature: 0.1,
@@ -235,8 +233,9 @@ Deno.serve(async (req) => {
         const cleanAudit = auditedEstimate.replace(/```json\n?|\n?```/g, '').trim();
         const auditedItems = JSON.parse(cleanAudit);
         if (Array.isArray(auditedItems) && auditedItems.length > 0) {
+          const auditedTotal = auditedItems.reduce((sum: number, item: any) => sum + ((item.quantity || 0) * (item.unit_price || 0)), 0);
+          console.log(`Audited estimate total: $${auditedTotal.toFixed(2)}, items: ${auditedItems.length}`);
           items = auditedItems;
-          console.log('Audit complete, items updated');
         }
       } catch {
         console.log('Audit parse failed, using initial estimate');
@@ -251,13 +250,14 @@ Deno.serve(async (req) => {
         unit_price: Math.max(0, Number(item.unit_price)),
       }));
 
-    console.log(`Returning ${validatedItems.length} validated items`);
+    const finalTotal = validatedItems.reduce((sum: number, item: any) => sum + (item.quantity * item.unit_price), 0);
+    console.log(`Returning ${validatedItems.length} validated items, total: $${finalTotal.toFixed(2)}`);
 
     return new Response(
       JSON.stringify({ 
         items: validatedItems,
         item_count: validatedItems.length,
-        subtotal: validatedItems.reduce((sum: number, item: any) => sum + (item.quantity * item.unit_price), 0),
+        subtotal: finalTotal,
         col_multiplier_applied: colMultiplier,
         location: locationStr,
         photos_analyzed: hasImages ? images.length : 0,
