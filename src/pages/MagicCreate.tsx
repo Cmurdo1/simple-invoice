@@ -475,7 +475,7 @@ export default function MagicCreate() {
                   <thead>
                     <tr className="border-b bg-muted/50">
                       <th className="p-3 text-left text-sm font-medium">Description</th>
-                      <th className="p-3 text-right text-sm font-medium">Qty</th>
+                      <th className="p-3 text-right text-sm font-medium">Hrs</th>
                       <th className="p-3 text-right text-sm font-medium">
                         {currentColMultiplier !== 1.0 ? (
                           <span className="flex flex-col items-end">
