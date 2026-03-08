@@ -600,28 +600,56 @@ export default function Settings() {
               <div className="space-y-3 pt-2">
                 <Label className="text-base font-semibold">Live Preview</Label>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="rounded-lg border overflow-hidden">
+                  {/* Invoice card preview */}
+                  <div className="rounded-xl border overflow-hidden shadow-sm">
                     <div
-                      className="p-3 text-white text-center text-sm font-semibold"
+                      className="px-4 py-3 flex items-center justify-between"
                       style={{ backgroundColor: formData.brand_color }}
                     >
-                      Invoice Preview
+                      <span className="text-white font-bold text-xs">
+                        {formData.business_name || 'Your Business'}
+                      </span>
+                      <span className="text-white/80 font-semibold text-xs tracking-widest">INVOICE</span>
                     </div>
-                    <div className="p-3 bg-card text-xs text-muted-foreground">
-                      <p>INV-00001</p>
-                      <p className="font-bold text-foreground mt-1">$1,250.00</p>
+                    <div className="p-3 bg-card space-y-2">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">INV-00001</span>
+                        <span className="text-muted-foreground">Due: 30 days</span>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="h-1.5 w-full bg-muted rounded" />
+                        <div className="h-1.5 w-3/4 bg-muted rounded" />
+                      </div>
+                      <div className="flex justify-between items-center border-t pt-2">
+                        <span className="text-xs text-muted-foreground">Total</span>
+                        <span className="font-bold text-sm" style={{ color: formData.brand_color }}>$1,250.00</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="rounded-lg border overflow-hidden">
+                  {/* Estimate card preview */}
+                  <div className="rounded-xl border overflow-hidden shadow-sm">
                     <div
-                      className="p-3 text-white text-center text-sm font-semibold"
+                      className="px-4 py-3 flex items-center justify-between"
                       style={{ backgroundColor: formData.estimate_color }}
                     >
-                      Estimate Preview
+                      <span className="text-white font-bold text-xs">
+                        {formData.business_name || 'Your Business'}
+                      </span>
+                      <span className="text-white/80 font-semibold text-xs tracking-widest">ESTIMATE</span>
                     </div>
-                    <div className="p-3 bg-card text-xs text-muted-foreground">
-                      <p>EST-00001</p>
-                      <p className="font-bold text-foreground mt-1">$1,250.00</p>
+                    <div className="p-3 bg-card space-y-2">
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">EST-00001</span>
+                        <span className="text-muted-foreground">Valid: 30 days</span>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="h-1.5 w-full bg-muted rounded" />
+                        <div className="h-1.5 w-3/4 bg-muted rounded" />
+                      </div>
+                      <div className="flex justify-between items-center border-t pt-2">
+                        <span className="text-xs text-muted-foreground">Est. Total</span>
+                        <span className="font-bold text-sm" style={{ color: formData.estimate_color }}>$1,250.00</span>
+                      </div>
                     </div>
                   </div>
                 </div>
