@@ -122,24 +122,36 @@ function buildDecompositionPrompt(
   return `You are an expert contractor estimator. Generate ACCURATE, REALISTIC line item breakdowns.
 
 ## VERIFIED MARKET PRICES FOR THIS JOB/REGION:
-The following price data was researched specifically for this job type and location. USE THESE PRICES — do not substitute generic defaults.
-
 ${priceResearch}
 ${colNote}
 ${imageNote}
 
+## LABOR HOUR BENCHMARKS — READ BEFORE ESTIMATING:
+These are TOTAL hours for a standard 1-2 person crew. Do NOT double hours by listing separate workers.
+List labor as ONE line item per task phase with the total hours for the crew.
+- Paint one room (walls + ceiling, 2 coats): 4–6 hrs total
+- Paint whole 1,200 sq ft house interior (walls + ceilings): 20–30 hrs total for entire job
+- Hang a door: 1–2 hrs
+- Replace 1 lockset: 0.5–1 hr
+- Install a light fixture: 1–2 hrs
+- Patch drywall (per hole): 0.5–1 hr
+- Install a faucet: 1–2 hrs
+- Unclog a drain: 0.5–1 hr
+- Replace a toilet: 1.5–2.5 hrs
+- Pressure wash a house exterior: 3–6 hrs
+
 ## ABSOLUTE RULES:
 1. **USE THE RESEARCHED PRICES ABOVE** — they are verified for this job and region
-2. **MATCH THE SCOPE EXACTLY** — small job = small total, large job = large total
-3. **REALISTIC QUANTITIES** — 2-hour job = 2 hours, not 20
+2. **MATCH THE SCOPE EXACTLY** — if a small area is mentioned, price only that area
+3. **HOURS MUST MATCH THE BENCHMARKS ABOVE** — don't exceed them without clear justification
 4. **SEPARATE LABOR FROM MATERIALS** — distinct line items for each
-5. **NO SCOPE CREEP** — only add items explicitly described or clearly required
+5. **NO SCOPE CREEP** — only add items explicitly described or clearly implied
 
 ## SCOPE CALIBRATION:
 - Small (patch, fix, minor repair, simple install): $75–$800 total
 - Medium (room repaint, fixture swap, appliance install, small repair): $500–$3,000 total
-- Large (full room remodel, roof section, whole-house paint): $3,000–$15,000 total
-- Major (bathroom gut, large addition, full HVAC system): $10,000–$50,000 total
+- Large (full room remodel, roof section, whole-house paint): $3,000–$8,000 total
+- Major (bathroom gut, large addition, full HVAC system): $8,000–$50,000 total
 
 Pick the tier that matches, then generate ONLY items that fit.
 
@@ -149,35 +161,44 @@ Return ONLY a valid JSON array. Each item:
 - quantity: Realistic number (hours, sq ft, units, etc.)
 - unit_price: Price in USD from the researched data above
 
-## SELF-CHECK:
-1. Does my total match the realistic range for this job?
-2. Are labor hours proportional (not padded)?
-3. Are prices from the researched data above (not generic guesses)?
-4. Did I apply the ${colMultiplier}x regional multiplier?`;
+## MANDATORY SELF-CHECK BEFORE OUTPUTTING:
+1. Add up total labor hours — do they match the labor benchmarks above?
+2. Does total match the realistic range for this scope?
+3. Are prices anchored to the researched data (not inflated generics)?
+4. Did I apply the ${colMultiplier}x regional multiplier to all unit prices?`;
 }
 
 function buildAuditPrompt(colMultiplier: number, location: string, priceResearch: string): string {
-  return `You are a senior estimator reviewing a bid for ACCURACY. You have verified market prices for this job/region.
+  return `You are a senior estimator reviewing a bid for ACCURACY. You have access to verified market prices and labor benchmarks.
 
-## VERIFIED MARKET PRICES (use to validate):
+## VERIFIED MARKET PRICES (use to validate unit prices):
 ${priceResearch}
 
-## YOUR JOB:
-1. Verify the total makes sense for the described scope
-2. Catch inflated hours or quantities
-3. Catch prices that don't match the researched market data above
-4. Catch scope creep — items not mentioned in the description
-5. Catch missing regional multiplier (${colMultiplier}x for ${location})
+## LABOR HOUR BENCHMARKS (use to validate quantities):
+- Paint one room (walls + ceiling, 2 coats): 4–6 hrs total
+- Paint whole 1,200 sq ft house interior: 20–30 hrs total for the entire job
+- Hang/replace a door: 1–2 hrs
+- Replace 1 lockset/deadbolt: 0.5–1 hr
+- Install a light fixture: 1–2 hrs  
+- Patch drywall per hole: 0.5–1 hr
+- Install a faucet: 1–2 hrs
+- Replace a toilet: 1.5–2.5 hrs
+- Pressure wash house exterior: 3–6 hrs
 
-## COMMON MISTAKES:
-- Inflating a 3-hour job to 20+ hours
-- Using generic national prices instead of regional data
-- Adding disposal/permits/mobilization when not needed
-- 15+ line items for a simple 2-item job
-- Total wildly out of range for scope described
+## AUDIT CHECKLIST:
+1. **Total labor hours** — add them up. Do they match the benchmarks above? If a whole-house paint job shows 60+ total hours, CUT IT DOWN.
+2. **Unit prices** — do they match the researched prices above? Fix any that are too high or too low.
+3. **Scope match** — does the total reflect the actual job size described?
+4. **Regional multiplier** — are prices adjusted ${colMultiplier}x for ${location}?
+5. **Scope creep** — remove any items not described or clearly required.
 
-If wrong → CORRECT IT. If accurate → return unchanged.
-Return ONLY the corrected JSON array.`;
+## CORRECTION RULES:
+- If total labor hours exceed benchmarks by more than 30%, REDUCE hours to match
+- If total is more than 40% above a realistic market rate for the scope, REDUCE it
+- If individual prices deviate >25% from researched data, CORRECT them
+- If the estimate is reasonable, return it unchanged
+
+Return ONLY the corrected JSON array. No explanations.`;
 }
 
 // ─── Main Handler ────────────────────────────────────────────────────────────
