@@ -122,24 +122,35 @@ function buildDecompositionPrompt(
   return `You are an expert contractor estimator. Generate ACCURATE, REALISTIC line item breakdowns.
 
 ## VERIFIED MARKET PRICES FOR THIS JOB/REGION:
-The following price data was researched specifically for this job type and location. USE THESE PRICES — do not substitute generic defaults.
-
 ${priceResearch}
 ${colNote}
 ${imageNote}
 
+## LABOR HOUR BENCHMARKS — READ BEFORE ESTIMATING:
+These are realistic hours for a standard crew. Exceeding these without explicit justification is WRONG.
+- Paint one room (walls + ceiling, 2 coats): 4–6 hrs total (1 painter)
+- Paint whole 1,200 sq ft house interior (walls + ceilings): 20–30 hrs total (1–2 painters)
+- Hang a door: 1–2 hrs
+- Replace 1 lockset: 0.5–1 hr
+- Install a light fixture: 1–2 hrs
+- Patch drywall (per hole): 0.5–1 hr
+- Install a faucet: 1–2 hrs
+- Unclog a drain: 0.5–1 hr
+- Replace a toilet: 1.5–2.5 hrs
+- Pressure wash a house exterior: 3–6 hrs
+
 ## ABSOLUTE RULES:
 1. **USE THE RESEARCHED PRICES ABOVE** — they are verified for this job and region
-2. **MATCH THE SCOPE EXACTLY** — small job = small total, large job = large total
-3. **REALISTIC QUANTITIES** — 2-hour job = 2 hours, not 20
+2. **MATCH THE SCOPE EXACTLY** — if a small area is mentioned, price only that area
+3. **HOURS MUST MATCH THE BENCHMARKS ABOVE** — don't exceed them without clear justification
 4. **SEPARATE LABOR FROM MATERIALS** — distinct line items for each
-5. **NO SCOPE CREEP** — only add items explicitly described or clearly required
+5. **NO SCOPE CREEP** — only add items explicitly described or clearly implied
 
 ## SCOPE CALIBRATION:
 - Small (patch, fix, minor repair, simple install): $75–$800 total
 - Medium (room repaint, fixture swap, appliance install, small repair): $500–$3,000 total
-- Large (full room remodel, roof section, whole-house paint): $3,000–$15,000 total
-- Major (bathroom gut, large addition, full HVAC system): $10,000–$50,000 total
+- Large (full room remodel, roof section, whole-house paint): $3,000–$8,000 total
+- Major (bathroom gut, large addition, full HVAC system): $8,000–$50,000 total
 
 Pick the tier that matches, then generate ONLY items that fit.
 
@@ -149,11 +160,11 @@ Return ONLY a valid JSON array. Each item:
 - quantity: Realistic number (hours, sq ft, units, etc.)
 - unit_price: Price in USD from the researched data above
 
-## SELF-CHECK:
-1. Does my total match the realistic range for this job?
-2. Are labor hours proportional (not padded)?
-3. Are prices from the researched data above (not generic guesses)?
-4. Did I apply the ${colMultiplier}x regional multiplier?`;
+## MANDATORY SELF-CHECK BEFORE OUTPUTTING:
+1. Add up total labor hours — do they match the labor benchmarks above?
+2. Does total match the realistic range for this scope?
+3. Are prices anchored to the researched data (not inflated generics)?
+4. Did I apply the ${colMultiplier}x regional multiplier to all unit prices?`;
 }
 
 function buildAuditPrompt(colMultiplier: number, location: string, priceResearch: string): string {
