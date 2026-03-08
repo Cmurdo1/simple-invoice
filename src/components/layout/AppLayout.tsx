@@ -68,14 +68,16 @@ export function AppLayout({ children }: AppLayoutProps) {
             isCollapsed ? "justify-center px-0" : "justify-between px-6"
           )}>
             {!isCollapsed ? (
-              <div className="flex items-center gap-3">
+              <Link to="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                 <img src={logo} alt="HonestInvoice" className="h-8 w-8" />
                 <span className="font-display text-lg font-bold text-sidebar-foreground">
                   HonestInvoice
                 </span>
-              </div>
+              </Link>
             ) : (
-              <img src={logo} alt="HonestInvoice" className="h-8 w-8" />
+              <Link to="/dashboard">
+                <img src={logo} alt="HonestInvoice" className="h-8 w-8 hover:opacity-80 transition-opacity" />
+              </Link>
             )}
             
             <Button
@@ -160,10 +162,10 @@ export function AppLayout({ children }: AppLayoutProps) {
 
       {/* Mobile Header */}
       <header className="fixed left-0 right-0 top-0 z-40 flex h-16 items-center justify-between border-b bg-background px-4 lg:hidden">
-        <div className="flex items-center gap-3">
+        <Link to="/dashboard" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
           <img src={logo} alt="HonestInvoice" className="h-8 w-8" />
           <span className="font-display text-lg font-bold">Honest Invoice</span>
-        </div>
+        </Link>
         <Button
           variant="ghost"
           size="icon"
