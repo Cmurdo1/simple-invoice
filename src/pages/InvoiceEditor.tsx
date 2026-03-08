@@ -419,7 +419,7 @@ export default function InvoiceEditor() {
               {/* Header */}
               <div className="grid grid-cols-12 gap-2 text-sm font-medium text-muted-foreground">
                 <div className="col-span-5">Description</div>
-                <div className="col-span-2 text-right">Qty</div>
+                <div className="col-span-2 text-right">Hrs</div>
                 <div className="col-span-2 text-right">Price</div>
                 <div className="col-span-2 text-right">Total</div>
                 <div className="col-span-1"></div>
