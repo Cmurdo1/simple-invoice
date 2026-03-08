@@ -330,7 +330,7 @@ export default function Settings() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Invoice Design Templates */}
+        {/* Invoice Design Templates */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Label className="text-base font-semibold">Invoice Design Template</Label>
@@ -343,9 +343,10 @@ export default function Settings() {
               <p className="text-sm text-muted-foreground">
                 Choose the layout style for your exported PDF invoices & estimates
               </p>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 {INVOICE_TEMPLATES.map((tmpl) => {
                   const isSelected = formData.invoice_template === tmpl.id;
+                  const bc = formData.brand_color;
                   return (
                     <button
                       key={tmpl.id}
@@ -353,68 +354,107 @@ export default function Settings() {
                       disabled={!subscription.subscribed}
                       onClick={() => setFormData({ ...formData, invoice_template: tmpl.id })}
                       className={`
-                        relative flex flex-col gap-2 rounded-lg border-2 p-3 text-left transition-all duration-200 overflow-hidden
-                        ${isSelected ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/30'}
+                        relative flex flex-col gap-3 rounded-xl border-2 p-4 text-left transition-all duration-200
+                        ${isSelected ? 'border-primary shadow-md' : 'border-border hover:border-primary/50 hover:shadow-sm'}
                         ${!subscription.subscribed ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                       `}
                     >
-                      {/* Mini PDF preview */}
-                      <div className="w-full rounded overflow-hidden bg-white shadow-sm border border-black/10 aspect-[3/2] relative">
+                      {isSelected && (
+                        <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+                          <svg className="h-3 w-3 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      )}
+                      {/* Mini PDF preview — larger, more detailed */}
+                      <div className="w-full rounded-lg overflow-hidden bg-white shadow border border-black/10" style={{ aspectRatio: '3/2' }}>
                         {tmpl.id === 'classic' && (
                           <>
-                            <div className="h-1/3 w-full" style={{ backgroundColor: formData.brand_color }} />
-                            <div className="absolute top-1 left-2 text-white font-bold" style={{ fontSize: 5 }}>ACME Co.</div>
-                            <div className="absolute top-1 right-2 text-white font-bold" style={{ fontSize: 5 }}>INVOICE</div>
-                            <div className="p-1.5 space-y-0.5">
-                              <div className="h-0.5 w-3/4 bg-gray-200 rounded" />
-                              <div className="h-0.5 w-1/2 bg-gray-200 rounded" />
-                              <div className="h-0.5 w-5/6 bg-gray-100 rounded" />
+                            <div className="h-[38%] w-full flex items-center justify-between px-2" style={{ backgroundColor: bc }}>
+                              <span style={{ fontSize: 5, color: 'white', fontWeight: 800, letterSpacing: 0.5 }}>ACME Co.</span>
+                              <span style={{ fontSize: 5, color: 'white', fontWeight: 800 }}>INVOICE</span>
+                            </div>
+                            <div className="px-2 pt-1.5 space-y-1">
+                              <div className="flex justify-between">
+                                <div className="space-y-0.5">
+                                  <div className="h-0.5 w-10 bg-gray-300 rounded" />
+                                  <div className="h-0.5 w-7 bg-gray-200 rounded" />
+                                </div>
+                                <div className="space-y-0.5 text-right">
+                                  <div className="h-0.5 w-8 bg-gray-300 rounded ml-auto" />
+                                  <div className="h-0.5 w-5 bg-gray-200 rounded ml-auto" />
+                                </div>
+                              </div>
+                              <div className="mt-1 border-t border-gray-200 pt-1 space-y-0.5">
+                                <div className="h-0.5 w-full bg-gray-100 rounded" />
+                                <div className="h-0.5 w-5/6 bg-gray-100 rounded" />
+                                <div className="h-0.5 w-4/6 bg-gray-100 rounded" />
+                              </div>
+                              <div className="flex justify-end">
+                                <div className="h-1 w-8 rounded" style={{ backgroundColor: bc + '50' }} />
+                              </div>
                             </div>
                           </>
                         )}
                         {tmpl.id === 'modern' && (
-                          <>
-                            <div className="absolute left-0 top-0 bottom-0 w-1/4" style={{ background: `linear-gradient(to bottom, ${formData.brand_color}, ${formData.brand_color}88)` }} />
-                            <div className="absolute left-1 top-1 text-white" style={{ fontSize: 4, fontWeight: 700 }}>ACME</div>
-                            <div className="ml-6 p-1 space-y-0.5 mt-1">
+                          <div className="flex h-full">
+                            <div className="w-[28%] flex flex-col items-center py-2 gap-1" style={{ background: `linear-gradient(to bottom, ${bc}, ${bc}99)` }}>
+                              <div className="h-3 w-3 rounded-full bg-white/40" />
+                              <div className="h-0.5 w-5 bg-white/60 rounded mt-1" />
+                              <div className="h-0.5 w-4 bg-white/40 rounded" />
+                              <div className="h-0.5 w-5 bg-white/40 rounded" />
+                            </div>
+                            <div className="flex-1 p-1.5 space-y-1">
                               <div className="h-0.5 w-full bg-gray-200 rounded" />
                               <div className="h-0.5 w-3/4 bg-gray-200 rounded" />
                               <div className="h-0.5 w-5/6 bg-gray-100 rounded" />
+                              <div className="h-0.5 w-2/3 bg-gray-100 rounded" />
+                              <div className="flex justify-end mt-1">
+                                <div className="h-1 w-8 rounded" style={{ backgroundColor: bc + '50' }} />
+                              </div>
                             </div>
-                          </>
+                          </div>
                         )}
                         {tmpl.id === 'minimal' && (
                           <>
-                            <div className="h-1 w-full" style={{ backgroundColor: formData.brand_color }} />
-                            <div className="p-1.5 space-y-0.5">
-                              <div className="flex justify-between">
-                                <span style={{ fontSize: 4, fontWeight: 700, color: '#111' }}>ACME Co.</span>
-                                <span style={{ fontSize: 4, color: formData.brand_color, fontWeight: 700 }}>INVOICE</span>
+                            <div className="h-[4px] w-full" style={{ backgroundColor: bc }} />
+                            <div className="px-2 pt-2 space-y-1.5">
+                              <div className="flex justify-between items-center">
+                                <span style={{ fontSize: 5, fontWeight: 800, color: '#111' }}>ACME Co.</span>
+                                <span style={{ fontSize: 5, fontWeight: 800, color: bc }}>INVOICE</span>
                               </div>
-                              <div className="h-0.5 w-full bg-gray-200 rounded" />
-                              <div className="h-0.5 w-3/4 bg-gray-100 rounded" />
+                              <div className="border-t border-gray-200 pt-1 space-y-0.5">
+                                <div className="h-0.5 w-full bg-gray-100 rounded" />
+                                <div className="h-0.5 w-5/6 bg-gray-100 rounded" />
+                                <div className="h-0.5 w-4/6 bg-gray-100 rounded" />
+                              </div>
+                              <div className="flex justify-end pt-0.5">
+                                <span style={{ fontSize: 5, fontWeight: 700, color: bc }}>$1,250</span>
+                              </div>
                             </div>
                           </>
                         )}
                         {tmpl.id === 'bold' && (
                           <>
-                            <div className="h-2/5 w-full bg-gray-900 flex items-center px-2 justify-between">
-                              <span style={{ fontSize: 4, color: 'white', fontWeight: 700 }}>ACME Co.</span>
-                              <span style={{ fontSize: 4, color: formData.brand_color, fontWeight: 700 }}>INVOICE</span>
+                            <div className="h-[40%] w-full bg-gray-900 flex items-center justify-between px-2">
+                              <span style={{ fontSize: 5, color: 'white', fontWeight: 800 }}>ACME Co.</span>
+                              <span style={{ fontSize: 6, fontWeight: 900, color: bc }}>INVOICE</span>
                             </div>
-                            <div className="p-1.5 space-y-0.5">
-                              <div className="h-0.5 w-3/4 bg-gray-200 rounded" />
-                              <div className="h-0.5 w-1/2 bg-gray-100 rounded" />
+                            <div className="h-[4px] w-full" style={{ backgroundColor: bc }} />
+                            <div className="px-2 pt-1 space-y-0.5">
+                              <div className="h-0.5 w-full bg-gray-200 rounded" />
+                              <div className="h-0.5 w-5/6 bg-gray-200 rounded" />
+                              <div className="h-0.5 w-3/4 bg-gray-100 rounded" />
+                              <div className="flex justify-end">
+                                <div className="h-1 w-8 rounded" style={{ backgroundColor: bc + '60' }} />
+                              </div>
                             </div>
                           </>
                         )}
                       </div>
                       <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-sm font-semibold">{tmpl.name}</span>
-                          {isSelected && <div className="h-2 w-2 rounded-full bg-primary" />}
-                        </div>
-                        <span className="text-xs text-muted-foreground">{tmpl.description}</span>
+                        <span className="text-sm font-bold">{tmpl.name}</span>
+                        <p className="text-xs text-muted-foreground mt-0.5">{tmpl.description}</p>
                       </div>
                     </button>
                   );
@@ -426,23 +466,32 @@ export default function Settings() {
             <div className="space-y-3">
               <Label className="text-base font-semibold">Color Themes</Label>
               <p className="text-sm text-muted-foreground">Quick-apply a coordinated color palette</p>
-              <div className="flex flex-wrap gap-2">
-                {COLOR_THEMES.map((theme) => (
-                  <button
-                    key={theme.name}
-                    type="button"
-                    disabled={!subscription.subscribed}
-                    onClick={() => setFormData({ ...formData, brand_color: theme.invoice, estimate_color: theme.estimate })}
-                    className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium transition-all
-                      ${!subscription.subscribed ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary hover:bg-muted/50 cursor-pointer'}`}
-                  >
-                    <div className="flex gap-0.5">
-                      <div className="h-3.5 w-3.5 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: theme.invoice }} />
-                      <div className="h-3.5 w-3.5 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: theme.estimate }} />
-                    </div>
-                    {theme.name}
-                  </button>
-                ))}
+              <div className="grid grid-cols-3 gap-2">
+                {COLOR_THEMES.map((theme) => {
+                  const isActive =
+                    formData.brand_color === theme.invoice &&
+                    formData.estimate_color === theme.estimate;
+                  return (
+                    <button
+                      key={theme.name}
+                      type="button"
+                      disabled={!subscription.subscribed}
+                      onClick={() => setFormData({ ...formData, brand_color: theme.invoice, estimate_color: theme.estimate })}
+                      className={`flex flex-col gap-2 rounded-lg border p-3 text-left transition-all
+                        ${isActive ? 'border-primary bg-primary/5 shadow-sm' : 'border-border hover:border-primary/50 hover:bg-muted/30'}
+                        ${!subscription.subscribed ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    >
+                      <div className="flex gap-1.5">
+                        <div className="h-5 w-5 rounded-full border border-white/20 shadow" style={{ backgroundColor: theme.invoice }} />
+                        <div className="h-5 w-5 rounded-full border border-white/20 shadow" style={{ backgroundColor: theme.estimate }} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold">{theme.name}</p>
+                        <p className="text-xs text-muted-foreground">{theme.description}</p>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
