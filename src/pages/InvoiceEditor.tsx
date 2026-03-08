@@ -552,9 +552,14 @@ export default function InvoiceEditor() {
 
         {/* Save Button */}
         <div className="flex justify-end">
-          <Button size="lg" onClick={handleSave} className="gap-2">
+          <Button size="lg" onClick={handleSave} className={cn(
+            'gap-2',
+            isEstimateMode
+              ? 'bg-blue-600 hover:bg-blue-700 text-white'
+              : 'bg-green-600 hover:bg-green-700 text-white'
+          )}>
             <Save className="h-5 w-5" />
-            Save {sendAsEstimate ? 'Estimate' : 'Invoice'}
+            Save {isEstimateMode ? 'Estimate' : 'Invoice'}
           </Button>
         </div>
       </div>
