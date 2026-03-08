@@ -168,27 +168,36 @@ Return ONLY a valid JSON array. Each item:
 }
 
 function buildAuditPrompt(colMultiplier: number, location: string, priceResearch: string): string {
-  return `You are a senior estimator reviewing a bid for ACCURACY. You have verified market prices for this job/region.
+  return `You are a senior estimator reviewing a bid for ACCURACY. You have access to verified market prices and labor benchmarks.
 
-## VERIFIED MARKET PRICES (use to validate):
+## VERIFIED MARKET PRICES (use to validate unit prices):
 ${priceResearch}
 
-## YOUR JOB:
-1. Verify the total makes sense for the described scope
-2. Catch inflated hours or quantities
-3. Catch prices that don't match the researched market data above
-4. Catch scope creep — items not mentioned in the description
-5. Catch missing regional multiplier (${colMultiplier}x for ${location})
+## LABOR HOUR BENCHMARKS (use to validate quantities):
+- Paint one room (walls + ceiling, 2 coats): 4–6 hrs total
+- Paint whole 1,200 sq ft house interior: 20–30 hrs total for the entire job
+- Hang/replace a door: 1–2 hrs
+- Replace 1 lockset/deadbolt: 0.5–1 hr
+- Install a light fixture: 1–2 hrs  
+- Patch drywall per hole: 0.5–1 hr
+- Install a faucet: 1–2 hrs
+- Replace a toilet: 1.5–2.5 hrs
+- Pressure wash house exterior: 3–6 hrs
 
-## COMMON MISTAKES:
-- Inflating a 3-hour job to 20+ hours
-- Using generic national prices instead of regional data
-- Adding disposal/permits/mobilization when not needed
-- 15+ line items for a simple 2-item job
-- Total wildly out of range for scope described
+## AUDIT CHECKLIST:
+1. **Total labor hours** — add them up. Do they match the benchmarks above? If a whole-house paint job shows 60+ total hours, CUT IT DOWN.
+2. **Unit prices** — do they match the researched prices above? Fix any that are too high or too low.
+3. **Scope match** — does the total reflect the actual job size described?
+4. **Regional multiplier** — are prices adjusted ${colMultiplier}x for ${location}?
+5. **Scope creep** — remove any items not described or clearly required.
 
-If wrong → CORRECT IT. If accurate → return unchanged.
-Return ONLY the corrected JSON array.`;
+## CORRECTION RULES:
+- If total labor hours exceed benchmarks by more than 30%, REDUCE hours to match
+- If total is more than 40% above a realistic market rate for the scope, REDUCE it
+- If individual prices deviate >25% from researched data, CORRECT them
+- If the estimate is reasonable, return it unchanged
+
+Return ONLY the corrected JSON array. No explanations.`;
 }
 
 // ─── Main Handler ────────────────────────────────────────────────────────────
