@@ -281,9 +281,41 @@ export default function InvoiceEditor() {
   const taxAmount = subtotal * (taxRate / 100);
   const total = subtotal + taxAmount;
 
+  const isEstimateMode = sendAsEstimate;
+
   return (
     <AppLayout>
       <div className="mx-auto max-w-4xl space-y-6">
+        {/* Colored top banner indicating doc type */}
+        <div className={cn(
+          'rounded-xl px-5 py-4 flex items-center justify-between border',
+          isEstimateMode
+            ? 'bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800'
+            : 'bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800'
+        )}>
+          <div className="flex items-center gap-3">
+            <div className={cn(
+              'h-3 w-3 rounded-full',
+              isEstimateMode ? 'bg-blue-500' : 'bg-green-500'
+            )} />
+            <span className={cn(
+              'text-sm font-semibold uppercase tracking-widest',
+              isEstimateMode ? 'text-blue-700 dark:text-blue-300' : 'text-green-700 dark:text-green-300'
+            )}>
+              {isEstimateMode ? 'Estimate' : 'Invoice'}
+            </span>
+          </div>
+          <Select value={sendAsEstimate ? 'estimate' : 'invoice'} onValueChange={(v) => setSendAsEstimate(v === 'estimate')}>
+            <SelectTrigger className="w-[130px] h-8 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="invoice">📄 Invoice</SelectItem>
+              <SelectItem value="estimate">📋 Estimate</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
@@ -293,7 +325,7 @@ export default function InvoiceEditor() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold">
-                  {invoice.invoice_number || `Draft ${sendAsEstimate ? 'Estimate' : 'Invoice'}`}
+                  {invoice.invoice_number || `Draft ${isEstimateMode ? 'Estimate' : 'Invoice'}`}
                 </h1>
                 <Badge className={cn('capitalize', statusColors[invoice.status])}>
                   {invoice.status}
