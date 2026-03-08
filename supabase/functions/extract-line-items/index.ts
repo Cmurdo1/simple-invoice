@@ -10,101 +10,177 @@ interface ImageInput {
   mimeType: string;
 }
 
-function buildDecompositionPrompt(colMultiplier: number, location: string, hasImages: boolean): string {
-  const colAdjustment = colMultiplier !== 1.0 
-    ? `\n\n## REGIONAL PRICING ADJUSTMENT:\nThe customer is located in ${location} with a Cost of Living multiplier of ${colMultiplier}x.\n**IMPORTANT**: Multiply ALL prices (labor and materials) by ${colMultiplier} to reflect regional costs.\nFor example: If national average labor is $65/hr, use $${Math.round(65 * colMultiplier)}/hr for this region.`
+// ─── Price Research ──────────────────────────────────────────────────────────
+
+async function fetchPricesWithPerplexity(
+  jobDescription: string,
+  location: string,
+  apiKey: string
+): Promise<string> {
+  console.log('Using Perplexity for real-time price research...');
+
+  const query = `What are current 2025 market rates for labor and materials for this type of contractor work in ${location}? Provide specific price ranges per hour for labor and per unit for materials.\n\nJob: ${jobDescription.slice(0, 500)}`;
+
+  const response = await fetch('https://api.perplexity.ai/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'sonar',
+      messages: [
+        {
+          role: 'system',
+          content: 'You are a construction cost analyst. Return ONLY a concise bullet-point list of current market rates for labor (per hour) and key materials (per unit) relevant to the described job in the specified region. Be specific with dollar amounts. No prose.',
+        },
+        { role: 'user', content: query },
+      ],
+      max_tokens: 600,
+      temperature: 0.1,
+      search_recency_filter: 'month',
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    console.error('Perplexity error:', response.status, err);
+    throw new Error(`Perplexity failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content || '';
+  console.log('Perplexity price data retrieved:', content.slice(0, 200));
+  return content;
+}
+
+async function fetchPricesWithGemini(
+  jobDescription: string,
+  location: string,
+  colMultiplier: number,
+  apiKey: string
+): Promise<string> {
+  console.log('Using Gemini for knowledge-based price research...');
+
+  const prompt = `You are a construction cost analyst with deep knowledge of regional pricing across the United States.
+
+Job type: ${jobDescription.slice(0, 600)}
+Region: ${location} (Cost of Living multiplier: ${colMultiplier}x vs national average)
+
+Provide a concise, specific pricing reference for this job type in this region. Include:
+1. Labor rates per hour for each trade type involved (adjusted for the ${colMultiplier}x COL multiplier)
+2. Key material costs per unit (adjusted for regional pricing)
+3. Typical total job cost range for this scope in this region
+4. Any regional factors that affect pricing (weather, permitting, union rules, etc.)
+
+Be specific with dollar amounts. Base your answer on current 2024-2025 market conditions.
+Format as a clear bullet-point reference list. No prose introductions.`;
+
+  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'google/gemini-2.5-flash',
+      messages: [
+        { role: 'user', content: prompt },
+      ],
+      temperature: 0.1,
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    console.error('Gemini price research error:', err);
+    throw new Error(`Gemini price research failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const content = data.choices?.[0]?.message?.content || '';
+  console.log('Gemini price research retrieved:', content.slice(0, 200));
+  return content;
+}
+
+// ─── Prompt Builders ─────────────────────────────────────────────────────────
+
+function buildDecompositionPrompt(
+  colMultiplier: number,
+  location: string,
+  hasImages: boolean,
+  priceResearch: string
+): string {
+  const colNote = colMultiplier !== 1.0
+    ? `\n\n## REGIONAL PRICING (MANDATORY):\nLocation: ${location} | COL Multiplier: ${colMultiplier}x\nYou MUST multiply ALL labor and material prices by ${colMultiplier}. Example: $65/hr labor → $${Math.round(65 * colMultiplier)}/hr`
     : '';
 
-  const imageInstruction = hasImages
-    ? `\n\n## PHOTO ANALYSIS INSTRUCTIONS:\nYou have been provided job-site photos. Carefully analyze them to:\n1. Identify the EXACT scope of work visible — measure only what's shown\n2. Estimate surface area or quantities from visual cues — be conservative\n3. Note complications only if clearly visible (damage, difficult access, hazmat)\n4. Identify materials already on site vs. what needs to be sourced\n5. Calibrate labor hours to match the visible scope — don't over-inflate\nUse the photos as primary evidence. Do NOT assume work beyond what is visible.`
+  const imageNote = hasImages
+    ? `\n\n## PHOTO ANALYSIS:\nAnalyze the job-site photos. Estimate ONLY the visible scope — do not add work beyond what is shown. Use photos to calibrate quantities and identify materials on-site vs. needed.`
     : '';
 
-  return `You are an expert contractor estimator. Your job is to produce ACCURATE, REALISTIC line item breakdowns that match real-world job costs.${imageInstruction}
+  return `You are an expert contractor estimator. Generate ACCURATE, REALISTIC line item breakdowns.
 
-## #1 RULE — STAY IN SCOPE:
-Read the description carefully. Estimate ONLY what is described. Do NOT add scope that was not mentioned. A small repair job should produce a small estimate. A $500 job should not come back as $5,000.
+## VERIFIED MARKET PRICES FOR THIS JOB/REGION:
+The following price data was researched specifically for this job type and location. USE THESE PRICES — do not substitute generic defaults.
 
-## SCOPE CALIBRATION — USE THIS TO SIZE YOUR ESTIMATE:
-- Small jobs (patch, fix, clean, minor repair, simple install): $75–$800 total
-- Medium jobs (room repaint, fixture swap, small deck repair, appliance install): $500–$3,000 total
-- Large jobs (full room remodel, roof section, HVAC install, whole-house paint): $3,000–$15,000 total
-- Major projects (full bathroom gut, large addition, full HVAC system): $10,000–$50,000 total
+${priceResearch}
+${colNote}
+${imageNote}
 
-Read the description, decide which tier it belongs to, then generate ONLY items that fit that tier's total.
+## ABSOLUTE RULES:
+1. **USE THE RESEARCHED PRICES ABOVE** — they are verified for this job and region
+2. **MATCH THE SCOPE EXACTLY** — small job = small total, large job = large total
+3. **REALISTIC QUANTITIES** — 2-hour job = 2 hours, not 20
+4. **SEPARATE LABOR FROM MATERIALS** — distinct line items for each
+5. **NO SCOPE CREEP** — only add items explicitly described or clearly required
 
-## CRITICAL RULES:
-1. **MATCH THE DESCRIBED SCOPE** — If a small area is mentioned, price for that area only
-2. **REALISTIC QUANTITIES** — Don't inflate hours or materials. A 2-hour job is 2 hours.
-3. **SEPARATE LABOR FROM MATERIALS** — Distinct line items for each
-4. **INCLUDE HIDDEN COSTS** — Only add disposal, permits, or mobilization if the job clearly requires them
-5. **NO SCOPE CREEP** — Do not add items for work not mentioned or implied by the description
-${colAdjustment}
+## SCOPE CALIBRATION:
+- Small (patch, fix, minor repair, simple install): $75–$800 total
+- Medium (room repaint, fixture swap, appliance install, small repair): $500–$3,000 total
+- Large (full room remodel, roof section, whole-house paint): $3,000–$15,000 total
+- Major (bathroom gut, large addition, full HVAC system): $10,000–$50,000 total
 
-## BASE PRICING GUIDELINES (2024 national averages):
-
-**Labor Rates (per hour):**
-- General labor/helper: $45–65/hr
-- Skilled trades (plumbing, electrical, HVAC): $85–125/hr
-- Roofing labor: $65–95/hr
-- Painting labor: $55–75/hr
-- Specialized/licensed work: $100–150/hr
-
-**Common Materials:**
-- Paint (quality): $35–55/gallon (covers ~350 sq ft)
-- Roofing shingles: $30–45/bundle (covers ~33 sq ft)
-- Drywall sheet (4x8): $12–18
-- Wire (12/2 Romex): $0.80–1.20/ft
-- Caulk/sealant: $5–12/tube
-- GFCI outlet: $15–25 each
-- Standard outlet/switch: $3–10 each
+Pick the tier that matches, then generate ONLY items that fit.
 
 ## OUTPUT FORMAT:
-Return ONLY a valid JSON array. Each item must have:
-- description: Clear description with WHAT + WHERE
-- quantity: Realistic number (hours, units, sq ft, etc.)
-- unit_price: Price per unit in USD (adjusted for regional pricing if applicable)
+Return ONLY a valid JSON array. Each item:
+- description: What + where (be specific)
+- quantity: Realistic number (hours, sq ft, units, etc.)
+- unit_price: Price in USD from the researched data above
 
-## MANDATORY SELF-CHECK BEFORE RESPONDING:
-1. What is the realistic real-world cost for this job? Does my TOTAL match that?
-2. Are my labor hours proportional to the scope (not padded)?
-3. Are quantities tied to actual measurements or reasonable estimates — not inflated?
-4. Did I add items only for what was explicitly described?
-5. Did I apply the regional pricing multiplier (${colMultiplier}x) to all prices?
-6. ${hasImages ? 'Did I use the photos to calibrate scope — not over-estimating beyond what is visible?' : 'Is my total within a sane range for what was described?'}`;
+## SELF-CHECK:
+1. Does my total match the realistic range for this job?
+2. Are labor hours proportional (not padded)?
+3. Are prices from the researched data above (not generic guesses)?
+4. Did I apply the ${colMultiplier}x regional multiplier?`;
 }
 
-function buildAuditPrompt(colMultiplier: number, location: string): string {
-  const regionalNote = colMultiplier !== 1.0 
-    ? `\n6. **Regional Pricing** — Are prices correctly adjusted for the ${location} region (${colMultiplier}x multiplier)?`
-    : '';
+function buildAuditPrompt(colMultiplier: number, location: string, priceResearch: string): string {
+  return `You are a senior estimator reviewing a bid for ACCURACY. You have verified market prices for this job/region.
 
-  return `You are a senior estimator reviewing a junior estimator's bid for ACCURACY and REALISM.
+## VERIFIED MARKET PRICES (use to validate):
+${priceResearch}
 
 ## YOUR JOB:
-- Verify the total makes sense for the described scope
-- Catch inflated quantities or labor hours
-- Catch missing items (disposal, prep) only if the job clearly requires them
-- Catch scope creep — items added that were NOT in the original description
+1. Verify the total makes sense for the described scope
+2. Catch inflated hours or quantities
+3. Catch prices that don't match the researched market data above
+4. Catch scope creep — items not mentioned in the description
+5. Catch missing regional multiplier (${colMultiplier}x for ${location})
 
-## AUDIT CHECKLIST:
-1. **Scope match** — Does the total reflect the size of job described? A small job should have a small total.
-2. **Labor hours** — Are they realistic, not padded?
-3. **Quantities** — Are they tied to real measurements, not inflated?
-4. **Price accuracy** — Are unit prices within 2024 market range?
-5. **No scope creep** — Are all items traceable back to the description?${regionalNote}
-
-## COMMON MISTAKES TO CATCH:
+## COMMON MISTAKES:
 - Inflating a 3-hour job to 20+ hours
-- Adding mobilization, permits, or disposal when not needed for the described job
-- Multiplying quantities without justification
-- Generating 15+ line items for a simple 2-item job
-${colMultiplier !== 1.0 ? `- Not applying the ${colMultiplier}x regional pricing multiplier` : ''}
+- Using generic national prices instead of regional data
+- Adding disposal/permits/mobilization when not needed
+- 15+ line items for a simple 2-item job
+- Total wildly out of range for scope described
 
-If the estimate total is disproportionate to the described scope, REDUCE it to match reality.
-If the estimate is accurate, return it unchanged.
-
+If wrong → CORRECT IT. If accurate → return unchanged.
 Return ONLY the corrected JSON array.`;
 }
+
+// ─── Main Handler ────────────────────────────────────────────────────────────
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -122,44 +198,61 @@ Deno.serve(async (req) => {
     }
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
-    }
+    if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
+
+    const PERPLEXITY_API_KEY = Deno.env.get('PERPLEXITY_API_KEY');
 
     const colMultiplier = typeof col_multiplier === 'number' && col_multiplier > 0 ? col_multiplier : 1.0;
     const locationStr = location || 'United States (national average)';
     const hasImages = Array.isArray(images) && images.length > 0;
-    
-    console.log(`Processing with COL multiplier: ${colMultiplier} for location: ${locationStr}, images: ${hasImages ? images.length : 0}`);
+    const priceSource = PERPLEXITY_API_KEY ? 'perplexity' : 'gemini';
 
-    const model = 'google/gemini-2.5-flash';
+    console.log(`Processing: COL=${colMultiplier}, location=${locationStr}, images=${hasImages ? images.length : 0}, priceSource=${priceSource}`);
 
-    const decompositionPrompt = buildDecompositionPrompt(colMultiplier, locationStr, hasImages);
-    const auditPrompt = buildAuditPrompt(colMultiplier, locationStr);
+    // ── Step 1: Price Research ──────────────────────────────────────────────
+    console.log('Step 1: Researching market prices...');
+    let priceResearch = '';
+    try {
+      if (PERPLEXITY_API_KEY) {
+        priceResearch = await fetchPricesWithPerplexity(job_description, locationStr, PERPLEXITY_API_KEY);
+      } else {
+        priceResearch = await fetchPricesWithGemini(job_description, locationStr, colMultiplier, LOVABLE_API_KEY);
+      }
+    } catch (priceErr) {
+      console.error('Price research failed, using built-in guidelines:', priceErr);
+      // Fallback: use hardcoded 2025 guidelines
+      priceResearch = `2025 National Average Guidelines (adjusted ${colMultiplier}x for ${locationStr}):
+- General labor: $${Math.round(50 * colMultiplier)}–$${Math.round(65 * colMultiplier)}/hr
+- Skilled trades (plumbing, electrical, HVAC): $${Math.round(90 * colMultiplier)}–$${Math.round(130 * colMultiplier)}/hr
+- Roofing labor: $${Math.round(70 * colMultiplier)}–$${Math.round(95 * colMultiplier)}/hr  
+- Painting labor: $${Math.round(55 * colMultiplier)}–$${Math.round(75 * colMultiplier)}/hr
+- Drywall labor: $${Math.round(55 * colMultiplier)}–$${Math.round(75 * colMultiplier)}/hr
+- Paint (quality): $${Math.round(40 * colMultiplier)}–$${Math.round(60 * colMultiplier)}/gallon
+- Roofing shingles: $${Math.round(35 * colMultiplier)}–$${Math.round(50 * colMultiplier)}/bundle
+- Drywall sheet 4x8: $${Math.round(14 * colMultiplier)}–$${Math.round(20 * colMultiplier)}
+- GFCI outlet: $${Math.round(18 * colMultiplier)}–$${Math.round(28 * colMultiplier)} each`;
+    }
 
-    // Build user message — text + optional images
+    // ── Step 2: Decomposition ───────────────────────────────────────────────
+    console.log('Step 2: Decomposing job description with researched prices...');
+    const decompositionPrompt = buildDecompositionPrompt(colMultiplier, locationStr, hasImages, priceResearch);
+
     const userContent: any[] = [];
-
     if (hasImages) {
       for (const img of images as ImageInput[]) {
         userContent.push({
           type: 'image_url',
-          image_url: {
-            url: `data:${img.mimeType};base64,${img.base64}`,
-          },
+          image_url: { url: `data:${img.mimeType};base64,${img.base64}` },
         });
       }
     }
-
     userContent.push({
       type: 'text',
       text: hasImages
-        ? `Analyze the job site photos above and this description, then decompose into line items:\n\n${job_description}`
-        : `Decompose this job into line items:\n\n${job_description}`,
+        ? `Analyze the photos and this description, then generate line items using the researched prices:\n\n${job_description}`
+        : `Generate line items using the researched prices above:\n\n${job_description}`,
     });
 
-    // Step 1: Initial decomposition
-    console.log('Step 1: Decomposing job description...');
     const decompositionResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -167,7 +260,7 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model,
+        model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: decompositionPrompt },
           { role: 'user', content: hasImages ? userContent : userContent[0].text },
@@ -184,8 +277,8 @@ Deno.serve(async (req) => {
 
     const decompositionData = await decompositionResponse.json();
     const initialEstimate = decompositionData.choices?.[0]?.message?.content || '[]';
-    
-    let items;
+
+    let items: any[] = [];
     try {
       const cleanContent = initialEstimate.replace(/```json\n?|\n?```/g, '').trim();
       items = JSON.parse(cleanContent);
@@ -202,10 +295,12 @@ Deno.serve(async (req) => {
     }
 
     const initialTotal = items.reduce((sum: number, item: any) => sum + ((item.quantity || 0) * (item.unit_price || 0)), 0);
-    console.log(`Initial estimate total: $${initialTotal.toFixed(2)}, items: ${items.length}`);
+    console.log(`Initial estimate: $${initialTotal.toFixed(2)}, ${items.length} items`);
 
-    // Step 2: Self-audit pass
-    console.log('Step 2: Auditing estimate...');
+    // ── Step 3: Audit with Price Validation ─────────────────────────────────
+    console.log('Step 3: Auditing estimate against researched prices...');
+    const auditPrompt = buildAuditPrompt(colMultiplier, locationStr, priceResearch);
+
     const auditResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -216,10 +311,10 @@ Deno.serve(async (req) => {
         model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: auditPrompt },
-          { 
-            role: 'user', 
-            content: `Original job description:\n${job_description}\n\nLocation: ${locationStr} (COL: ${colMultiplier}x)\n${hasImages ? `Photos analyzed: ${images.length} image(s)\n` : ''}\nInitial estimate to audit (total: $${initialTotal.toFixed(2)}):\n${JSON.stringify(items, null, 2)}` 
-          }
+          {
+            role: 'user',
+            content: `Original job:\n${job_description}\n\nLocation: ${locationStr} (COL: ${colMultiplier}x)\n${hasImages ? `Photos analyzed: ${images.length}\n` : ''}\nEstimate to audit (total: $${initialTotal.toFixed(2)}):\n${JSON.stringify(items, null, 2)}`,
+          },
         ],
         temperature: 0.1,
       }),
@@ -228,20 +323,20 @@ Deno.serve(async (req) => {
     if (auditResponse.ok) {
       const auditData = await auditResponse.json();
       const auditedEstimate = auditData.choices?.[0]?.message?.content || '';
-      
       try {
         const cleanAudit = auditedEstimate.replace(/```json\n?|\n?```/g, '').trim();
         const auditedItems = JSON.parse(cleanAudit);
         if (Array.isArray(auditedItems) && auditedItems.length > 0) {
-          const auditedTotal = auditedItems.reduce((sum: number, item: any) => sum + ((item.quantity || 0) * (item.unit_price || 0)), 0);
-          console.log(`Audited estimate total: $${auditedTotal.toFixed(2)}, items: ${auditedItems.length}`);
+          const auditedTotal = auditedItems.reduce((sum: number, i: any) => sum + ((i.quantity || 0) * (i.unit_price || 0)), 0);
+          console.log(`Audited estimate: $${auditedTotal.toFixed(2)}, ${auditedItems.length} items`);
           items = auditedItems;
         }
       } catch {
-        console.log('Audit parse failed, using initial estimate');
+        console.log('Audit parse failed, using decomposition result');
       }
     }
 
+    // ── Validate & Return ───────────────────────────────────────────────────
     const validatedItems = items
       .filter((item: any) => item.description && typeof item.quantity === 'number' && typeof item.unit_price === 'number')
       .map((item: any) => ({
@@ -251,19 +346,21 @@ Deno.serve(async (req) => {
       }));
 
     const finalTotal = validatedItems.reduce((sum: number, item: any) => sum + (item.quantity * item.unit_price), 0);
-    console.log(`Returning ${validatedItems.length} validated items, total: $${finalTotal.toFixed(2)}`);
+    console.log(`Final: ${validatedItems.length} items, $${finalTotal.toFixed(2)}, priceSource=${priceSource}`);
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         items: validatedItems,
         item_count: validatedItems.length,
         subtotal: finalTotal,
         col_multiplier_applied: colMultiplier,
         location: locationStr,
         photos_analyzed: hasImages ? images.length : 0,
+        price_source: priceSource,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
+
   } catch (error: unknown) {
     console.error('Error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
