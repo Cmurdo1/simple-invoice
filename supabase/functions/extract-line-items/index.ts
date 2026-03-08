@@ -127,9 +127,10 @@ ${colNote}
 ${imageNote}
 
 ## LABOR HOUR BENCHMARKS — READ BEFORE ESTIMATING:
-These are realistic hours for a standard crew. Exceeding these without explicit justification is WRONG.
-- Paint one room (walls + ceiling, 2 coats): 4–6 hrs total (1 painter)
-- Paint whole 1,200 sq ft house interior (walls + ceilings): 20–30 hrs total (1–2 painters)
+These are TOTAL hours for a standard 1-2 person crew. Do NOT double hours by listing separate workers.
+List labor as ONE line item per task phase with the total hours for the crew.
+- Paint one room (walls + ceiling, 2 coats): 4–6 hrs total
+- Paint whole 1,200 sq ft house interior (walls + ceilings): 20–30 hrs total for entire job
 - Hang a door: 1–2 hrs
 - Replace 1 lockset: 0.5–1 hr
 - Install a light fixture: 1–2 hrs
