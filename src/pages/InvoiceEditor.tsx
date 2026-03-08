@@ -281,9 +281,41 @@ export default function InvoiceEditor() {
   const taxAmount = subtotal * (taxRate / 100);
   const total = subtotal + taxAmount;
 
+  const isEstimateMode = sendAsEstimate;
+
   return (
     <AppLayout>
       <div className="mx-auto max-w-4xl space-y-6">
+        {/* Colored top banner indicating doc type */}
+        <div className={cn(
+          'rounded-xl px-5 py-4 flex items-center justify-between border',
+          isEstimateMode
+            ? 'bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-800'
+            : 'bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-800'
+        )}>
+          <div className="flex items-center gap-3">
+            <div className={cn(
+              'h-3 w-3 rounded-full',
+              isEstimateMode ? 'bg-blue-500' : 'bg-green-500'
+            )} />
+            <span className={cn(
+              'text-sm font-semibold uppercase tracking-widest',
+              isEstimateMode ? 'text-blue-700 dark:text-blue-300' : 'text-green-700 dark:text-green-300'
+            )}>
+              {isEstimateMode ? 'Estimate' : 'Invoice'}
+            </span>
+          </div>
+          <Select value={sendAsEstimate ? 'estimate' : 'invoice'} onValueChange={(v) => setSendAsEstimate(v === 'estimate')}>
+            <SelectTrigger className="w-[130px] h-8 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="invoice">📄 Invoice</SelectItem>
+              <SelectItem value="estimate">📋 Estimate</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
@@ -293,7 +325,7 @@ export default function InvoiceEditor() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold">
-                  {invoice.invoice_number || `Draft ${sendAsEstimate ? 'Estimate' : 'Invoice'}`}
+                  {invoice.invoice_number || `Draft ${isEstimateMode ? 'Estimate' : 'Invoice'}`}
                 </h1>
                 <Badge className={cn('capitalize', statusColors[invoice.status])}>
                   {invoice.status}
@@ -316,31 +348,20 @@ export default function InvoiceEditor() {
                 Mark as Paid
               </Button>
             )}
-            <div className="flex items-center gap-2">
-              <Select value={sendAsEstimate ? 'estimate' : 'invoice'} onValueChange={(v) => setSendAsEstimate(v === 'estimate')}>
-                <SelectTrigger className="w-[120px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="invoice">Invoice</SelectItem>
-                  <SelectItem value="estimate">Estimate</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button 
-                variant="outline" 
-                onClick={handleSendEmail}
-                disabled={isSendingEmail || !invoice.client?.email}
-                className="gap-2"
-                title={!invoice.client?.email ? "Client needs an email address" : `Send ${sendAsEstimate ? 'estimate' : 'invoice'} via email`}
-              >
-                {isSendingEmail ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Mail className="h-4 w-4" />
-                )}
-                Email
-              </Button>
-            </div>
+            <Button 
+              variant="outline" 
+              onClick={handleSendEmail}
+              disabled={isSendingEmail || !invoice.client?.email}
+              className="gap-2"
+              title={!invoice.client?.email ? "Client needs an email address" : `Send ${isEstimateMode ? 'estimate' : 'invoice'} via email`}
+            >
+              {isSendingEmail ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Mail className="h-4 w-4" />
+              )}
+              Email
+            </Button>
             <Button variant="outline" onClick={handleExportPDF} className="gap-2">
               <Download className="h-4 w-4" />
               Export PDF
@@ -419,7 +440,7 @@ export default function InvoiceEditor() {
               {/* Header */}
               <div className="grid grid-cols-12 gap-2 text-sm font-medium text-muted-foreground">
                 <div className="col-span-5">Description</div>
-                <div className="col-span-2 text-right">Qty</div>
+                <div className="col-span-2 text-right">Hrs</div>
                 <div className="col-span-2 text-right">Price</div>
                 <div className="col-span-2 text-right">Total</div>
                 <div className="col-span-1"></div>
@@ -531,9 +552,14 @@ export default function InvoiceEditor() {
 
         {/* Save Button */}
         <div className="flex justify-end">
-          <Button size="lg" onClick={handleSave} className="gap-2">
+          <Button size="lg" onClick={handleSave} className={cn(
+            'gap-2',
+            isEstimateMode
+              ? 'bg-blue-600 hover:bg-blue-700 text-white'
+              : 'bg-green-600 hover:bg-green-700 text-white'
+          )}>
             <Save className="h-5 w-5" />
-            Save {sendAsEstimate ? 'Estimate' : 'Invoice'}
+            Save {isEstimateMode ? 'Estimate' : 'Invoice'}
           </Button>
         </div>
       </div>
