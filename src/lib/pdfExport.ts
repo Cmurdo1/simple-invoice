@@ -718,7 +718,7 @@ export async function exportInvoiceToPDF({
   const mutedColor:   [number, number, number] = [100, 110, 120];
 
   const template: InvoiceTemplate =
-    (isPro && (templateProp || profile?.invoice_template as InvoiceTemplate)) || 'classic';
+    (isPro && (templateProp || (profile as any)?.invoice_template as InvoiceTemplate)) || 'classic';
 
   const taxRate = profile?.tax_rate ?? 0;
 
