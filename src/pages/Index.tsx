@@ -48,10 +48,38 @@ const features = [
   },
 ];
 
+const faqs = [
+  {
+    question: 'Is Honest Invoice really free?',
+    answer: 'Yes. Honest Invoice is a completely free invoice generator. Create unlimited invoices and estimates with no hidden fees, no credit card required, and no expiring trial.',
+  },
+  {
+    question: 'How do I create a free invoice online?',
+    answer: 'Sign up for free at honestinvoice.com, describe your job in plain English, and our AI instantly generates a fully itemized invoice. Export as PDF or send by email in one click.',
+  },
+  {
+    question: 'Can I collect payments with Honest Invoice?',
+    answer: 'Yes. Pro users get a Stripe payment link embedded in every invoice. Clients can pay by card directly — funds go straight to your Stripe account.',
+  },
+  {
+    question: 'Can I make free estimates?',
+    answer: 'Yes. Generate free professional estimates with our AI tool and convert them to invoices with a single tap.',
+  },
+  {
+    question: 'Does Honest Invoice work offline?',
+    answer: 'Yes. Create and edit free invoices and estimates without internet. Data syncs automatically when you reconnect — perfect for job sites with no signal.',
+  },
+  {
+    question: 'What makes Honest Invoice better than other free invoice generators?',
+    answer: 'Honest Invoice combines AI-powered line item extraction, built-in Stripe payments, email delivery with a Pay Now button, offline support, and professional PDF exports — all in one completely free tool.',
+  },
+];
+
 export default function Index() {
   const { user, loading } = useAuth();
   const { resolvedTheme } = useTheme();
   const logo = resolvedTheme === 'dark' ? logoDark : logoLight;
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   // If user is logged in, redirect to dashboard
   if (!loading && user) {
