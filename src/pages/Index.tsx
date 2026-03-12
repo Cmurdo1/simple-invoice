@@ -1,11 +1,12 @@
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { FileText, Wand2, Smartphone, CreditCard, Users, Mail, Zap, Bot, MonitorSmartphone } from 'lucide-react';
+import { FileText, Wand2, Smartphone, CreditCard, Users, Mail, Bot, MonitorSmartphone, ChevronDown } from 'lucide-react';
 import logoLight from '@/assets/honest-invoice-logo.png';
 import logoDark from '@/assets/honest-invoice-logo-dark.png';
 import { useTheme } from '@/contexts/ThemeContext';
 import { SEOHead } from '@/components/seo/SEOHead';
+import { useState } from 'react';
 
 // Core product features — all are real, working features in the app
 const features = [
