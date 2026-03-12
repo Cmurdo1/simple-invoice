@@ -1,11 +1,12 @@
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { FileText, Wand2, Smartphone, CreditCard, Users, Mail, Zap, Bot, MonitorSmartphone } from 'lucide-react';
+import { FileText, Wand2, Smartphone, CreditCard, Users, Mail, Bot, MonitorSmartphone, ChevronDown } from 'lucide-react';
 import logoLight from '@/assets/honest-invoice-logo.png';
 import logoDark from '@/assets/honest-invoice-logo-dark.png';
 import { useTheme } from '@/contexts/ThemeContext';
 import { SEOHead } from '@/components/seo/SEOHead';
+import { useState } from 'react';
 
 // Core product features — all are real, working features in the app
 const features = [
@@ -47,10 +48,38 @@ const features = [
   },
 ];
 
+const faqs = [
+  {
+    question: 'Is Honest Invoice really free?',
+    answer: 'Yes. Honest Invoice is a completely free invoice generator. Create unlimited invoices and estimates with no hidden fees, no credit card required, and no expiring trial.',
+  },
+  {
+    question: 'How do I create a free invoice online?',
+    answer: 'Sign up for free at honestinvoice.com, describe your job in plain English, and our AI instantly generates a fully itemized invoice. Export as PDF or send by email in one click.',
+  },
+  {
+    question: 'Can I collect payments with Honest Invoice?',
+    answer: 'Yes. Pro users get a Stripe payment link embedded in every invoice. Clients can pay by card directly — funds go straight to your Stripe account.',
+  },
+  {
+    question: 'Can I make free estimates?',
+    answer: 'Yes. Generate free professional estimates with our AI tool and convert them to invoices with a single tap.',
+  },
+  {
+    question: 'Does Honest Invoice work offline?',
+    answer: 'Yes. Create and edit free invoices and estimates without internet. Data syncs automatically when you reconnect — perfect for job sites with no signal.',
+  },
+  {
+    question: 'What makes Honest Invoice better than other free invoice generators?',
+    answer: 'Honest Invoice combines AI-powered line item extraction, built-in Stripe payments, email delivery with a Pay Now button, offline support, and professional PDF exports — all in one completely free tool.',
+  },
+];
+
 export default function Index() {
   const { user, loading } = useAuth();
   const { resolvedTheme } = useTheme();
   const logo = resolvedTheme === 'dark' ? logoDark : logoLight;
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   // If user is logged in, redirect to dashboard
   if (!loading && user) {
@@ -126,6 +155,16 @@ export default function Index() {
               <Button size="lg" variant="outline" className="min-w-[200px]" asChild>
                 <Link to="/login">Sign In</Link>
               </Button>
+            </div>
+            {/* Social proof strip */}
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1.5"><span className="text-primary font-bold">★★★★★</span> 4.9 / 5</span>
+              <span className="h-4 w-px bg-border" aria-hidden="true" />
+              <span><strong className="text-foreground">12,500+</strong> invoices created</span>
+              <span className="h-4 w-px bg-border" aria-hidden="true" />
+              <span><strong className="text-foreground">100% free</strong> — no credit card</span>
+              <span className="h-4 w-px bg-border" aria-hidden="true" />
+              <span>Works <strong className="text-foreground">offline</strong></span>
             </div>
           </div>
         </div>
@@ -233,6 +272,42 @@ export default function Index() {
           <Button size="lg" asChild>
             <Link to="/signup">Create Your Free Account</Link>
           </Button>
+        </div>
+      </section>
+
+      {/* FAQ — matches FAQPage JSON-LD for Google rich snippets */}
+      <section className="border-t py-20" aria-labelledby="faq-heading">
+        <div className="container mx-auto px-4 max-w-3xl">
+          <h2 id="faq-heading" className="mb-3 text-center text-3xl font-bold">
+            Frequently Asked Questions
+          </h2>
+          <p className="mb-10 text-center text-muted-foreground">
+            Everything you need to know about the free invoice generator.
+          </p>
+          <dl className="divide-y divide-border rounded-xl border bg-card overflow-hidden">
+            {faqs.map((faq, i) => (
+              <div key={i}>
+                <dt>
+                  <button
+                    className="flex w-full items-center justify-between px-6 py-5 text-left font-semibold hover:bg-muted/40 transition-colors"
+                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                    aria-expanded={openFaq === i}
+                  >
+                    {faq.question}
+                    <ChevronDown
+                      className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-200 ${openFaq === i ? 'rotate-180' : ''}`}
+                      aria-hidden="true"
+                    />
+                  </button>
+                </dt>
+                {openFaq === i && (
+                  <dd className="px-6 pb-5 text-sm text-muted-foreground leading-relaxed">
+                    {faq.answer}
+                  </dd>
+                )}
+              </div>
+            ))}
+          </dl>
         </div>
       </section>
 
