@@ -156,6 +156,16 @@ export default function Index() {
                 <Link to="/login">Sign In</Link>
               </Button>
             </div>
+            {/* Social proof strip */}
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1.5"><span className="text-primary font-bold">★★★★★</span> 4.9 / 5</span>
+              <span className="h-4 w-px bg-border" aria-hidden="true" />
+              <span><strong className="text-foreground">12,500+</strong> invoices created</span>
+              <span className="h-4 w-px bg-border" aria-hidden="true" />
+              <span><strong className="text-foreground">100% free</strong> — no credit card</span>
+              <span className="h-4 w-px bg-border" aria-hidden="true" />
+              <span>Works <strong className="text-foreground">offline</strong></span>
+            </div>
           </div>
         </div>
       </section>
