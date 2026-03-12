@@ -275,6 +275,42 @@ export default function Index() {
         </div>
       </section>
 
+      {/* FAQ — matches FAQPage JSON-LD for Google rich snippets */}
+      <section className="border-t py-20" aria-labelledby="faq-heading">
+        <div className="container mx-auto px-4 max-w-3xl">
+          <h2 id="faq-heading" className="mb-3 text-center text-3xl font-bold">
+            Frequently Asked Questions
+          </h2>
+          <p className="mb-10 text-center text-muted-foreground">
+            Everything you need to know about the free invoice generator.
+          </p>
+          <dl className="divide-y divide-border rounded-xl border bg-card overflow-hidden">
+            {faqs.map((faq, i) => (
+              <div key={i}>
+                <dt>
+                  <button
+                    className="flex w-full items-center justify-between px-6 py-5 text-left font-semibold hover:bg-muted/40 transition-colors"
+                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                    aria-expanded={openFaq === i}
+                  >
+                    {faq.question}
+                    <ChevronDown
+                      className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-200 ${openFaq === i ? 'rotate-180' : ''}`}
+                      aria-hidden="true"
+                    />
+                  </button>
+                </dt>
+                {openFaq === i && (
+                  <dd className="px-6 pb-5 text-sm text-muted-foreground leading-relaxed">
+                    {faq.answer}
+                  </dd>
+                )}
+              </div>
+            ))}
+          </dl>
+        </div>
+      </section>
+
       {/* Honest SEO Ad Banner — bold, high-contrast interrupt */}
       <section className="py-12 overflow-hidden" style={{ background: 'linear-gradient(135deg, hsl(43 96% 52%) 0%, hsl(32 95% 50%) 40%, hsl(14 90% 52%) 100%)' }}>
         <div className="container mx-auto px-4">
