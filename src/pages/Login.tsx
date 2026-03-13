@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { lovable } from '@/integrations/lovable/index';
+import loginLogo from '@/assets/honest-invoice-login-logo.png';
 
 export default function Login() {
   const [email, setEmail] = useState('');
