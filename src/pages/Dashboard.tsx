@@ -1,22 +1,23 @@
 import { Link } from 'react-router-dom';
 import { useInvoices } from '@/hooks/useInvoices';
-import { useFeedback, useAverageRating } from '@/hooks/useFeedback';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Plus, 
   DollarSign, 
   FileText, 
   Clock,
   Loader2,
-  Star,
-  MessageSquare,
   ClipboardList,
   CreditCard,
-  CheckCircle2
+  CheckCircle2,
+  Zap,
+  Users,
+  Settings,
+  ArrowRight,
 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { cn } from '@/lib/utils';
