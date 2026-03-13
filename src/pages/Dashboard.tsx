@@ -1,22 +1,23 @@
 import { Link } from 'react-router-dom';
 import { useInvoices } from '@/hooks/useInvoices';
-import { useFeedback, useAverageRating } from '@/hooks/useFeedback';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Plus, 
   DollarSign, 
   FileText, 
   Clock,
   Loader2,
-  Star,
-  MessageSquare,
   ClipboardList,
   CreditCard,
-  CheckCircle2
+  CheckCircle2,
+  Zap,
+  Users,
+  Settings,
+  ArrowRight,
 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -32,8 +33,6 @@ const statusColors: Record<InvoiceStatus, string> = {
 
 export default function Dashboard() {
   const { data: allInvoices, isLoading } = useInvoices();
-  const { data: feedback, isLoading: feedbackLoading } = useFeedback();
-  const averageRating = useAverageRating();
   const [activeTab, setActiveTab] = useState('all');
 
   // Filter based on tab
@@ -283,82 +282,77 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Client Feedback */}
+        {/* Quick Actions */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-primary" />
-              Client Feedback
+              <Zap className="h-5 w-5 text-primary" />
+              Quick Actions
             </CardTitle>
-            {averageRating !== null && (
-              <div className="flex items-center gap-1 text-sm">
-                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                <span className="font-medium">{averageRating.toFixed(1)}</span>
-                <span className="text-muted-foreground">avg</span>
-              </div>
-            )}
           </CardHeader>
           <CardContent>
-            {feedbackLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-              </div>
-            ) : !feedback || feedback.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <Star className="mb-4 h-12 w-12 text-muted-foreground/50" />
-                <h3 className="mb-2 text-lg font-semibold">No feedback yet</h3>
-                <p className="text-sm text-muted-foreground">
-                  Feedback will appear here when clients rate your invoices
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {feedback.slice(0, 5).map((fb) => (
-                  <div key={fb.id} className="rounded-lg border p-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">
-                            {fb.client_name || fb.client_business_name || 'Anonymous'}
-                          </span>
-                          <span className="text-sm text-muted-foreground">
-                            on {fb.invoice_number || 'Invoice'}
-                          </span>
-                        </div>
-                        {fb.comment && (
-                          <p className="text-sm text-muted-foreground">{fb.comment}</p>
-                        )}
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(fb.created_at), 'MMM d, yyyy')}
-                        </p>
-                      </div>
-                      {fb.rating && (
-                        <div className="flex items-center gap-0.5">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star
-                              key={star}
-                              className={cn(
-                                'h-4 w-4',
-                                star <= fb.rating!
-                                  ? 'fill-yellow-400 text-yellow-400'
-                                  : 'text-muted-foreground/30'
-                              )}
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <Button asChild variant="outline" className="h-auto flex-col gap-2 py-5">
+                <Link to="/create?type=invoice">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                    <FileText className="h-4 w-4 text-primary" />
                   </div>
-                ))}
-                {feedback.length > 5 && (
-                  <p className="text-center text-sm text-muted-foreground">
-                    +{feedback.length - 5} more feedback entries
-                  </p>
-                )}
-              </div>
-            )}
+                  <span className="text-sm font-medium">New Invoice</span>
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="h-auto flex-col gap-2 py-5">
+                <Link to="/create?type=estimate">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                    <ClipboardList className="h-4 w-4 text-primary" />
+                  </div>
+                  <span className="text-sm font-medium">New Estimate</span>
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="h-auto flex-col gap-2 py-5">
+                <Link to="/clients">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                    <Users className="h-4 w-4 text-primary" />
+                  </div>
+                  <span className="text-sm font-medium">Clients</span>
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="h-auto flex-col gap-2 py-5">
+                <Link to="/settings">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                    <Settings className="h-4 w-4 text-primary" />
+                  </div>
+                  <span className="text-sm font-medium">Settings</span>
+                </Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
+
+        {/* Overdue Alert */}
+        {(() => {
+          const overdue = (allInvoices || []).filter(inv => inv.status === 'overdue' && inv.type === 'invoice');
+          if (overdue.length === 0) return null;
+          return (
+            <Card className="border-destructive/50 bg-destructive/5">
+              <CardContent className="flex items-center justify-between gap-4 py-4">
+                <div className="flex items-center gap-3">
+                  <Clock className="h-5 w-5 text-destructive" />
+                  <div>
+                    <p className="font-medium text-destructive">{overdue.length} overdue invoice{overdue.length !== 1 ? 's' : ''}</p>
+                    <p className="text-xs text-muted-foreground">
+                      ${overdue.reduce((s, i) => s + Number(i.total_amount), 0).toLocaleString('en-US', { minimumFractionDigits: 2 })} outstanding
+                    </p>
+                  </div>
+                </div>
+                <Button asChild size="sm" variant="destructive">
+                  <Link to="/dashboard" className="flex items-center gap-1">
+                    Review <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        })()}
       </div>
     </AppLayout>
   );
