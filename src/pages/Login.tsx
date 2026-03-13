@@ -57,7 +57,7 @@ export default function Login() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center">
-            <img alt="HonestInvoice" className="h-16 w-16" src="/lovable-uploads/a10c7696-c395-4a0f-87cc-fde00d83b6c0.png" />
+            <img alt="Honest Invoice" className="h-16 w-16 rounded-full" src={loginLogo} />
           </div>
           <CardTitle className="text-2xl">Welcome back</CardTitle>
           <CardDescription>Sign in to your HonestInvoice account</CardDescription>
