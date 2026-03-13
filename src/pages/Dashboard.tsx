@@ -33,8 +33,6 @@ const statusColors: Record<InvoiceStatus, string> = {
 
 export default function Dashboard() {
   const { data: allInvoices, isLoading } = useInvoices();
-  const { data: feedback, isLoading: feedbackLoading } = useFeedback();
-  const averageRating = useAverageRating();
   const [activeTab, setActiveTab] = useState('all');
 
   // Filter based on tab
