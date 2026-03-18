@@ -283,51 +283,54 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-primary" />
-              Quick Actions
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <Button asChild variant="outline" className="h-auto flex-col gap-2 py-5">
-                <Link to="/create?type=invoice">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-                    <FileText className="h-4 w-4 text-primary" />
-                  </div>
-                  <span className="text-sm font-medium">New Invoice</span>
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="h-auto flex-col gap-2 py-5">
-                <Link to="/create?type=estimate">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-                    <ClipboardList className="h-4 w-4 text-primary" />
-                  </div>
-                  <span className="text-sm font-medium">New Estimate</span>
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="h-auto flex-col gap-2 py-5">
-                <Link to="/clients">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-                    <Users className="h-4 w-4 text-primary" />
-                  </div>
-                  <span className="text-sm font-medium">Clients</span>
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="h-auto flex-col gap-2 py-5">
-                <Link to="/settings">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-                    <Settings className="h-4 w-4 text-primary" />
-                  </div>
-                  <span className="text-sm font-medium">Settings</span>
-                </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Quick Actions + Refer & Earn */}
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-primary" />
+                Quick Actions
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-3">
+                <Button asChild variant="outline" className="h-auto flex-col gap-2 py-5">
+                  <Link to="/create?type=invoice">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                      <FileText className="h-4 w-4 text-primary" />
+                    </div>
+                    <span className="text-sm font-medium">New Invoice</span>
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="h-auto flex-col gap-2 py-5">
+                  <Link to="/create?type=estimate">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                      <ClipboardList className="h-4 w-4 text-primary" />
+                    </div>
+                    <span className="text-sm font-medium">New Estimate</span>
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="h-auto flex-col gap-2 py-5">
+                  <Link to="/clients">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                      <Users className="h-4 w-4 text-primary" />
+                    </div>
+                    <span className="text-sm font-medium">Clients</span>
+                  </Link>
+                </Button>
+                <Button asChild variant="outline" className="h-auto flex-col gap-2 py-5">
+                  <Link to="/settings">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                      <Settings className="h-4 w-4 text-primary" />
+                    </div>
+                    <span className="text-sm font-medium">Settings</span>
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          <ReferEarnCard />
+        </div>
 
         {/* Overdue Alert */}
         {(() => {

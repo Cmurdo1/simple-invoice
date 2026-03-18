@@ -21,6 +21,15 @@ export default function Signup() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const { signUp } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const refCode = searchParams.get('ref') ?? '';
+
+  // Persist ref code so it survives any redirects
+  useEffect(() => {
+    if (refCode) {
+      sessionStorage.setItem('referral_code', refCode);
+    }
+  }, [refCode]);
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
@@ -48,13 +57,14 @@ export default function Signup() {
 
     setLoading(true);
 
-    const { error } = await signUp(email, password);
+    const { error } = await signUp(email, password, sessionStorage.getItem('referral_code') ?? refCode);
 
     if (error) {
       toast.error(error.message);
       setLoading(false);
     } else {
-      toast.success('Account created successfully!');
+      sessionStorage.removeItem('referral_code');
+      toast.success('Account created! Check your email to confirm.');
       navigate('/dashboard');
     }
   };
