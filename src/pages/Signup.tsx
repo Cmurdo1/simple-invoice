@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +21,15 @@ export default function Signup() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const { signUp } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const refCode = searchParams.get('ref') ?? '';
+
+  // Persist ref code so it survives any redirects
+  useEffect(() => {
+    if (refCode) {
+      sessionStorage.setItem('referral_code', refCode);
+    }
+  }, [refCode]);
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
@@ -48,13 +57,14 @@ export default function Signup() {
 
     setLoading(true);
 
-    const { error } = await signUp(email, password);
+    const { error } = await signUp(email, password, sessionStorage.getItem('referral_code') ?? refCode);
 
     if (error) {
       toast.error(error.message);
       setLoading(false);
     } else {
-      toast.success('Account created successfully!');
+      sessionStorage.removeItem('referral_code');
+      toast.success('Account created! Check your email to confirm.');
       navigate('/dashboard');
     }
   };
@@ -68,6 +78,11 @@ export default function Signup() {
       />
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <Card className="w-full max-w-md">
+          {refCode && (
+            <div className="rounded-t-lg border-b bg-primary/10 px-6 py-3 text-center text-sm font-medium text-primary flex items-center justify-center gap-2">
+              🎁 You were referred! Sign up to unlock <strong>1 free month of Pro</strong>.
+            </div>
+          )}
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center">
               <img src={logo} alt="HonestInvoice" className="h-16 w-16" />

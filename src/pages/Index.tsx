@@ -257,6 +257,45 @@ export default function Index() {
         </div>
       </section>
 
+      {/* Referral Program Section */}
+      <section className="border-t py-20" aria-labelledby="referral-heading">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <div className="text-center mb-12">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary">
+              🎁 Referral Program
+            </div>
+            <h2 id="referral-heading" className="text-3xl font-bold mb-4">
+              Give a Month, Get a Month
+            </h2>
+            <p className="text-muted-foreground max-w-xl mx-auto text-lg">
+              Share your unique link. Every friend who signs up earns you <strong className="text-foreground">1 free month of Pro</strong>. No limits — refer 10 people, get 10 free months.
+            </p>
+          </div>
+          <div className="grid gap-6 md:grid-cols-3">
+            {[
+              { step: '01', emoji: '🔗', title: 'Get Your Link', desc: 'Sign up for free and find your unique referral link right on your dashboard.' },
+              { step: '02', emoji: '📤', title: 'Share It', desc: 'Text it, post it, email it — every contractor, freelancer, or tradesperson is a potential referral.' },
+              { step: '03', emoji: '🏆', title: 'Earn Free Pro', desc: 'When they sign up, you both get 1 free month of Pro — instantly credited, no strings attached.' },
+            ].map(({ step, emoji, title, desc }) => (
+              <div key={step} className="relative rounded-xl border bg-card p-6 text-center">
+                <div className="mb-4 mx-auto flex h-14 w-14 flex-col items-center justify-center rounded-full border-2 border-primary bg-primary/5 text-2xl">
+                  {emoji}
+                </div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">Step {step}</div>
+                <h3 className="font-bold text-lg mb-2">{title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-10 text-center">
+            <Button size="lg" asChild>
+              <Link to="/signup">Sign Up & Get Your Link</Link>
+            </Button>
+            <p className="mt-3 text-sm text-muted-foreground">Already have an account? Your referral link is on your dashboard.</p>
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="container mx-auto px-4 py-20 text-center" aria-labelledby="cta-heading">
         <div className="mx-auto max-w-2xl">

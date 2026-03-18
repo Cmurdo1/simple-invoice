@@ -253,6 +253,8 @@ export type Database = {
           invoice_template: string
           logo_url: string | null
           phone: string | null
+          referral_code: string | null
+          referred_by: string | null
           state: string | null
           stripe_customer_id: string | null
           subscription_end: string | null
@@ -275,6 +277,8 @@ export type Database = {
           invoice_template?: string
           logo_url?: string | null
           phone?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
           state?: string | null
           stripe_customer_id?: string | null
           subscription_end?: string | null
@@ -297,6 +301,8 @@ export type Database = {
           invoice_template?: string
           logo_url?: string | null
           phone?: string | null
+          referral_code?: string | null
+          referred_by?: string | null
           state?: string | null
           stripe_customer_id?: string | null
           subscription_end?: string | null
@@ -304,6 +310,33 @@ export type Database = {
           tax_rate?: number | null
           updated_at?: string
           zip_code?: string | null
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          referred_user_id: string
+          referrer_id: string
+          rewarded_at: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referred_user_id: string
+          referrer_id: string
+          rewarded_at?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referred_user_id?: string
+          referrer_id?: string
+          rewarded_at?: string | null
+          status?: string
         }
         Relationships: []
       }
@@ -348,6 +381,10 @@ export type Database = {
       increment_usage: {
         Args: { p_usage_type: string; p_user_id: string }
         Returns: Json
+      }
+      process_referral_reward: {
+        Args: { p_referred_user_id: string }
+        Returns: undefined
       }
       validate_feedback_token: {
         Args: { p_invoice_id: string; p_token: string }

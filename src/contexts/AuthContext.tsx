@@ -14,7 +14,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   subscription: SubscriptionInfo;
-  signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, referralCode?: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   checkSubscription: () => Promise<void>;
@@ -110,14 +110,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => clearInterval(interval);
   }, [session?.access_token, checkSubscription]);
 
-  const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
+  const signUp = async (email: string, password: string, referralCode?: string) => {
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: window.location.origin,
+        data: { referral_code: referralCode ?? null },
       },
     });
+
+    // If signup succeeded and we have a referral code, store it in the profile
+    if (!error && data.user && referralCode) {
+      // Find the referrer's profile by their referral_code
+      const { data: referrerProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('referral_code', referralCode)
+        .maybeSingle();
+
+      if (referrerProfile) {
+        // Update the new user's profile with referred_by
+        await supabase
+          .from('profiles')
+          .update({ referred_by: referralCode })
+          .eq('id', data.user.id);
+
+        // Record the referral
+        await supabase.from('referrals').insert({
+          referrer_id: referrerProfile.id,
+          referred_user_id: data.user.id,
+          status: 'pending',
+        });
+
+        // Reward the referrer immediately
+        await supabase.rpc('process_referral_reward', {
+          p_referred_user_id: data.user.id,
+        });
+      }
+    }
+
     return { error };
   };
 
