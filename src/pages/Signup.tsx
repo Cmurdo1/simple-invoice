@@ -78,6 +78,11 @@ export default function Signup() {
       />
       <div className="flex min-h-screen items-center justify-center bg-background px-4">
         <Card className="w-full max-w-md">
+          {refCode && (
+            <div className="rounded-t-lg border-b bg-primary/10 px-6 py-3 text-center text-sm font-medium text-primary flex items-center justify-center gap-2">
+              🎁 You were referred! Sign up to unlock <strong>1 free month of Pro</strong>.
+            </div>
+          )}
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center">
               <img src={logo} alt="HonestInvoice" className="h-16 w-16" />
