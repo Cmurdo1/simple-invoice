@@ -19,6 +19,7 @@ import {
   Settings,
   ArrowRight,
 } from 'lucide-react';
+import { ReferEarnCard } from '@/components/dashboard/ReferEarnCard';
 import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { InvoiceStatus } from '@/types/database';
