@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Gift, Copy, Check, Users, Star, Twitter, MessageCircle, Smartphone } from 'lucide-react';
+import { Gift, Copy, Check, Users, Star, Twitter, MessageCircle, Smartphone, Share2 } from 'lucide-react';
 import { useReferral } from '@/hooks/useReferral';
 import { toast } from 'sonner';
 
