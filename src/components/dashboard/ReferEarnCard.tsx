@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Gift, Copy, Check, Users, Star } from 'lucide-react';
+import { Gift, Copy, Check, Users, Star, Twitter, MessageCircle, Smartphone } from 'lucide-react';
 import { useReferral } from '@/hooks/useReferral';
 import { toast } from 'sonner';
+
+const SHARE_TEXT = "I've been using Honest Invoice to manage my freelance invoices — it's really good. Sign up with my link and we both get a free month of Pro 🎁";
 
 export function ReferEarnCard() {
   const { data, isLoading } = useReferral();
@@ -16,6 +18,24 @@ export function ReferEarnCard() {
     setCopied(true);
     toast.success('Referral link copied!');
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleTwitterShare = () => {
+    if (!data?.referralLink) return;
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(`${SHARE_TEXT}\n\n${data.referralLink}`)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleWhatsAppShare = () => {
+    if (!data?.referralLink) return;
+    const url = `https://wa.me/?text=${encodeURIComponent(`${SHARE_TEXT}\n\n${data.referralLink}`)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleSMSShare = () => {
+    if (!data?.referralLink) return;
+    const body = encodeURIComponent(`${SHARE_TEXT}\n\n${data.referralLink}`);
+    window.location.href = `sms:?body=${body}`;
   };
 
   return (
@@ -72,6 +92,40 @@ export function ReferEarnCard() {
               <Copy className="h-3.5 w-3.5" />
             )}
             {copied ? 'Copied' : 'Copy'}
+          </Button>
+        </div>
+
+        {/* Share buttons */}
+        <div className="grid grid-cols-3 gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 text-xs"
+            onClick={handleTwitterShare}
+            disabled={isLoading || !data?.referralLink}
+          >
+            <Twitter className="h-3.5 w-3.5" />
+            X / Twitter
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 text-xs"
+            onClick={handleWhatsAppShare}
+            disabled={isLoading || !data?.referralLink}
+          >
+            <MessageCircle className="h-3.5 w-3.5" />
+            WhatsApp
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5 text-xs"
+            onClick={handleSMSShare}
+            disabled={isLoading || !data?.referralLink}
+          >
+            <Smartphone className="h-3.5 w-3.5" />
+            SMS
           </Button>
         </div>
       </CardContent>
