@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Gift, Copy, Check, Users, Star, Twitter, MessageCircle, Smartphone } from 'lucide-react';
+import { Gift, Copy, Check, Users, Star, Twitter, MessageCircle, Smartphone, Share2 } from 'lucide-react';
 import { useReferral } from '@/hooks/useReferral';
 import { toast } from 'sonner';
 
@@ -36,6 +36,21 @@ export function ReferEarnCard() {
     if (!data?.referralLink) return;
     const body = encodeURIComponent(`${SHARE_TEXT}\n\n${data.referralLink}`);
     window.location.href = `sms:?body=${body}`;
+  };
+
+  const canNativeShare = typeof navigator !== 'undefined' && !!navigator.share;
+
+  const handleNativeShare = async () => {
+    if (!data?.referralLink) return;
+    try {
+      await navigator.share({
+        title: 'Get a free month of Honest Invoice Pro',
+        text: SHARE_TEXT,
+        url: data.referralLink,
+      });
+    } catch {
+      // user cancelled or share failed silently
+    }
   };
 
   return (
@@ -128,6 +143,20 @@ export function ReferEarnCard() {
             SMS
           </Button>
         </div>
+
+        {/* Native share — only shown when Web Share API is available (mobile) */}
+        {canNativeShare && (
+          <Button
+            variant="secondary"
+            size="sm"
+            className="w-full gap-2"
+            onClick={handleNativeShare}
+            disabled={isLoading || !data?.referralLink}
+          >
+            <Share2 className="h-4 w-4" />
+            Share via…
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
