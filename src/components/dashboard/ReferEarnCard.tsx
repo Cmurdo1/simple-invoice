@@ -38,6 +38,21 @@ export function ReferEarnCard() {
     window.location.href = `sms:?body=${body}`;
   };
 
+  const canNativeShare = typeof navigator !== 'undefined' && !!navigator.share;
+
+  const handleNativeShare = async () => {
+    if (!data?.referralLink) return;
+    try {
+      await navigator.share({
+        title: 'Get a free month of Honest Invoice Pro',
+        text: SHARE_TEXT,
+        url: data.referralLink,
+      });
+    } catch {
+      // user cancelled or share failed silently
+    }
+  };
+
   return (
     <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10">
       <CardHeader className="pb-3">
