@@ -143,6 +143,20 @@ export function ReferEarnCard() {
             SMS
           </Button>
         </div>
+
+        {/* Native share — only shown when Web Share API is available (mobile) */}
+        {canNativeShare && (
+          <Button
+            variant="secondary"
+            size="sm"
+            className="w-full gap-2"
+            onClick={handleNativeShare}
+            disabled={isLoading || !data?.referralLink}
+          >
+            <Share2 className="h-4 w-4" />
+            Share via…
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
