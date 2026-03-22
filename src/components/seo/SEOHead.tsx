@@ -14,26 +14,29 @@ interface SEOHeadProps {
 const BASE_URL = 'https://honestinvoice.com';
 const DEFAULT_OG_IMAGE = `${BASE_URL}/lovable-uploads/a10c7696-c395-4a0f-87cc-fde00d83b6c0.png`;
 
-// Primary keyword clusters targeting "invoice" and "free invoice" intent
+// Primary keyword clusters — weighted by trending keywords (↑ invoice template +7%, ↑ what is a invoice +10%, ↑ invoice free +7%, ↑ pay invoice +4%)
 const DEFAULT_KEYWORDS = [
-  // Core high-intent
-  'free invoice', 'free invoice generator', 'invoice', 'invoice generator',
-  'free invoicing software', 'free billing software', 'online invoice generator',
+  // Trending ↑ high priority
+  'invoice template', 'free invoice template', 'template invoice',
+  'free invoice', 'invoice free', 'pay invoice', 'what is a invoice',
+  'invoice number',
+  // Core
+  'free invoice generator', 'invoice generator', 'free invoicing software',
+  'free billing software', 'free invoice maker', 'invoice maker',
   // Long-tail
-  'free invoice maker', 'free invoice template', 'free online invoicing',
-  'invoice maker', 'free estimate generator', 'free estimate template',
+  'free estimate generator', 'free estimate template', 'free online invoicing',
   'contractor invoice', 'freelancer invoice', 'small business invoice',
   // Feature-specific
   'invoice with payment link', 'invoice with stripe', 'send invoice by email',
   'PDF invoice generator', 'AI invoice generator', 'offline invoice app',
   // Trust signals
-  'trustworthy invoice software', 'no credit card invoice', 'completely free invoicing',
+  'completely free invoicing', 'no credit card invoice',
   'free billing app', 'free contractor estimate', 'invoice payment tracking',
 ].join(', ');
 
 export function SEOHead({
-  title = 'Free Invoice Generator — Create & Send Invoices Online | Honest Invoice',
-  description = 'Honest Invoice is the #1 free invoice generator. Create professional invoices & estimates in seconds, send by email with a Pay Now button, and collect payments via Stripe. 100% free. No credit card needed.',
+  title = 'Free Invoice Template — Create, Send & Pay Invoices | Honest Invoice',
+  description = 'Honest Invoice is the #1 free invoice template & generator. Create professional invoice templates in seconds, send with a Pay Invoice button, and collect payments via Stripe. Free for freelancers & small businesses. No credit card needed.',
   keywords = DEFAULT_KEYWORDS,
   canonicalUrl,
   ogImage = DEFAULT_OG_IMAGE,
