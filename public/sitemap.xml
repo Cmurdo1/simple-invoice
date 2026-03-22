@@ -4,10 +4,10 @@
         xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
         http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
 
-  <!-- Homepage — highest priority, keyword: "free invoice" / "invoice" -->
+  <!-- Homepage — highest priority, keywords: "invoice template", "free invoice", "pay invoice", "what is a invoice" -->
   <url>
     <loc>https://honestinvoice.com/</loc>
-    <lastmod>2026-03-12</lastmod>
+    <lastmod>2026-03-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
