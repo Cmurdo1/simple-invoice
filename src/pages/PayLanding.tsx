@@ -170,12 +170,12 @@ export default function PayLanding() {
                 {
                   icon: Shield,
                   title: 'Stripe-powered payments',
-                  body: 'All card processing is handled by Stripe — the same infrastructure used by Amazon, Shopify, and Uber. Your card number never touches Honest Invoice's servers.',
+                  body: "All card processing is handled by Stripe — the same infrastructure used by Amazon, Shopify, and Uber. Your card number never touches Honest Invoice's servers.",
                 },
                 {
                   icon: CreditCard,
                   title: 'Itemized breakdown before you pay',
-                  body: 'Every invoice shows a full line-item breakdown — labor, parts, and fees — so you know exactly what you're paying for before you enter a card number.',
+                  body: "Every invoice shows a full line-item breakdown — labor, parts, and fees — so you know exactly what you're paying for before you enter a card number.",
                 },
                 {
                   icon: Clock,
@@ -203,10 +203,10 @@ export default function PayLanding() {
             <h2 id="pay-faq-heading" className="mb-10 text-center text-2xl font-bold">Frequently Asked Questions</h2>
             <dl className="space-y-4">
               {[
-                { q: 'How do I pay an invoice online?', a: 'Click the payment link your contractor sent, or paste the invoice ID into the field at the top of this page. You'll be taken to a secure Stripe checkout where you can pay by card.' },
+                { q: 'How do I pay an invoice online?', a: "Click the payment link your contractor sent, or paste the invoice ID into the field at the top of this page. You'll be taken to a secure Stripe checkout where you can pay by card." },
                 { q: 'What payment methods are accepted?', a: 'Visa, Mastercard, American Express, Discover, and most major debit cards are accepted. Apple Pay and Google Pay are supported on compatible devices.' },
-                { q: 'What if I think I'm being overcharged?', a: 'Review the itemized line items on the invoice before paying. If something looks wrong, contact your contractor directly. You can also use Honest Estimate (free) to check fair market pricing for any job.' },
-                { q: 'Will I get a receipt?', a: 'Yes — immediately after payment you'll receive an email receipt with a full breakdown of charges and a payment confirmation number.' },
+                { q: "What if I think I'm being overcharged?", a: 'Review the itemized line items on the invoice before paying. If something looks wrong, contact your contractor directly. You can also use Honest Estimate (free) to check fair market pricing for any job.' },
+                { q: 'Will I get a receipt?', a: "Yes — immediately after payment you'll receive an email receipt with a full breakdown of charges and a payment confirmation number." },
               ].map(({ q, a }) => (
                 <div key={q} className="rounded-xl border bg-card px-6 py-5">
                   <dt className="font-semibold mb-1">{q}</dt>
