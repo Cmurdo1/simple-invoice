@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 const logStep = (step: string, details?: Record<string, unknown>) => {
-  const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
+  const detailsStr = details ? ` - ${JSON.stringify(details)}` : "";
   console.log(`[SEND-INVOICE-EMAIL] ${step}${detailsStr}`);
 };
 
@@ -21,7 +21,7 @@ interface InvoiceEmailRequest {
   due_date: string | null;
   business_name: string;
   job_description: string | null;
-  document_type?: 'invoice' | 'estimate';
+  document_type?: "invoice" | "estimate";
 }
 
 interface InvoiceItem {
@@ -32,18 +32,18 @@ interface InvoiceItem {
 }
 
 function adjustColorBrightness(hex: string, percent: number): string {
-  hex = hex.replace(/^#/, '');
+  hex = hex.replace(/^#/, "");
   let r = parseInt(hex.substring(0, 2), 16);
   let g = parseInt(hex.substring(2, 4), 16);
   let b = parseInt(hex.substring(4, 6), 16);
-  r = Math.max(0, Math.min(255, r + (r * percent / 100)));
-  g = Math.max(0, Math.min(255, g + (g * percent / 100)));
-  b = Math.max(0, Math.min(255, b + (b * percent / 100)));
-  return `#${Math.round(r).toString(16).padStart(2, '0')}${Math.round(g).toString(16).padStart(2, '0')}${Math.round(b).toString(16).padStart(2, '0')}`;
+  r = Math.max(0, Math.min(255, r + (r * percent) / 100));
+  g = Math.max(0, Math.min(255, g + (g * percent) / 100));
+  b = Math.max(0, Math.min(255, b + (b * percent) / 100));
+  return `#${Math.round(r).toString(16).padStart(2, "0")}${Math.round(g).toString(16).padStart(2, "0")}${Math.round(b).toString(16).padStart(2, "0")}`;
 }
 
 function hexToRgba(hex: string, alpha: number): string {
-  hex = hex.replace(/^#/, '');
+  hex = hex.replace(/^#/, "");
   const r = parseInt(hex.substring(0, 2), 16);
   const g = parseInt(hex.substring(2, 4), 16);
   const b = parseInt(hex.substring(4, 6), 16);
@@ -52,7 +52,7 @@ function hexToRgba(hex: string, alpha: number): string {
 
 // Get business initials for monogram
 function getInitials(name: string): string {
-  if (!name) return 'HI';
+  if (!name) return "HI";
   const words = name.trim().split(/\s+/);
   if (words.length === 1) return words[0].substring(0, 2).toUpperCase();
   return (words[0][0] + words[1][0]).toUpperCase();
@@ -72,7 +72,7 @@ serve(async (req) => {
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { persistSession: false } }
+      { auth: { persistSession: false } },
     );
 
     const authHeader = req.headers.get("Authorization");
@@ -92,16 +92,20 @@ serve(async (req) => {
 
     if (profileError) throw new Error(`Profile fetch error: ${profileError.message}`);
 
-    const isPro = profile?.subscription_status === 'pro' &&
+    const isPro =
+      profile?.subscription_status === "pro" &&
       (!profile.subscription_end || new Date(profile.subscription_end) > new Date());
 
     if (!isPro) {
-      return new Response(JSON.stringify({
-        error: "Email sending is a Pro feature. Please upgrade to send invoices via email."
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 403,
-      });
+      return new Response(
+        JSON.stringify({
+          error: "Email sending is a Pro feature. Please upgrade to send invoices via email.",
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 403,
+        },
+      );
     }
 
     const {
@@ -113,19 +117,19 @@ serve(async (req) => {
       due_date,
       business_name,
       job_description,
-      document_type = 'invoice'
+      document_type = "invoice",
     }: InvoiceEmailRequest = await req.json();
 
     if (!client_email || !invoice_number || !invoice_id) {
       throw new Error("Missing required fields: client_email, invoice_number, and invoice_id are required");
     }
 
-    const isEstimate = document_type === 'estimate';
-    const docLabel = isEstimate ? 'Estimate' : 'Invoice';
-    const docLabelLower = isEstimate ? 'estimate' : 'invoice';
+    const isEstimate = document_type === "estimate";
+    const docLabel = isEstimate ? "Estimate" : "Invoice";
+    const docLabelLower = isEstimate ? "estimate" : "invoice";
 
-    const invoiceColor = profile?.brand_color || '#228B22';
-    const estimateColor = profile?.estimate_color || '#2563eb';
+    const invoiceColor = profile?.brand_color || "#228B22";
+    const estimateColor = profile?.estimate_color || "#2563eb";
     const primaryColor = isEstimate ? estimateColor : invoiceColor;
     const lighterColor = adjustColorBrightness(primaryColor, 60);
     const darkerColor = adjustColorBrightness(primaryColor, -25);
@@ -141,13 +145,16 @@ serve(async (req) => {
     if (invoiceError) throw new Error(`Could not fetch invoice details: ${invoiceError.message}`);
 
     const sentCount = invoice?.sent_count || 0;
-    if (sentCount >= 5) {
-      return new Response(JSON.stringify({
-        error: "This document has reached the maximum number of email sends."
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 429,
-      });
+    if (sentCount >= 15) {
+      return new Response(
+        JSON.stringify({
+          error: "This document has reached the maximum number of email sends.",
+        }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 429,
+        },
+      );
     }
 
     const feedbackToken = invoice?.feedback_token;
@@ -163,16 +170,19 @@ serve(async (req) => {
     const resend = new Resend(resendKey);
 
     const dueDateText = due_date
-      ? new Date(due_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-      : 'Upon Job Completion';
+      ? new Date(due_date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+      : "Upon Job Completion";
 
-    const subtotal = lineItems?.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0) || total_amount;
+    const subtotal = lineItems?.reduce((sum, item) => sum + item.quantity * item.unit_price, 0) || total_amount;
     const taxAmount = total_amount - subtotal;
 
     // Build line item rows
-    const lineItemRows = lineItems && lineItems.length > 0
-      ? lineItems.map((item: InvoiceItem, i: number) => `
-        <tr style="background-color: ${i % 2 === 0 ? '#ffffff' : '#fafafa'};">
+    const lineItemRows =
+      lineItems && lineItems.length > 0
+        ? lineItems
+            .map(
+              (item: InvoiceItem, i: number) => `
+        <tr style="background-color: ${i % 2 === 0 ? "#ffffff" : "#fafafa"};">
           <td style="padding: 12px 16px; border-bottom: 1px solid #ececec; color: #2d2d2d; font-size: 14px; line-height: 1.5; word-break: break-word;">
             ${item.description}
           </td>
@@ -186,8 +196,10 @@ serve(async (req) => {
             $${(item.quantity * item.unit_price).toFixed(2)}
           </td>
         </tr>
-      `).join('')
-      : '';
+      `,
+            )
+            .join("")
+        : "";
 
     const emailHtml = `
 <!DOCTYPE html>
@@ -213,7 +225,7 @@ serve(async (req) => {
 <body style="margin:0;padding:0;background-color:#ede8e0;">
   <!-- Preview text -->
   <div style="display:none;max-height:0;overflow:hidden;font-size:1px;color:#ede8e0;">
-    ${docLabel} ${invoice_number} · $${total_amount.toFixed(2)} from ${business_name || 'HonestInvoice'}
+    ${docLabel} ${invoice_number} · $${total_amount.toFixed(2)} from ${business_name || "HonestInvoice"}
   </div>
 
   <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color:#ede8e0;">
@@ -227,14 +239,16 @@ serve(async (req) => {
           <!-- ===== HEADER ===== -->
           <tr>
             <td class="header-pad" style="padding: 32px 40px 24px; text-align: center; border-bottom: 1px solid #ececec;">
-              ${profile?.logo_url
-                ? `<img src="${profile.logo_url}" alt="${business_name}" style="max-width:120px;max-height:56px;margin:0 auto 12px;display:block;">`
-                : `
+              ${
+                profile?.logo_url
+                  ? `<img src="${profile.logo_url}" alt="${business_name}" style="max-width:120px;max-height:56px;margin:0 auto 12px;display:block;">`
+                  : `
                 <!-- Monogram circle -->
                 <div style="display:inline-block;width:60px;height:60px;border-radius:50%;border:2px solid ${primaryColor};background-color:#ffffff;text-align:center;line-height:56px;margin:0 auto 12px;">
                   <span style="color:${primaryColor};font-family:Georgia,serif;font-size:20px;font-weight:600;letter-spacing:1px;">${initials}</span>
                 </div>
-              `}
+              `
+              }
               <p style="color:#888;margin:0;font-size:13px;font-style:italic;letter-spacing:0.3px;">Fair Prices. Honest Work.</p>
             </td>
           </tr>
@@ -252,7 +266,7 @@ serve(async (req) => {
                       $${total_amount.toFixed(2)}
                     </p>
                     <p style="color:rgba(255,255,255,0.80);font-size:13px;margin:0;font-style:italic;">
-                      ${isEstimate ? 'Estimated Total' : `Due: ${dueDateText}`}
+                      ${isEstimate ? "Estimated Total" : `Due: ${dueDateText}`}
                     </p>
                   </td>
                 </tr>
@@ -265,13 +279,15 @@ serve(async (req) => {
             <td class="content-pad" style="padding:30px 40px;">
 
               <p style="color:#2d2d2d;font-size:15px;line-height:1.6;margin:0 0 8px 0;font-family:Georgia,serif;">
-                Hello ${client_name || 'there'},
+                Hello ${client_name || "there"},
               </p>
               <p style="color:#555;font-size:14px;line-height:1.7;margin:0 0 24px 0;font-family:Arial,sans-serif;">
-                Please find your itemized ${docLabelLower} from <strong style="color:#2d2d2d;">${business_name || 'HonestInvoice'}</strong> below.
+                Please find your itemized ${docLabelLower} from <strong style="color:#2d2d2d;">${business_name || "HonestInvoice"}</strong> below.
               </p>
 
-              ${job_description ? `
+              ${
+                job_description
+                  ? `
               <!-- Job summary -->
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom:24px;">
                 <tr>
@@ -281,9 +297,13 @@ serve(async (req) => {
                   </td>
                 </tr>
               </table>
-              ` : ''}
+              `
+                  : ""
+              }
 
-              ${lineItems && lineItems.length > 0 ? `
+              ${
+                lineItems && lineItems.length > 0
+                  ? `
               <!-- Line items table -->
               <p style="color:#2d2d2d;font-size:14px;font-weight:700;margin:0 0 10px 0;font-family:Arial,sans-serif;letter-spacing:0.3px;text-transform:uppercase;">Itemized Breakdown</p>
               <table role="presentation" class="table-sm" cellspacing="0" cellpadding="0" border="0" width="100%"
@@ -304,15 +324,19 @@ serve(async (req) => {
                     <td colspan="3" style="padding:11px 16px;text-align:right;color:#888;font-size:13px;font-family:Arial,sans-serif;">Subtotal:</td>
                     <td style="padding:11px 16px;text-align:right;color:#2d2d2d;font-weight:600;font-size:13px;font-family:Arial,sans-serif;">$${subtotal.toFixed(2)}</td>
                   </tr>
-                  ${taxAmount > 0.005 ? `
+                  ${
+                    taxAmount > 0.005
+                      ? `
                   <tr style="background-color:#f8f6f2;">
                     <td colspan="3" style="padding:8px 16px;text-align:right;color:#888;font-size:13px;font-family:Arial,sans-serif;">Tax:</td>
                     <td style="padding:8px 16px;text-align:right;color:#2d2d2d;font-weight:500;font-size:13px;font-family:Arial,sans-serif;">$${taxAmount.toFixed(2)}</td>
                   </tr>
-                  ` : ''}
+                  `
+                      : ""
+                  }
                   <tr style="background-color:${primaryColor};">
                     <td colspan="3" style="padding:14px 16px;text-align:right;color:#ffffff;font-size:15px;font-weight:700;font-family:Georgia,serif;">
-                      Total ${isEstimate ? 'Estimate' : 'Due'}:
+                      Total ${isEstimate ? "Estimate" : "Due"}:
                     </td>
                     <td style="padding:14px 16px;text-align:right;color:#ffffff;font-size:17px;font-weight:700;font-family:Georgia,serif;white-space:nowrap;">
                       $${total_amount.toFixed(2)}
@@ -320,7 +344,8 @@ serve(async (req) => {
                   </tr>
                 </tfoot>
               </table>
-              ` : `
+              `
+                  : `
               <!-- Simple total card when no line items -->
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="border:1px solid #e0ddd8;border-radius:4px;overflow:hidden;margin-bottom:0;">
                 <tr>
@@ -328,13 +353,16 @@ serve(async (req) => {
                   <td style="padding:12px 16px;border-bottom:1px solid #ececec;text-align:right;font-weight:600;color:#2d2d2d;font-size:14px;font-family:Arial,sans-serif;">${invoice_number}</td>
                 </tr>
                 <tr style="background-color:${primaryColor};">
-                  <td style="padding:14px 16px;color:#fff;font-size:15px;font-weight:700;font-family:Georgia,serif;">${isEstimate ? 'Estimated Amount' : 'Amount Due'}</td>
+                  <td style="padding:14px 16px;color:#fff;font-size:15px;font-weight:700;font-family:Georgia,serif;">${isEstimate ? "Estimated Amount" : "Amount Due"}</td>
                   <td style="padding:14px 16px;text-align:right;color:#fff;font-size:17px;font-weight:700;font-family:Georgia,serif;">$${total_amount.toFixed(2)}</td>
                 </tr>
               </table>
-              `}
+              `
+              }
 
-              ${!isEstimate ? `
+              ${
+                !isEstimate
+                  ? `
               <!-- Pay Now CTA -->
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top:28px;">
                 <tr>
@@ -349,27 +377,35 @@ serve(async (req) => {
                   </td>
                 </tr>
               </table>
-              ` : ''}
+              `
+                  : ""
+              }
 
               <p style="color:#666;font-size:13px;line-height:1.7;margin:28px 0 0 0;font-family:Arial,sans-serif;">
                 Thank you for your business! If you have any questions, please don't hesitate to reach out.
               </p>
 
-              ${profile?.phone || profile?.email ? `
+              ${
+                profile?.phone || profile?.email
+                  ? `
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-top:12px;">
                 <tr>
                   <td style="color:#555;font-size:13px;font-family:Arial,sans-serif;padding-top:8px;border-top:1px solid #ececec;">
-                    ${profile?.phone ? `<span>📞 <strong>${profile.phone}</strong></span>` : ''}
-                    ${profile?.phone && profile?.email ? `&nbsp; &nbsp;|&nbsp; &nbsp;` : ''}
-                    ${profile?.email ? `<a href="mailto:${profile.email}" style="color:${primaryColor};text-decoration:none;">✉️ ${profile.email}</a>` : ''}
+                    ${profile?.phone ? `<span>📞 <strong>${profile.phone}</strong></span>` : ""}
+                    ${profile?.phone && profile?.email ? `&nbsp; &nbsp;|&nbsp; &nbsp;` : ""}
+                    ${profile?.email ? `<a href="mailto:${profile.email}" style="color:${primaryColor};text-decoration:none;">✉️ ${profile.email}</a>` : ""}
                   </td>
                 </tr>
               </table>
-              ` : ''}
+              `
+                  : ""
+              }
             </td>
           </tr>
 
-          ${feedbackToken ? `
+          ${
+            feedbackToken
+              ? `
           <!-- ===== FEEDBACK ===== -->
           <tr>
             <td style="padding:0 40px 32px;">
@@ -387,7 +423,9 @@ serve(async (req) => {
               </table>
             </td>
           </tr>
-          ` : ''}
+          `
+              : ""
+          }
 
           <!-- ===== FOOTER ===== -->
           <tr>
@@ -415,12 +453,12 @@ serve(async (req) => {
 </html>
     `;
 
-    const fromName = business_name ? `${business_name} via HonestInvoice` : 'HonestInvoice';
+    const fromName = business_name ? `${business_name} via HonestInvoice` : "HonestInvoice";
     const emailResponse = await resend.emails.send({
       from: `${fromName} <invoices@honestinvoice.com>`,
       to: [client_email],
       reply_to: profile?.email || undefined,
-      subject: `${docLabel} ${invoice_number} from ${business_name || 'HonestInvoice'} — $${total_amount.toFixed(2)}`,
+      subject: `${docLabel} ${invoice_number} from ${business_name || "HonestInvoice"} — $${total_amount.toFixed(2)}`,
       html: emailHtml,
     });
 
@@ -433,14 +471,17 @@ serve(async (req) => {
 
     if (updateError) logStep("Warning: Could not increment sent_count", { error: updateError.message });
 
-    return new Response(JSON.stringify({
-      success: true,
-      message: "Invoice email sent successfully",
-      email_id: emailResponse.data?.id
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
-    });
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: "Invoice email sent successfully",
+        email_id: emailResponse.data?.id,
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      },
+    );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage });
