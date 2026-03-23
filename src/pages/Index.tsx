@@ -50,6 +50,18 @@ const features = [
 
 const faqs = [
   {
+    question: 'What is an invoice?',
+    answer: 'An invoice is a formal document sent by a seller to a buyer that requests payment for goods or services provided. It typically includes the seller\'s details, client information, a list of line items with descriptions and prices, the total amount due, due date, and a unique invoice number. Invoices serve as both a payment request and an official record for accounting purposes.',
+  },
+  {
+    question: 'What is an invoice template?',
+    answer: 'An invoice template is a pre-formatted document that lets you quickly fill in job details—client name, line items, prices, and payment terms—without building an invoice from scratch each time. Honest Invoice provides a free, professional invoice template with your logo, brand color, and itemized breakdown. Our AI auto-fills line items from a plain-language job description, so your template is ready in seconds.',
+  },
+  {
+    question: 'How do clients pay an invoice?',
+    answer: 'With Honest Invoice, clients can pay an invoice online via a secure Stripe payment link embedded directly in the invoice. Pro users get a "Pay Now" button on every emailed invoice and a unique payment URL clients can open on any device. Funds go straight to your Stripe account—no middleman, no delays.',
+  },
+  {
     question: 'Is Honest Invoice really free?',
     answer: 'Yes. Honest Invoice is a completely free invoice generator. Create unlimited invoices and estimates with no hidden fees, no credit card required, and no expiring trial.',
   },
@@ -88,14 +100,29 @@ export default function Index() {
 
   const structuredData = {
     "@context": "https://schema.org",
-    "@type": "WebPage",
-    "name": "Free Invoice Generator — Honest Invoice",
-    "description": "Create free professional invoices and estimates online. AI-powered, Stripe payments, email delivery, PDF export, offline support. 100% free.",
-    "url": "https://honestinvoice.com",
-    "breadcrumb": {
-      "@type": "BreadcrumbList",
-      "itemListElement": [{ "@type": "ListItem", "position": 1, "name": "Free Invoice Generator", "item": "https://honestinvoice.com" }]
-    }
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "name": "Free Invoice Template & Generator — Honest Invoice",
+        "description": "Create free professional invoices and estimates online. AI-powered, Stripe payments, email delivery, PDF export, offline support. 100% free.",
+        "url": "https://honestinvoice.com",
+        "breadcrumb": {
+          "@type": "BreadcrumbList",
+          "itemListElement": [{ "@type": "ListItem", "position": 1, "name": "Free Invoice Template", "item": "https://honestinvoice.com" }]
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": faqs.map((faq) => ({
+          "@type": "Question",
+          "name": faq.question,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": faq.answer,
+          },
+        })),
+      }
+    ]
   };
 
   return (
