@@ -168,6 +168,7 @@ export default function MagicCreate() {
             col_multiplier: currentColMultiplier,
             location: locationStr,
             images,
+            model: selectedModel,
           }),
         }
       );
