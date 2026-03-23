@@ -10,6 +10,87 @@ interface ImageInput {
   mimeType: string;
 }
 
+// ─── Model Registry ───────────────────────────────────────────────────────────
+
+const NVIDIA_BASE_URL = 'https://integrate.api.nvidia.com/v1';
+const LOVABLE_BASE_URL = 'https://ai.gateway.lovable.dev/v1';
+
+interface ModelConfig {
+  provider: 'nvidia' | 'lovable';
+  modelId: string;
+  supportsVision: boolean;
+  label: string;
+}
+
+const MODEL_REGISTRY: Record<string, ModelConfig> = {
+  // NVIDIA NIM models
+  'nvidia/llama-3.3-70b-instruct': {
+    provider: 'nvidia', modelId: 'meta/llama-3.3-70b-instruct',
+    supportsVision: false, label: 'Llama 3.3 70B (NVIDIA)',
+  },
+  'nvidia/llama-3.2-90b-vision': {
+    provider: 'nvidia', modelId: 'meta/llama-3.2-90b-vision-instruct',
+    supportsVision: true, label: 'Llama 3.2 90B Vision (NVIDIA)',
+  },
+  'nvidia/mistral-nemo': {
+    provider: 'nvidia', modelId: 'mistralai/mistral-nemo-12b-instruct',
+    supportsVision: false, label: 'Mistral Nemo 12B (NVIDIA)',
+  },
+  'nvidia/qwen2.5-72b': {
+    provider: 'nvidia', modelId: 'qwen/qwen2.5-72b-instruct',
+    supportsVision: false, label: 'Qwen 2.5 72B (NVIDIA)',
+  },
+  // Lovable AI models (fallback / default)
+  'google/gemini-2.5-flash': {
+    provider: 'lovable', modelId: 'google/gemini-2.5-flash',
+    supportsVision: true, label: 'Gemini 2.5 Flash',
+  },
+  'google/gemini-2.5-pro': {
+    provider: 'lovable', modelId: 'google/gemini-2.5-pro',
+    supportsVision: true, label: 'Gemini 2.5 Pro',
+  },
+};
+
+const DEFAULT_MODEL = 'google/gemini-2.5-flash';
+
+// ─── AI Call Helper ───────────────────────────────────────────────────────────
+
+async function callAI(
+  modelKey: string,
+  messages: any[],
+  lovableKey: string,
+  nvidiaKey: string | null,
+  temperature = 0.1
+): Promise<string> {
+  const config = MODEL_REGISTRY[modelKey] ?? MODEL_REGISTRY[DEFAULT_MODEL];
+  const isNvidia = config.provider === 'nvidia' && nvidiaKey;
+
+  const baseUrl = isNvidia ? NVIDIA_BASE_URL : LOVABLE_BASE_URL;
+  const authKey = isNvidia ? nvidiaKey! : lovableKey;
+
+  const response = await fetch(`${baseUrl}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${authKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: config.modelId,
+      messages,
+      temperature,
+      max_tokens: 2048,
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`[${config.label}] ${response.status}: ${err.slice(0, 200)}`);
+  }
+
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content ?? '';
+}
+
 // ─── Price Research ──────────────────────────────────────────────────────────
 
 async function fetchPricesWithPerplexity(
@@ -54,13 +135,16 @@ async function fetchPricesWithPerplexity(
   return content;
 }
 
-async function fetchPricesWithGemini(
+async function fetchPricesWithModel(
   jobDescription: string,
   location: string,
   colMultiplier: number,
-  apiKey: string
+  modelKey: string,
+  lovableKey: string,
+  nvidiaKey: string | null
 ): Promise<string> {
-  console.log('Using Gemini for knowledge-based price research...');
+  const providerName = (MODEL_REGISTRY[modelKey]?.provider === 'nvidia' && nvidiaKey) ? 'NVIDIA' : 'Lovable AI';
+  console.log(`Using ${providerName} for knowledge-based price research...`);
 
   const prompt = `You are a construction cost analyst with deep knowledge of regional pricing across the United States.
 
@@ -76,30 +160,15 @@ Provide a concise, specific pricing reference for this job type in this region. 
 Be specific with dollar amounts. Base your answer on current 2024-2025 market conditions.
 Format as a clear bullet-point reference list. No prose introductions.`;
 
-  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'google/gemini-2.5-flash',
-      messages: [
-        { role: 'user', content: prompt },
-      ],
-      temperature: 0.1,
-    }),
-  });
+  const content = await callAI(
+    modelKey,
+    [{ role: 'user', content: prompt }],
+    lovableKey,
+    nvidiaKey,
+    0.1
+  );
 
-  if (!response.ok) {
-    const err = await response.text();
-    console.error('Gemini price research error:', err);
-    throw new Error(`Gemini price research failed: ${response.status}`);
-  }
-
-  const data = await response.json();
-  const content = data.choices?.[0]?.message?.content || '';
-  console.log('Gemini price research retrieved:', content.slice(0, 200));
+  console.log('Price research retrieved:', content.slice(0, 200));
   return content;
 }
 
@@ -209,7 +278,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { job_description, col_multiplier, location, images } = await req.json();
+    const { job_description, col_multiplier, location, images, model } = await req.json();
 
     if (!job_description && (!images || images.length === 0)) {
       return new Response(
@@ -221,14 +290,29 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
 
-    const PERPLEXITY_API_KEY = Deno.env.get('PERPLEXITY_API_KEY');
+    const NVIDIA_API_KEY = Deno.env.get('NVIDIA_API_KEY') || null;
+    const PERPLEXITY_API_KEY = Deno.env.get('PERPLEXITY_API_KEY') || null;
 
     const colMultiplier = typeof col_multiplier === 'number' && col_multiplier > 0 ? col_multiplier : 1.0;
     const locationStr = location || 'United States (national average)';
     const hasImages = Array.isArray(images) && images.length > 0;
-    const priceSource = PERPLEXITY_API_KEY ? 'perplexity' : 'gemini';
 
-    console.log(`Processing: COL=${colMultiplier}, location=${locationStr}, images=${hasImages ? images.length : 0}, priceSource=${priceSource}`);
+    // Resolve the model — honour request but fall back if vision required and model lacks it
+    let selectedModel = (model && MODEL_REGISTRY[model]) ? model : DEFAULT_MODEL;
+    const modelConfig = MODEL_REGISTRY[selectedModel];
+    if (hasImages && !modelConfig.supportsVision) {
+      // Downgrade to a vision-capable model
+      selectedModel = NVIDIA_API_KEY ? 'nvidia/llama-3.2-90b-vision' : DEFAULT_MODEL;
+      console.log(`Model swapped to ${selectedModel} for vision support`);
+    }
+    // If NVIDIA model selected but no key available, fall back to Lovable AI
+    if (MODEL_REGISTRY[selectedModel].provider === 'nvidia' && !NVIDIA_API_KEY) {
+      selectedModel = DEFAULT_MODEL;
+      console.log('NVIDIA key not available, falling back to Lovable AI');
+    }
+
+    const priceSource = PERPLEXITY_API_KEY ? 'perplexity' : MODEL_REGISTRY[selectedModel].provider;
+    console.log(`Processing: model=${selectedModel}, COL=${colMultiplier}, location=${locationStr}, images=${hasImages ? images.length : 0}, priceSource=${priceSource}`);
 
     // ── Step 1: Price Research ──────────────────────────────────────────────
     console.log('Step 1: Researching market prices...');
@@ -237,11 +321,13 @@ Deno.serve(async (req) => {
       if (PERPLEXITY_API_KEY) {
         priceResearch = await fetchPricesWithPerplexity(job_description, locationStr, PERPLEXITY_API_KEY);
       } else {
-        priceResearch = await fetchPricesWithGemini(job_description, locationStr, colMultiplier, LOVABLE_API_KEY);
+        priceResearch = await fetchPricesWithModel(
+          job_description, locationStr, colMultiplier,
+          selectedModel, LOVABLE_API_KEY, NVIDIA_API_KEY
+        );
       }
     } catch (priceErr) {
       console.error('Price research failed, using built-in guidelines:', priceErr);
-      // Fallback: use hardcoded 2025 guidelines
       priceResearch = `2025 National Average Guidelines (adjusted ${colMultiplier}x for ${locationStr}):
 - General labor: $${Math.round(50 * colMultiplier)}–$${Math.round(65 * colMultiplier)}/hr
 - Skilled trades (plumbing, electrical, HVAC): $${Math.round(90 * colMultiplier)}–$${Math.round(130 * colMultiplier)}/hr
@@ -255,11 +341,12 @@ Deno.serve(async (req) => {
     }
 
     // ── Step 2: Decomposition ───────────────────────────────────────────────
-    console.log('Step 2: Decomposing job description with researched prices...');
+    console.log('Step 2: Decomposing job description...');
     const decompositionPrompt = buildDecompositionPrompt(colMultiplier, locationStr, hasImages, priceResearch);
 
+    // Build user content (text + optional images)
     const userContent: any[] = [];
-    if (hasImages) {
+    if (hasImages && MODEL_REGISTRY[selectedModel].supportsVision) {
       for (const img of images as ImageInput[]) {
         userContent.push({
           type: 'image_url',
@@ -274,37 +361,19 @@ Deno.serve(async (req) => {
         : `Generate line items using the researched prices above:\n\n${job_description}`,
     });
 
-    const decompositionResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: decompositionPrompt },
-          { role: 'user', content: hasImages ? userContent : userContent[0].text },
-        ],
-        temperature: 0.1,
-      }),
-    });
+    const decompositionMessages = [
+      { role: 'system', content: decompositionPrompt },
+      { role: 'user', content: userContent.length === 1 ? userContent[0].text : userContent },
+    ];
 
-    if (!decompositionResponse.ok) {
-      const errorText = await decompositionResponse.text();
-      console.error('Decomposition error:', errorText);
-      throw new Error(`AI decomposition failed: ${decompositionResponse.status}`);
-    }
-
-    const decompositionData = await decompositionResponse.json();
-    const initialEstimate = decompositionData.choices?.[0]?.message?.content || '[]';
+    const initialEstimate = await callAI(selectedModel, decompositionMessages, LOVABLE_API_KEY, NVIDIA_API_KEY, 0.1);
 
     let items: any[] = [];
     try {
       const cleanContent = initialEstimate.replace(/```json\n?|\n?```/g, '').trim();
       items = JSON.parse(cleanContent);
     } catch {
-      console.error('Failed to parse initial estimate:', initialEstimate);
+      console.error('Failed to parse initial estimate:', initialEstimate.slice(0, 300));
       items = [];
     }
 
@@ -319,42 +388,29 @@ Deno.serve(async (req) => {
     console.log(`Initial estimate: $${initialTotal.toFixed(2)}, ${items.length} items`);
 
     // ── Step 3: Audit with Price Validation ─────────────────────────────────
-    console.log('Step 3: Auditing estimate against researched prices...');
+    console.log('Step 3: Auditing estimate...');
     const auditPrompt = buildAuditPrompt(colMultiplier, locationStr, priceResearch);
 
-    const auditResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: auditPrompt },
-          {
-            role: 'user',
-            content: `Original job:\n${job_description}\n\nLocation: ${locationStr} (COL: ${colMultiplier}x)\n${hasImages ? `Photos analyzed: ${images.length}\n` : ''}\nEstimate to audit (total: $${initialTotal.toFixed(2)}):\n${JSON.stringify(items, null, 2)}`,
-          },
-        ],
-        temperature: 0.1,
-      }),
-    });
+    try {
+      const auditMessages = [
+        { role: 'system', content: auditPrompt },
+        {
+          role: 'user',
+          content: `Original job:\n${job_description}\n\nLocation: ${locationStr} (COL: ${colMultiplier}x)\n${hasImages ? `Photos analyzed: ${images.length}\n` : ''}\nEstimate to audit (total: $${initialTotal.toFixed(2)}):\n${JSON.stringify(items, null, 2)}`,
+        },
+      ];
 
-    if (auditResponse.ok) {
-      const auditData = await auditResponse.json();
-      const auditedEstimate = auditData.choices?.[0]?.message?.content || '';
-      try {
-        const cleanAudit = auditedEstimate.replace(/```json\n?|\n?```/g, '').trim();
-        const auditedItems = JSON.parse(cleanAudit);
-        if (Array.isArray(auditedItems) && auditedItems.length > 0) {
-          const auditedTotal = auditedItems.reduce((sum: number, i: any) => sum + ((i.quantity || 0) * (i.unit_price || 0)), 0);
-          console.log(`Audited estimate: $${auditedTotal.toFixed(2)}, ${auditedItems.length} items`);
-          items = auditedItems;
-        }
-      } catch {
-        console.log('Audit parse failed, using decomposition result');
+      const auditedEstimate = await callAI(selectedModel, auditMessages, LOVABLE_API_KEY, NVIDIA_API_KEY, 0.1);
+
+      const cleanAudit = auditedEstimate.replace(/```json\n?|\n?```/g, '').trim();
+      const auditedItems = JSON.parse(cleanAudit);
+      if (Array.isArray(auditedItems) && auditedItems.length > 0) {
+        const auditedTotal = auditedItems.reduce((sum: number, i: any) => sum + ((i.quantity || 0) * (i.unit_price || 0)), 0);
+        console.log(`Audited estimate: $${auditedTotal.toFixed(2)}, ${auditedItems.length} items`);
+        items = auditedItems;
       }
+    } catch (auditErr) {
+      console.log('Audit failed, using decomposition result:', auditErr);
     }
 
     // ── Validate & Return ───────────────────────────────────────────────────
@@ -367,7 +423,8 @@ Deno.serve(async (req) => {
       }));
 
     const finalTotal = validatedItems.reduce((sum: number, item: any) => sum + (item.quantity * item.unit_price), 0);
-    console.log(`Final: ${validatedItems.length} items, $${finalTotal.toFixed(2)}, priceSource=${priceSource}`);
+    const modelLabel = MODEL_REGISTRY[selectedModel]?.label ?? selectedModel;
+    console.log(`Final: ${validatedItems.length} items, $${finalTotal.toFixed(2)}, model=${modelLabel}`);
 
     return new Response(
       JSON.stringify({
@@ -378,6 +435,7 @@ Deno.serve(async (req) => {
         location: locationStr,
         photos_analyzed: hasImages ? images.length : 0,
         price_source: priceSource,
+        model_used: modelLabel,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

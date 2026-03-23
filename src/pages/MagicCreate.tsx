@@ -12,10 +12,24 @@ import { useCreateInvoice, useAddInvoiceItems, useRecalculateInvoiceTotals } fro
 import { useProfile } from '@/hooks/useProfile';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { getColMultiplierLabel } from '@/hooks/useGeolocation';
-import { Loader2, Wand2, Sparkles, ArrowRight, Mic, MicOff, MapPin, RefreshCw, ImagePlus, X, Camera } from 'lucide-react';
+import { Loader2, Wand2, Sparkles, ArrowRight, Mic, MicOff, MapPin, RefreshCw, ImagePlus, X, Camera, Cpu } from 'lucide-react';
 import { toast } from 'sonner';
 import { ExtractedLineItem } from '@/types/database';
 import { cn } from '@/lib/utils';
+
+// Available AI models — kept in sync with edge function MODEL_REGISTRY
+const AI_MODELS = [
+  // NVIDIA NIM
+  { value: 'nvidia/llama-3.3-70b-instruct', label: 'Llama 3.3 70B', provider: 'NVIDIA', badge: 'Accurate' },
+  { value: 'nvidia/llama-3.2-90b-vision',   label: 'Llama 3.2 90B Vision', provider: 'NVIDIA', badge: 'Best Vision' },
+  { value: 'nvidia/mistral-nemo',           label: 'Mistral Nemo 12B', provider: 'NVIDIA', badge: 'Fast' },
+  { value: 'nvidia/qwen2.5-72b',            label: 'Qwen 2.5 72B', provider: 'NVIDIA', badge: 'Reasoning' },
+  // Lovable AI
+  { value: 'google/gemini-2.5-flash', label: 'Gemini 2.5 Flash', provider: 'Google', badge: 'Default' },
+  { value: 'google/gemini-2.5-pro',   label: 'Gemini 2.5 Pro',   provider: 'Google', badge: 'High Quality' },
+] as const;
+
+const DEFAULT_MODEL = 'nvidia/llama-3.3-70b-instruct';
 
 interface UploadedImage {
   file: File;
@@ -37,6 +51,7 @@ export default function MagicCreate() {
 
   const [jobDescription, setJobDescription] = useState('');
   const [selectedClientId, setSelectedClientId] = useState<string>('');
+  const [selectedModel, setSelectedModel] = useState<string>(DEFAULT_MODEL);
   const [extracting, setExtracting] = useState(false);
   const [extractedItems, setExtractedItems] = useState<ExtractedLineItem[] | null>(null);
   const [creating, setCreating] = useState(false);
@@ -153,6 +168,7 @@ export default function MagicCreate() {
             col_multiplier: currentColMultiplier,
             location: locationStr,
             images,
+            model: selectedModel,
           }),
         }
       );
@@ -168,7 +184,8 @@ export default function MagicCreate() {
       const colNote = currentColMultiplier !== 1.0 
         ? ` — ${currentColMultiplier}x regional pricing applied`
         : '';
-      toast.success(`Extracted ${data.items.length} line items${photoNote}${colNote}`);
+      const modelNote = data.model_used ? ` via ${data.model_used}` : '';
+      toast.success(`Extracted ${data.items.length} line items${photoNote}${colNote}${modelNote}`);
     } catch (error) {
       console.error('Extraction error:', error);
       toast.error('Failed to extract items. Please try again.');
@@ -281,6 +298,33 @@ export default function MagicCreate() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* AI Model Selector */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Cpu className="h-4 w-4" />
+                AI Model
+              </Label>
+              <Select value={selectedModel} onValueChange={setSelectedModel}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {AI_MODELS.map((m) => (
+                    <SelectItem key={m.value} value={m.value}>
+                      <span className="flex items-center gap-2">
+                        <span>{m.label}</span>
+                        <span className="text-xs text-muted-foreground">— {m.provider}</span>
+                        <Badge variant="secondary" className="text-xs ml-1">{m.badge}</Badge>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                NVIDIA models run on dedicated inference hardware for higher accuracy. Vision models auto-selected when photos are attached.
+              </p>
+            </div>
+
             {/* Client select */}
             <div className="space-y-2">
               <Label htmlFor="client">Client (optional)</Label>
