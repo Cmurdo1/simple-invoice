@@ -184,7 +184,8 @@ export default function MagicCreate() {
       const colNote = currentColMultiplier !== 1.0 
         ? ` — ${currentColMultiplier}x regional pricing applied`
         : '';
-      toast.success(`Extracted ${data.items.length} line items${photoNote}${colNote}`);
+      const modelNote = data.model_used ? ` via ${data.model_used}` : '';
+      toast.success(`Extracted ${data.items.length} line items${photoNote}${colNote}${modelNote}`);
     } catch (error) {
       console.error('Extraction error:', error);
       toast.error('Failed to extract items. Please try again.');
