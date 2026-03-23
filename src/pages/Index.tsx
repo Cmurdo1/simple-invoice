@@ -451,7 +451,9 @@ export default function Index() {
               © 2026 Honest Invoice. All rights reserved.
             </span>
           </div>
-          <nav className="flex gap-6 text-sm text-muted-foreground" aria-label="Footer navigation">
+          <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground" aria-label="Footer navigation">
+            <Link to="/invoice-templates" className="hover:text-foreground transition-colors">Invoice Templates</Link>
+            <Link to="/pay" className="hover:text-foreground transition-colors">Pay Invoice</Link>
             <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
             <Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
             <a href="mailto:support@honestinvoice.com" className="hover:text-foreground transition-colors">Contact Support</a>
