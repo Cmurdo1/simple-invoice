@@ -183,6 +183,15 @@ export default function Index() {
                 <Link to="/login">Sign In</Link>
               </Button>
             </div>
+            {/* Internal SEO links — improve crawlability for key landing pages */}
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-1 text-sm">
+              <Link to="/invoice-templates" className="text-primary hover:underline underline-offset-4">
+                Free Invoice Templates →
+              </Link>
+              <Link to="/pay" className="text-muted-foreground hover:text-foreground transition-colors">
+                Pay an Invoice
+              </Link>
+            </div>
             {/* Social proof strip */}
             <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
               <span className="flex items-center gap-1.5"><span className="text-primary font-bold">★★★★★</span> 4.9 / 5</span>
@@ -442,7 +451,9 @@ export default function Index() {
               © 2026 Honest Invoice. All rights reserved.
             </span>
           </div>
-          <nav className="flex gap-6 text-sm text-muted-foreground" aria-label="Footer navigation">
+          <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground" aria-label="Footer navigation">
+            <Link to="/invoice-templates" className="hover:text-foreground transition-colors">Invoice Templates</Link>
+            <Link to="/pay" className="hover:text-foreground transition-colors">Pay Invoice</Link>
             <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
             <Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
             <a href="mailto:support@honestinvoice.com" className="hover:text-foreground transition-colors">Contact Support</a>
