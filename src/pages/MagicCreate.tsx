@@ -12,10 +12,24 @@ import { useCreateInvoice, useAddInvoiceItems, useRecalculateInvoiceTotals } fro
 import { useProfile } from '@/hooks/useProfile';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { getColMultiplierLabel } from '@/hooks/useGeolocation';
-import { Loader2, Wand2, Sparkles, ArrowRight, Mic, MicOff, MapPin, RefreshCw, ImagePlus, X, Camera } from 'lucide-react';
+import { Loader2, Wand2, Sparkles, ArrowRight, Mic, MicOff, MapPin, RefreshCw, ImagePlus, X, Camera, Cpu } from 'lucide-react';
 import { toast } from 'sonner';
 import { ExtractedLineItem } from '@/types/database';
 import { cn } from '@/lib/utils';
+
+// Available AI models — kept in sync with edge function MODEL_REGISTRY
+const AI_MODELS = [
+  // NVIDIA NIM
+  { value: 'nvidia/llama-3.3-70b-instruct', label: 'Llama 3.3 70B', provider: 'NVIDIA', badge: 'Accurate' },
+  { value: 'nvidia/llama-3.2-90b-vision',   label: 'Llama 3.2 90B Vision', provider: 'NVIDIA', badge: 'Best Vision' },
+  { value: 'nvidia/mistral-nemo',           label: 'Mistral Nemo 12B', provider: 'NVIDIA', badge: 'Fast' },
+  { value: 'nvidia/qwen2.5-72b',            label: 'Qwen 2.5 72B', provider: 'NVIDIA', badge: 'Reasoning' },
+  // Lovable AI
+  { value: 'google/gemini-2.5-flash', label: 'Gemini 2.5 Flash', provider: 'Google', badge: 'Default' },
+  { value: 'google/gemini-2.5-pro',   label: 'Gemini 2.5 Pro',   provider: 'Google', badge: 'High Quality' },
+] as const;
+
+const DEFAULT_MODEL = 'nvidia/llama-3.3-70b-instruct';
 
 interface UploadedImage {
   file: File;
