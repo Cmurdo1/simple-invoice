@@ -100,14 +100,29 @@ export default function Index() {
 
   const structuredData = {
     "@context": "https://schema.org",
-    "@type": "WebPage",
-    "name": "Free Invoice Generator — Honest Invoice",
-    "description": "Create free professional invoices and estimates online. AI-powered, Stripe payments, email delivery, PDF export, offline support. 100% free.",
-    "url": "https://honestinvoice.com",
-    "breadcrumb": {
-      "@type": "BreadcrumbList",
-      "itemListElement": [{ "@type": "ListItem", "position": 1, "name": "Free Invoice Generator", "item": "https://honestinvoice.com" }]
-    }
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "name": "Free Invoice Template & Generator — Honest Invoice",
+        "description": "Create free professional invoices and estimates online. AI-powered, Stripe payments, email delivery, PDF export, offline support. 100% free.",
+        "url": "https://honestinvoice.com",
+        "breadcrumb": {
+          "@type": "BreadcrumbList",
+          "itemListElement": [{ "@type": "ListItem", "position": 1, "name": "Free Invoice Template", "item": "https://honestinvoice.com" }]
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": faqs.map((faq) => ({
+          "@type": "Question",
+          "name": faq.question,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": faq.answer,
+          },
+        })),
+      }
+    ]
   };
 
   return (
