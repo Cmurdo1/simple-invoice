@@ -183,6 +183,15 @@ export default function Index() {
                 <Link to="/login">Sign In</Link>
               </Button>
             </div>
+            {/* Internal SEO links — improve crawlability for key landing pages */}
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-1 text-sm">
+              <Link to="/invoice-templates" className="text-primary hover:underline underline-offset-4">
+                Free Invoice Templates →
+              </Link>
+              <Link to="/pay" className="text-muted-foreground hover:text-foreground transition-colors">
+                Pay an Invoice
+              </Link>
+            </div>
             {/* Social proof strip */}
             <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
               <span className="flex items-center gap-1.5"><span className="text-primary font-bold">★★★★★</span> 4.9 / 5</span>
