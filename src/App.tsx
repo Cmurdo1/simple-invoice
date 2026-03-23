@@ -25,6 +25,8 @@ const Feedback = lazy(() => import("./pages/Feedback"));
 const NerveCenter = lazy(() => import("./pages/NerveCenter"));
 const PitchDeck = lazy(() => import("./pages/PitchDeck"));
 const PayInvoice = lazy(() => import("./pages/PayInvoice"));
+const PayLanding = lazy(() => import("./pages/PayLanding"));
+const InvoiceTemplates = lazy(() => import("./pages/InvoiceTemplates"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -62,7 +64,9 @@ const App = () => (
             <Route path="/terms" element={<Terms />} />
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/pitch" element={<PitchDeck />} />
+            <Route path="/pay" element={<PayLanding />} />
             <Route path="/pay/:id" element={<PayInvoice />} />
+            <Route path="/invoice-templates" element={<InvoiceTemplates />} />
 
             {/* Protected routes */}
             <Route
