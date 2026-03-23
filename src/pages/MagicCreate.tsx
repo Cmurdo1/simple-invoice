@@ -51,6 +51,7 @@ export default function MagicCreate() {
 
   const [jobDescription, setJobDescription] = useState('');
   const [selectedClientId, setSelectedClientId] = useState<string>('');
+  const [selectedModel, setSelectedModel] = useState<string>(DEFAULT_MODEL);
   const [extracting, setExtracting] = useState(false);
   const [extractedItems, setExtractedItems] = useState<ExtractedLineItem[] | null>(null);
   const [creating, setCreating] = useState(false);
