@@ -25,6 +25,8 @@ const Feedback = lazy(() => import("./pages/Feedback"));
 const NerveCenter = lazy(() => import("./pages/NerveCenter"));
 const PitchDeck = lazy(() => import("./pages/PitchDeck"));
 const PayInvoice = lazy(() => import("./pages/PayInvoice"));
+const PayLanding = lazy(() => import("./pages/PayLanding"));
+const InvoiceTemplates = lazy(() => import("./pages/InvoiceTemplates"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
