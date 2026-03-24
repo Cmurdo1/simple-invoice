@@ -4,9 +4,13 @@ import { NerveCenterGate } from '@/components/auth/NerveCenterGate';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Activity, Zap, Radio, BrainCircuit, MapPin, Phone, Mail, ExternalLink, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Activity, Zap, Radio, BrainCircuit, MapPin, Phone, Mail, ExternalLink, Clock, CheckCircle, AlertCircle, Send, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
 
 interface Lead {
   id: string;
@@ -24,7 +28,6 @@ interface Lead {
 
 function LeadCard({ lead }: { lead: Lead }) {
   const isEmail = lead.contact_info?.includes('@');
-  const isPhone = lead.contact_info && !isEmail;
 
   const statusColor = {
     new: 'bg-primary/10 text-primary border-primary/20',
@@ -87,12 +90,111 @@ function LeadCard({ lead }: { lead: Lead }) {
   );
 }
 
+function SupportEmailComposer() {
+  const [to, setTo] = useState('');
+  const [subject, setSubject] = useState('');
+  const [body, setBody] = useState('');
+  const [sending, setSending] = useState(false);
+
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!to.trim() || !subject.trim() || !body.trim()) {
+      toast.error('Please fill in all fields.');
+      return;
+    }
+    setSending(true);
+    try {
+      const { error } = await supabase.functions.invoke('send-support-email', {
+        body: { to: to.trim(), subject: subject.trim(), body: body.trim() },
+      });
+      if (error) throw new Error(error.message);
+      toast.success(`Email sent to ${to.trim()} from support@honestinvoice.com`);
+      setTo('');
+      setSubject('');
+      setBody('');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to send email.');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Send className="h-5 w-5 text-primary" />
+          Support Email Composer
+        </CardTitle>
+        <CardDescription>
+          Send personalized emails as <span className="text-primary font-medium">support@honestinvoice.com</span>
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSend} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email-to">To</Label>
+            <Input
+              id="email-to"
+              type="email"
+              placeholder="user@example.com"
+              value={to}
+              onChange={(e) => setTo(e.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email-subject">Subject</Label>
+            <Input
+              id="email-subject"
+              type="text"
+              placeholder="How can we help?"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email-body">Message</Label>
+            <Textarea
+              id="email-body"
+              placeholder="Write your message here..."
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              required
+              rows={7}
+              className="resize-none"
+            />
+          </div>
+          <div className="flex items-center justify-between pt-1">
+            <p className="text-xs text-muted-foreground">
+              Sent from <span className="font-medium">support@honestinvoice.com</span> · Reply-to: murdochcpm_08@yahoo.com
+            </p>
+            <Button type="submit" disabled={sending} size="sm">
+              {sending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending…
+                </>
+              ) : (
+                <>
+                  <Send className="mr-2 h-4 w-4" />
+                  Send Email
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function NerveCenter() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch initial leads
     const fetchLeads = async () => {
       const { data, error } = await supabase
         .from('leads')
@@ -108,7 +210,6 @@ export default function NerveCenter() {
 
     fetchLeads();
 
-    // Subscribe to realtime inserts
     const channel = supabase
       .channel('nerve-center-leads')
       .on(
@@ -136,8 +237,6 @@ export default function NerveCenter() {
 
   const newLeads = leads.filter((l) => l.status === 'new');
   const estimatedLeads = leads.filter((l) => l.status === 'estimated');
-
-  // Get the webhook URL for the scraper config
   const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-lead`;
 
   return (
@@ -172,7 +271,10 @@ export default function NerveCenter() {
             </Card>
           </div>
 
-          {/* Incoming Signals — live leads feed */}
+          {/* Support Email Composer */}
+          <SupportEmailComposer />
+
+          {/* Incoming Signals */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
