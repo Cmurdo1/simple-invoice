@@ -71,12 +71,12 @@ export default function Signup() {
 
   return (
     <>
-      <SEOHead 
+      <SEOHead
         title="Sign Up for Free Invoicing Software"
-        description="Create your free Honest Invoice account. Start invoicing clients in seconds with automated line item extraction and professional PDF exports."
+        description="Create your free Honest Invoice account. Start invoicing clients in seconds with AI-powered line item extraction and professional PDF exports. No credit card needed."
         canonicalUrl="/signup"
       />
-      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <main className="flex min-h-screen items-center justify-center bg-background px-4">
         <Card className="w-full max-w-md">
           {refCode && (
             <div className="rounded-t-lg border-b bg-primary/10 px-6 py-3 text-center text-sm font-medium text-primary flex items-center justify-center gap-2">
@@ -85,11 +85,15 @@ export default function Signup() {
           )}
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center">
-              <img src={logo} alt="HonestInvoice" className="h-16 w-16" />
+              <img
+                src={logo}
+                alt="Honest Invoice — Free invoicing and billing software for contractors and freelancers"
+                className="h-16 w-16"
+              />
             </div>
-            <CardTitle className="text-2xl">Create an account</CardTitle>
-            <CardDescription>Start invoicing your clients in seconds</CardDescription>
-        </CardHeader>
+            <CardTitle className="text-2xl"><h1 className="text-2xl font-bold">Create a free account</h1></CardTitle>
+            <CardDescription>Start invoicing your clients in seconds — no credit card needed</CardDescription>
+          </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
