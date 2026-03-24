@@ -92,9 +92,13 @@ serve(async (req) => {
 
     if (profileError) throw new Error(`Profile fetch error: ${profileError.message}`);
 
+    const OWNER_EMAIL = "murdochcpm_08@yahoo.com";
+    const isOwner = user.email === OWNER_EMAIL;
+
     const isPro =
-      profile?.subscription_status === "pro" &&
-      (!profile.subscription_end || new Date(profile.subscription_end) > new Date());
+      isOwner ||
+      (profile?.subscription_status === "pro" &&
+        (!profile.subscription_end || new Date(profile.subscription_end) > new Date()));
 
     if (!isPro) {
       return new Response(
