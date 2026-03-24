@@ -170,8 +170,8 @@ export default function Signup() {
             </p>
           </CardFooter>
         </form>
-      </Card>
-    </div>
+        </Card>
+      </main>
     </>
   );
 }
