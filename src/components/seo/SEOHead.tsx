@@ -35,8 +35,8 @@ const DEFAULT_KEYWORDS = [
 ].join(', ');
 
 export function SEOHead({
-  title = 'Free Invoice Template — Create, Send & Pay Invoices | Honest Invoice',
-  description = 'Honest Invoice is the #1 free invoice template & generator. Create professional invoice templates in seconds, send with a Pay Invoice button, and collect payments via Stripe. Free for freelancers & small businesses. No credit card needed.',
+  title = 'Honest Invoice | Professional Billing & Estimates for Trades',
+  description = 'The ultimate invoicing and estimation tool for mobile mechanics, handymen, and contractors. Create free professional invoices & estimates in seconds — AI-powered, Stripe payments, offline support. Professional, honest, and fast.',
   keywords = DEFAULT_KEYWORDS,
   canonicalUrl,
   ogImage = DEFAULT_OG_IMAGE,

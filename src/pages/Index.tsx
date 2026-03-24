@@ -129,8 +129,8 @@ export default function Index() {
     <>
       <SEOHead
         canonicalUrl="/"
-        title="Free Invoice Generator — Create & Send Invoices Online | Honest Invoice"
-        description="Honest Invoice is the #1 free invoice generator. Create professional invoices & estimates in seconds, send by email with a Pay Now button, and collect payments via Stripe. 100% free. No credit card needed."
+        title="Honest Invoice | Free Invoicing & Estimates for Mechanics, Handymen & Contractors"
+        description="The ultimate free invoicing tool for mobile mechanics, handymen, and contractors. AI-powered estimates, Stripe payments, email delivery, PDF export, offline support. Professional, honest, and fast. No credit card needed."
         structuredData={structuredData}
       />
       <div className="min-h-screen bg-background">
