@@ -7,10 +7,121 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Activity, Zap, Radio, BrainCircuit, MapPin, Phone, Mail, ExternalLink, Clock, CheckCircle, AlertCircle, Send, Loader2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Activity, Zap, Radio, BrainCircuit, MapPin, Phone, Mail, ExternalLink, Clock, CheckCircle, AlertCircle, Send, Loader2, Cpu, Save } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
+
+// Available AI models — kept in sync with edge function MODEL_REGISTRY
+const AI_MODELS = [
+  { value: 'nvidia/llama-3.3-70b-instruct', label: 'Llama 3.3 70B Instruct', provider: 'NVIDIA', badge: 'Accurate' },
+  { value: 'nvidia/llama-3.2-90b-vision',   label: 'Llama 3.2 90B Vision',   provider: 'NVIDIA', badge: 'Best Vision' },
+  { value: 'nvidia/mistral-nemo',           label: 'Mistral Nemo 12B',        provider: 'NVIDIA', badge: 'Fast' },
+  { value: 'nvidia/qwen2.5-72b',            label: 'Qwen 2.5 72B',            provider: 'NVIDIA', badge: 'Reasoning' },
+  { value: 'google/gemini-2.5-flash',       label: 'Gemini 2.5 Flash',        provider: 'Google', badge: 'Default' },
+  { value: 'google/gemini-2.5-pro',         label: 'Gemini 2.5 Pro',          provider: 'Google', badge: 'High Quality' },
+] as const;
+
+function AIModelController() {
+  const [currentModel, setCurrentModel] = useState<string>('');
+  const [saving, setSaving] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase
+        .from('site_settings' as any)
+        .select('value')
+        .eq('key', 'ai_model')
+        .maybeSingle();
+      if (data && (data as any).value) {
+        setCurrentModel((data as any).value);
+      } else {
+        setCurrentModel('nvidia/llama-3.3-70b-instruct');
+      }
+      setLoaded(true);
+    };
+    load();
+  }, []);
+
+  const handleSave = async () => {
+    if (!currentModel) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.functions.invoke('site-settings', {
+        body: { key: 'ai_model', value: currentModel },
+      });
+      if (error) throw new Error(error.message);
+      toast.success(`Global AI model updated to: ${AI_MODELS.find(m => m.value === currentModel)?.label ?? currentModel}`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save model setting.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const activeModel = AI_MODELS.find(m => m.value === currentModel);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Cpu className="h-5 w-5 text-primary" />
+          Global AI Model
+        </CardTitle>
+        <CardDescription>
+          Controls which AI model runs for <span className="text-foreground font-medium">all users</span> on Magic Create. Only you can change this.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {!loaded ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" /> Loading current model…
+          </div>
+        ) : (
+          <>
+            <div className="space-y-2">
+              <Label>Active Model</Label>
+              <Select value={currentModel} onValueChange={setCurrentModel}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {AI_MODELS.map((m) => (
+                    <SelectItem key={m.value} value={m.value}>
+                      <span className="flex items-center gap-2">
+                        <span>{m.label}</span>
+                        <span className="text-xs text-muted-foreground">— {m.provider}</span>
+                        <Badge variant="secondary" className="text-xs ml-1">{m.badge}</Badge>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {activeModel && (
+              <div className="rounded-lg border bg-muted/30 p-3 text-sm space-y-1">
+                <p className="font-medium">{activeModel.label}</p>
+                <p className="text-xs text-muted-foreground">
+                  Provider: {activeModel.provider} · Badge: {activeModel.badge}
+                </p>
+                <p className="text-xs text-muted-foreground font-mono break-all">{activeModel.value}</p>
+              </div>
+            )}
+            <Button onClick={handleSave} disabled={saving} size="sm" className="gap-2">
+              {saving ? (
+                <><Loader2 className="h-4 w-4 animate-spin" />Saving…</>
+              ) : (
+                <><Save className="h-4 w-4" />Save & Apply Globally</>
+              )}
+            </Button>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
 
 interface Lead {
   id: string;
@@ -273,6 +384,10 @@ export default function NerveCenter() {
 
           {/* Support Email Composer */}
           <SupportEmailComposer />
+
+          {/* Global AI Model Control */}
+          <AIModelController />
+
 
           {/* Incoming Signals */}
           <Card>
