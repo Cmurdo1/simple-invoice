@@ -307,33 +307,6 @@ export default function MagicCreate() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* AI Model Selector */}
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <Cpu className="h-4 w-4" />
-                AI Model
-              </Label>
-              <Select value={selectedModel} onValueChange={setSelectedModel}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {AI_MODELS.map((m) => (
-                    <SelectItem key={m.value} value={m.value}>
-                      <span className="flex items-center gap-2">
-                        <span>{m.label}</span>
-                        <span className="text-xs text-muted-foreground">— {m.provider}</span>
-                        <Badge variant="secondary" className="text-xs ml-1">{m.badge}</Badge>
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                NVIDIA models run on dedicated inference hardware for higher accuracy. Vision models auto-selected when photos are attached.
-              </p>
-            </div>
-
             {/* Client select */}
             <div className="space-y-2">
               <Label htmlFor="client">Client (optional)</Label>
