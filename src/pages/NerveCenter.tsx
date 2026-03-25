@@ -123,7 +123,7 @@ function AIModelController() {
   );
 }
 
-
+interface Lead {
   id: string;
   poster_name: string | null;
   contact_info: string | null;
