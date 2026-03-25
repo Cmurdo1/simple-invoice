@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,24 +12,13 @@ import { useCreateInvoice, useAddInvoiceItems, useRecalculateInvoiceTotals } fro
 import { useProfile } from '@/hooks/useProfile';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { getColMultiplierLabel } from '@/hooks/useGeolocation';
-import { Loader2, Wand2, Sparkles, ArrowRight, Mic, MicOff, MapPin, RefreshCw, ImagePlus, X, Camera, Cpu } from 'lucide-react';
+import { Loader2, Wand2, Sparkles, ArrowRight, Mic, MicOff, MapPin, RefreshCw, ImagePlus, X, Camera } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { ExtractedLineItem } from '@/types/database';
 import { cn } from '@/lib/utils';
 
-// Available AI models — kept in sync with edge function MODEL_REGISTRY
-const AI_MODELS = [
-  // NVIDIA NIM
-  { value: 'nvidia/llama-3.3-70b-instruct', label: 'Llama 3.3 70B', provider: 'NVIDIA', badge: 'Accurate' },
-  { value: 'nvidia/llama-3.2-90b-vision',   label: 'Llama 3.2 90B Vision', provider: 'NVIDIA', badge: 'Best Vision' },
-  { value: 'nvidia/mistral-nemo',           label: 'Mistral Nemo 12B', provider: 'NVIDIA', badge: 'Fast' },
-  { value: 'nvidia/qwen2.5-72b',            label: 'Qwen 2.5 72B', provider: 'NVIDIA', badge: 'Reasoning' },
-  // Lovable AI
-  { value: 'google/gemini-2.5-flash', label: 'Gemini 2.5 Flash', provider: 'Google', badge: 'Default' },
-  { value: 'google/gemini-2.5-pro',   label: 'Gemini 2.5 Pro',   provider: 'Google', badge: 'High Quality' },
-] as const;
-
-const DEFAULT_MODEL = 'nvidia/llama-3.3-70b-instruct';
+const FALLBACK_MODEL = 'nvidia/llama-3.3-70b-instruct';
 
 interface UploadedImage {
   file: File;
@@ -51,11 +40,31 @@ export default function MagicCreate() {
 
   const [jobDescription, setJobDescription] = useState('');
   const [selectedClientId, setSelectedClientId] = useState<string>('');
-  const [selectedModel, setSelectedModel] = useState<string>(DEFAULT_MODEL);
+  // Model is controlled globally by the owner — fetched from site settings
+  const [activeModel, setActiveModel] = useState<string>(FALLBACK_MODEL);
   const [extracting, setExtracting] = useState(false);
   const [extractedItems, setExtractedItems] = useState<ExtractedLineItem[] | null>(null);
   const [creating, setCreating] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
+
+  // Fetch the owner-configured AI model on mount
+  useEffect(() => {
+    const fetchModel = async () => {
+      try {
+        const { data } = await supabase
+          .from('site_settings' as any)
+          .select('value')
+          .eq('key', 'ai_model')
+          .maybeSingle();
+        if (data && (data as any).value) {
+          setActiveModel((data as any).value);
+        }
+      } catch {
+        // Silently fall back to default
+      }
+    };
+    fetchModel();
+  }, []);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isEstimate = type === 'estimate';
