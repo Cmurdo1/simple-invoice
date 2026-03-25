@@ -385,6 +385,10 @@ export default function NerveCenter() {
           {/* Support Email Composer */}
           <SupportEmailComposer />
 
+          {/* Global AI Model Control */}
+          <AIModelController />
+
+
           {/* Incoming Signals */}
           <Card>
             <CardHeader>
