@@ -59,9 +59,9 @@ serve(async (req) => {
 
     logStep("Redirecting to payment link", { url: paymentUrl });
 
-    logStep("Checkout session created", { sessionId: session.id, url: session.url });
+    logStep("Payment link ready");
 
-    return new Response(JSON.stringify({ url: session.url }), {
+    return new Response(JSON.stringify({ url: paymentUrl }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
