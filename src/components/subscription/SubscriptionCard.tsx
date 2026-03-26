@@ -58,7 +58,7 @@ export const SubscriptionCard = React.forwardRef<HTMLDivElement, React.HTMLAttri
             </div>
             {isPro && (
               <Badge variant="outline">
-                $19/month
+                $20/month
               </Badge>
             )}
           </div>
