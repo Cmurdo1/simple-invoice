@@ -12,7 +12,7 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+  const stripe = new Stripe(Deno.env.get("STRIPE_TRUE_KEY") || "", {
     apiVersion: "2025-08-27.basil",
   });
 
