@@ -32,7 +32,7 @@ serve(async (req) => {
     if (invoice.status === "paid") throw new Error("This invoice has already been paid");
     if (Number(invoice.total_amount) <= 0) throw new Error("Invoice total must be greater than $0");
 
-    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+    const stripe = new Stripe(Deno.env.get("STRIPE_TRUE_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
 

@@ -16,36 +16,12 @@ export const SubscriptionButton = React.forwardRef<HTMLButtonElement, Subscripti
     const { session, subscription } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleUpgrade = async () => {
+    const handleUpgrade = () => {
       if (!session?.access_token) {
         toast.error('Please sign in to upgrade');
         return;
       }
-
-      setIsLoading(true);
-
-      try {
-        const { data, error } = await supabase.functions.invoke('create-checkout', {
-          headers: {
-            Authorization: `Bearer ${session.access_token}`,
-          },
-        });
-
-        if (error) {
-          throw error;
-        }
-
-        if (data?.url) {
-          window.open(data.url, '_blank');
-        } else {
-          throw new Error('No checkout URL received');
-        }
-      } catch (error) {
-        console.error('Error creating checkout:', error);
-        toast.error('Failed to start checkout. Please try again.');
-      } finally {
-        setIsLoading(false);
-      }
+      window.open('https://buy.stripe.com/fZu14n5Gn7nFbv1dZl7kc07', '_blank');
     };
 
     const handleManageSubscription = async () => {

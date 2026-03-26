@@ -20,8 +20,8 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
+    const stripeKey = Deno.env.get("STRIPE_TRUE_KEY");
+    if (!stripeKey) throw new Error("STRIPE_TRUE_KEY is not set");
     logStep("Stripe key verified");
 
     const supabaseClient = createClient(
@@ -54,37 +54,14 @@ serve(async (req) => {
 
     const origin = req.headers.get("origin") || "https://id-preview--8937857b-915b-4c67-bc3a-85a05fc54ad7.lovable.app";
     
-    // HonestInvoice Pro - $19/month
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      customer_email: customerId ? undefined : user.email,
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: "HonestInvoice Pro",
-              description: "Professional invoicing for field contractors with automated extraction, unlimited invoices, and PDF export",
-            },
-            unit_amount: 1999, // $19.99
-            recurring: {
-              interval: "month",
-            },
-          },
-          quantity: 1,
-        },
-      ],
-      mode: "subscription",
-      success_url: `${origin}/dashboard?checkout=success`,
-      cancel_url: `${origin}/dashboard?checkout=cancelled`,
-      metadata: {
-        user_id: user.id,
-      },
-    });
+    // Redirect to the Stripe payment link directly
+    const paymentUrl = "https://buy.stripe.com/fZu14n5Gn7nFbv1dZl7kc07";
 
-    logStep("Checkout session created", { sessionId: session.id, url: session.url });
+    logStep("Redirecting to payment link", { url: paymentUrl });
 
-    return new Response(JSON.stringify({ url: session.url }), {
+    logStep("Payment link ready");
+
+    return new Response(JSON.stringify({ url: paymentUrl }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
