@@ -11,92 +11,92 @@
 
 @layer base {
   :root {
-    /* Core palette - Professional dark with green accent */
-    --background: 210 20% 98%;
-    --foreground: 220 25% 10%;
+    /* Gold Card Design System - Luxury Dark Theme */
+    --background: 0 0% 4%;
+    --foreground: 45 30% 98%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 220 25% 10%;
+    --card: 0 0% 7%;
+    --card-foreground: 45 30% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 10%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 45 30% 98%;
 
-    /* Green accent from HI logo */
-    --primary: 142 72% 42%;
-    --primary-foreground: 0 0% 100%;
+    /* Gold Primary - #D4AF37 */
+    --primary: 46 65% 52%;
+    --primary-foreground: 0 0% 4%;
 
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 220 25% 10%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 45 30% 98%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 10% 46%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 45 10% 65%;
 
-    --accent: 142 72% 95%;
-    --accent-foreground: 142 72% 30%;
+    --accent: 46 65% 15%;
+    --accent-foreground: 46 65% 90%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 142 72% 42%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 46 65% 52%;
 
     --radius: 0.75rem;
 
-    /* Status colors */
-    --status-draft: 220 14% 46%;
+    /* Status colors - Adjusted for dark gold theme */
+    --status-draft: 0 0% 50%;
     --status-sent: 217 91% 60%;
-    --status-paid: 142 72% 42%;
+    --status-paid: 46 65% 52%;
     --status-overdue: 0 84% 60%;
 
     /* Sidebar */
-    --sidebar-background: 220 25% 10%;
-    --sidebar-foreground: 220 14% 96%;
-    --sidebar-primary: 142 72% 42%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 20% 18%;
-    --sidebar-accent-foreground: 220 14% 96%;
-    --sidebar-border: 220 20% 18%;
-    --sidebar-ring: 142 72% 42%;
+    --sidebar-background: 0 0% 4%;
+    --sidebar-foreground: 45 30% 98%;
+    --sidebar-primary: 46 65% 52%;
+    --sidebar-primary-foreground: 0 0% 4%;
+    --sidebar-accent: 0 0% 10%;
+    --sidebar-accent-foreground: 45 30% 98%;
+    --sidebar-border: 0 0% 10%;
+    --sidebar-ring: 46 65% 52%;
   }
 
   .dark {
-    --background: 220 25% 6%;
-    --foreground: 220 14% 96%;
+    --background: 0 0% 4%;
+    --foreground: 45 30% 98%;
 
-    --card: 220 25% 10%;
-    --card-foreground: 220 14% 96%;
+    --card: 0 0% 7%;
+    --card-foreground: 45 30% 98%;
 
-    --popover: 220 25% 10%;
-    --popover-foreground: 220 14% 96%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 45 30% 98%;
 
-    --primary: 142 72% 50%;
-    --primary-foreground: 220 25% 6%;
+    --primary: 46 65% 52%;
+    --primary-foreground: 0 0% 4%;
 
-    --secondary: 220 20% 18%;
-    --secondary-foreground: 220 14% 96%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 45 30% 98%;
 
-    --muted: 220 20% 18%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 45 10% 65%;
 
-    --accent: 142 72% 15%;
-    --accent-foreground: 142 72% 60%;
+    --accent: 46 65% 15%;
+    --accent-foreground: 46 65% 90%;
 
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 20% 18%;
-    --input: 220 20% 18%;
-    --ring: 142 72% 50%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 46 65% 52%;
 
-    --sidebar-background: 220 25% 6%;
-    --sidebar-foreground: 220 14% 96%;
-    --sidebar-primary: 142 72% 50%;
-    --sidebar-primary-foreground: 220 25% 6%;
-    --sidebar-accent: 220 20% 12%;
-    --sidebar-accent-foreground: 220 14% 96%;
-    --sidebar-border: 220 20% 12%;
-    --sidebar-ring: 142 72% 50%;
+    --sidebar-background: 0 0% 4%;
+    --sidebar-foreground: 45 30% 98%;
+    --sidebar-primary: 46 65% 52%;
+    --sidebar-primary-foreground: 0 0% 4%;
+    --sidebar-accent: 0 0% 10%;
+    --sidebar-accent-foreground: 45 30% 98%;
+    --sidebar-border: 0 0% 10%;
+    --sidebar-ring: 46 65% 52%;
   }
 }
 

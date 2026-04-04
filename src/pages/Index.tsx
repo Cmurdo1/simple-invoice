@@ -1,10 +1,7 @@
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { FileText, Wand2, Smartphone, CreditCard, Users, Mail, Bot, MonitorSmartphone, ChevronDown } from 'lucide-react';
-import logoLight from '@/assets/honest-invoice-logo.png';
-import logoDark from '@/assets/honest-invoice-logo-dark.png';
-import { useTheme } from '@/contexts/ThemeContext';
+import { FileText, Wand2, Smartphone, CreditCard, Users, Mail, Bot, MonitorSmartphone, ChevronDown, Sparkles, ShieldCheck, Zap } from 'lucide-react';
 import { SEOHead } from '@/components/seo/SEOHead';
 import { useState } from 'react';
 
@@ -50,47 +47,33 @@ const features = [
 
 const faqs = [
   {
-    question: 'What is an invoice?',
-    answer: 'An invoice is a formal document sent by a seller to a buyer that requests payment for goods or services provided. It typically includes the seller\'s details, client information, a list of line items with descriptions and prices, the total amount due, due date, and a unique invoice number. Invoices serve as both a payment request and an official record for accounting purposes.',
+    question: 'What is The Gold Card?',
+    answer: 'The Gold Card is an elite, AI-powered invoicing and business management platform designed for high-performing professionals. It offers precision itemization, seamless Stripe payments, and a professional, high-fidelity brand image for your business.',
   },
   {
-    question: 'What is an invoice template?',
-    answer: 'An invoice template is a pre-formatted document that lets you quickly fill in job details—client name, line items, prices, and payment terms—without building an invoice from scratch each time. Honest Invoice provides a free, professional invoice template with your logo, brand color, and itemized breakdown. Our AI auto-fills line items from a plain-language job description, so your template is ready in seconds.',
+    question: 'How does the AI-powered precision work?',
+    answer: 'Simply describe your job or project in plain language. Our advanced AI synthesizes the data to generate a fully itemized invoice, including labor, parts, and regional pricing standards, in a matter of seconds.',
   },
   {
-    question: 'How do clients pay an invoice?',
-    answer: 'With Honest Invoice, clients can pay an invoice online via a secure Stripe payment link embedded directly in the invoice. Pro users get a "Pay Now" button on every emailed invoice and a unique payment URL clients can open on any device. Funds go straight to your Stripe account—no middleman, no delays.',
+    question: 'Is The Gold Card really free?',
+    answer: 'Yes. We offer a robust free tier that allows for unlimited high-quality invoices and estimates. Our premium Pro tier offers additional features like advanced analytics and seamless Stripe payment settlement.',
   },
   {
-    question: 'Is Honest Invoice really free?',
-    answer: 'Yes. Honest Invoice is a completely free invoice generator. Create unlimited invoices and estimates with no hidden fees, no credit card required, and no expiring trial.',
+    question: 'How do my clients settle payments?',
+    answer: 'Every Gold Card invoice includes an integrated, secure payment portal. Your clients can settle their invoices instantly via card or bank transfer, with funds deposited directly into your linked accounts.',
   },
   {
-    question: 'How do I create a free invoice online?',
-    answer: 'Sign up for free at honestinvoice.com, describe your job in plain English, and our AI instantly generates a fully itemized invoice. Export as PDF or send by email in one click.',
+    question: 'Does it work in remote locations?',
+    answer: 'Absolutely. The Gold Card was engineered for elite performance on any site. You can create, edit, and manage your billing without an internet connection—your data syncs automatically as soon as you are back on the grid.',
   },
   {
-    question: 'Can I collect payments with Honest Invoice?',
-    answer: 'Yes. Pro users get a Stripe payment link embedded in every invoice. Clients can pay by card directly — funds go straight to your Stripe account.',
-  },
-  {
-    question: 'Can I make free estimates?',
-    answer: 'Yes. Generate free professional estimates with our AI tool and convert them to invoices with a single tap.',
-  },
-  {
-    question: 'Does Honest Invoice work offline?',
-    answer: 'Yes. Create and edit free invoices and estimates without internet. Data syncs automatically when you reconnect — perfect for job sites with no signal.',
-  },
-  {
-    question: 'What makes Honest Invoice better than other free invoice generators?',
-    answer: 'Honest Invoice combines AI-powered line item extraction, built-in Stripe payments, email delivery with a Pay Now button, offline support, and professional PDF exports — all in one completely free tool.',
+    question: 'Can I customize my brand presence?',
+    answer: 'Yes. The Gold Card allows you to maintain a professional brand presence. Your logo, corporate colors, and detailed breakdowns are rendered in high-fidelity PDF and web formats for your clients.',
   },
 ];
 
 export default function Index() {
   const { user, loading } = useAuth();
-  const { resolvedTheme } = useTheme();
-  const logo = resolvedTheme === 'dark' ? logoDark : logoLight;
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   // If user is logged in, redirect to dashboard
@@ -103,12 +86,12 @@ export default function Index() {
     "@graph": [
       {
         "@type": "WebPage",
-        "name": "Free Invoice Template & Generator — Honest Invoice",
-        "description": "Create free professional invoices and estimates online. AI-powered, Stripe payments, email delivery, PDF export, offline support. 100% free.",
-        "url": "https://honestinvoice.com",
+        "name": "The Gold Card | Premium Invoicing for the Modern Elite",
+        "description": "Elevate your business to the gold standard. AI-powered estimates, seamless payments, and professional branding for high-performing professionals.",
+        "url": "https://goldcard.com",
         "breadcrumb": {
           "@type": "BreadcrumbList",
-          "itemListElement": [{ "@type": "ListItem", "position": 1, "name": "Free Invoice Template", "item": "https://honestinvoice.com" }]
+          "itemListElement": [{ "@type": "ListItem", "position": 1, "name": "The Gold Card", "item": "https://goldcard.com" }]
         }
       },
       {
@@ -129,164 +112,206 @@ export default function Index() {
     <>
       <SEOHead
         canonicalUrl="/"
-        title="Honest Invoice | Free Invoicing & Estimates for Mechanics, Handymen & Contractors"
-        description="The ultimate free invoicing tool for mobile mechanics, handymen, and contractors. AI-powered estimates, Stripe payments, email delivery, PDF export, offline support. Professional, honest, and fast. No credit card needed."
+        title="The Gold Card | Premium Invoicing for the Modern Elite"
+        description="Elevate your business to the gold standard. AI-powered estimates, seamless payments, and professional branding for high-performing professionals."
         structuredData={structuredData}
       />
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background font-sans text-foreground selection:bg-primary/30 selection:text-primary">
       {/* Header */}
-      <header className="border-b">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-3">
-            <img 
-              src={logo} 
-              alt="Honest Invoice - Free online invoicing and billing software for freelancers" 
-              className="h-10 w-10" 
-            />
-            <span className="text-xl font-bold">Honest Invoice</span>
+      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl">
+        <div className="container mx-auto flex h-20 items-center justify-between px-4 sm:px-6">
+          <div className="flex items-center gap-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-black">
+              <Zap className="h-6 w-6" />
+            </div>
+            <span className="text-2xl font-black tracking-tight">GOLD CARD</span>
           </div>
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" asChild>
-              <Link to="/login">Sign In</Link>
-            </Button>
-            <Button asChild>
+          <div className="flex items-center gap-6">
+            <Link to="/login" className="hidden text-sm font-bold uppercase tracking-widest text-muted-foreground hover:text-primary transition-colors sm:block">
+              Sign In
+            </Link>
+            <Button className="h-11 px-8 text-sm font-bold uppercase tracking-widest shadow-[0_0_20px_rgba(212,175,55,0.2)] transition-all hover:scale-105" asChild>
               <Link to="/signup">Get Started</Link>
             </Button>
           </div>
         </div>
       </header>
 
-      {/* Hero with optimized gradient background */}
-      <section 
-        className="relative overflow-hidden py-20"
-        style={{
-          background: 'linear-gradient(135deg, hsl(var(--background)) 0%, hsl(220 25% 12%) 50%, hsl(142 72% 20% / 0.3) 100%)'
-        }}
-      >
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_hsl(142_72%_42%_/_0.1),_transparent_50%)]" aria-hidden="true" />
-        <div className="container relative mx-auto px-4 text-center">
-          <div className="mx-auto max-w-3xl">
-            <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-              Free Invoice{' '}
-              <span className="text-primary">Generator</span> &{' '}
-              <span className="text-primary">Estimator</span>
+      {/* Hero Section - Inspired by design_0.png */}
+      <section className="relative flex min-h-[90vh] flex-col items-center justify-center overflow-hidden py-24 sm:py-32">
+        {/* Luxury Background Effects */}
+        <div className="absolute top-1/2 left-1/2 -z-10 h-[600px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-[120px]" />
+        <div className="absolute -top-24 right-0 -z-10 h-[400px] w-[400px] rounded-full bg-primary/5 blur-[100px]" />
+
+        <div className="container relative z-10 mx-auto px-4 text-center">
+          <div className="mx-auto max-w-4xl">
+            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.2em] text-primary">
+              <Sparkles className="h-3 w-3" />
+              <span>Elevate Your Standard</span>
+            </div>
+
+            <h1 className="mb-8 text-5xl font-black tracking-tighter sm:text-7xl lg:text-8xl">
+              THE <span className="text-primary italic">GOLD</span> CARD<br />
+              <span className="text-muted-foreground">REDEFINING SUCCESS</span>
             </h1>
-            <p className="mb-8 text-lg text-muted-foreground sm:text-xl">
-              Stop chasing payments. Automate your billing, track expenses, and get paid 2x faster. 
-              Trusted by freelancers and small businesses worldwide.
+
+            <p className="mx-auto mb-12 max-w-2xl text-lg font-medium leading-relaxed text-muted-foreground sm:text-xl">
+              Stop chasing payments. Automate your billing with AI precision and get paid instantly.
+              The ultimate power tool for high-performing professionals.
             </p>
-            <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Button size="lg" className="min-w-[200px]" asChild>
-                <Link to="/signup">Start Free Today</Link>
+
+            <div className="flex flex-col items-center justify-center gap-6 sm:flex-row">
+              <Button size="lg" className="h-16 min-w-[240px] px-10 text-base font-black uppercase tracking-widest shadow-[0_0_30px_rgba(212,175,55,0.3)] transition-all hover:scale-105 active:scale-95" asChild>
+                <Link to="/signup">Start Free Trial</Link>
               </Button>
-              <Button size="lg" variant="outline" className="min-w-[200px]" asChild>
-                <Link to="/login">Sign In</Link>
+              <Button size="lg" variant="outline" className="h-16 min-w-[240px] border-primary/20 bg-white/5 px-10 text-base font-black uppercase tracking-widest backdrop-blur-lg transition-all hover:bg-primary/10 active:scale-95" asChild>
+                <Link to="/login">Watch Demo</Link>
               </Button>
             </div>
-            {/* Internal SEO links — improve crawlability for key landing pages */}
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-1 text-sm">
-              <Link to="/invoice-templates" className="text-primary hover:underline underline-offset-4">
-                Free Invoice Templates →
-              </Link>
-              <Link to="/pay" className="text-muted-foreground hover:text-foreground transition-colors">
-                Pay an Invoice
-              </Link>
-            </div>
-            {/* Social proof strip */}
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1.5"><span className="text-primary font-bold">★★★★★</span> 4.9 / 5</span>
-              <span className="h-4 w-px bg-border" aria-hidden="true" />
-              <span><strong className="text-foreground">12,500+</strong> invoices created</span>
-              <span className="h-4 w-px bg-border" aria-hidden="true" />
-              <span><strong className="text-foreground">100% free</strong> — no credit card</span>
-              <span className="h-4 w-px bg-border" aria-hidden="true" />
-              <span>Works <strong className="text-foreground">offline</strong></span>
+
+            {/* Social Proof Strip */}
+            <div className="mt-20 flex flex-wrap items-center justify-center gap-8 text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-primary" />
+                <span>Enterprise Grade</span>
+              </div>
+              <div className="h-1 w-1 rounded-full bg-primary/30" />
+              <div>12,500+ Active Users</div>
+              <div className="h-1 w-1 rounded-full bg-primary/30" />
+              <div>Stripe Partner</div>
+              <div className="h-1 w-1 rounded-full bg-primary/30" />
+              <div className="flex items-center gap-2">
+                <Zap className="h-4 w-4 text-primary" />
+                <span>Instant Payouts</span>
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Subtle decorative grid background */}
+        <div className="absolute inset-0 -z-20 opacity-20 [mask-image:radial-gradient(ellipse_at_center,black_20%,transparent_80%)]"
+          style={{ backgroundImage: 'radial-gradient(hsl(var(--primary) / 0.15) 1px, transparent 1px)', backgroundSize: '40px 40px' }}
+        />
       </section>
 
-      {/* Features */}
-      <section className="border-t bg-muted/30 py-20" aria-labelledby="features-heading">
-        <div className="container mx-auto px-4">
-          <h2 id="features-heading" className="mb-4 text-center text-3xl font-bold">
-            Built for the Field. Trusted in the Trades.
-          </h2>
-          <p className="mb-12 text-center text-muted-foreground max-w-2xl mx-auto">
-            Every feature exists because a mechanic needed it on a real job site. Proof, transparency, and instant payment—baked into every invoice.
-          </p>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature) => {
-              const Icon = feature.icon;
-              return (
-                <article
-                  key={feature.title}
-                  className="rounded-xl border bg-card p-6 flex gap-4 items-start hover:border-primary/40 transition-colors"
-                  aria-label={feature.altText}
-                >
-                  <div 
-                    className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10"
-                    role="img"
-                    aria-label={feature.altText}
-                  >
-                    <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
-                  </div>
-                  <div>
-                    <h3 className="mb-1 font-semibold">{feature.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {feature.description}
-                    </p>
-                  </div>
-                </article>
-              );
-            })}
+      {/* Features Bento Grid - Inspired by design_2.png */}
+      <section className="relative bg-black/40 py-24 sm:py-32" aria-labelledby="features-heading">
+        <div className="container mx-auto px-4 sm:px-6">
+          <div className="mb-20 text-center">
+            <h2 id="features-heading" className="mb-6 text-4xl font-black tracking-tighter sm:text-5xl">
+              POWERFUL <span className="text-primary italic">FEATURES</span>
+            </h2>
+            <p className="mx-auto max-w-2xl text-lg font-medium text-muted-foreground">
+              Every detail engineered for professional performance. Experience the gold standard in business automation.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-6 lg:grid-rows-2">
+            {/* Main Feature - AI Powered (Large Card) */}
+            <article className="col-span-1 rounded-3xl border border-primary/20 bg-primary/5 p-8 backdrop-blur-sm md:col-span-4 lg:row-span-2">
+              <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-black">
+                <Wand2 className="h-7 w-7" />
+              </div>
+              <h3 className="mb-4 text-3xl font-black tracking-tight">{features[0].title}</h3>
+              <p className="mb-8 max-w-xl text-lg font-medium leading-relaxed text-muted-foreground">
+                {features[0].description}
+              </p>
+              <div className="relative mt-8 aspect-video overflow-hidden rounded-2xl border border-primary/10 bg-black/40">
+                <div className="absolute inset-0 flex items-center justify-center p-8 text-center text-primary/40">
+                  <span className="text-xs font-bold uppercase tracking-[0.3em]">Advanced AI Dashboard Preview</span>
+                </div>
+                {/* Decorative gold lines */}
+                <div className="absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-primary/20 blur-[60px]" />
+              </div>
+            </article>
+
+            {/* Feature 2 - Payments (Tall Card) */}
+            <article className="col-span-1 flex flex-col justify-between rounded-3xl border border-white/5 bg-white/[0.02] p-8 transition-colors hover:border-primary/20 md:col-span-2">
+              <div>
+                <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <CreditCard className="h-6 w-6" />
+                </div>
+                <h3 className="mb-2 text-xl font-black tracking-tight">{features[1].title}</h3>
+                <p className="text-sm font-medium leading-relaxed text-muted-foreground">
+                  {features[1].description}
+                </p>
+              </div>
+            </article>
+
+            {/* Feature 3 - Email (Square Card) */}
+            <article className="col-span-1 flex flex-col justify-between rounded-3xl border border-white/5 bg-white/[0.02] p-8 transition-colors hover:border-primary/20 md:col-span-2">
+              <div>
+                <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Mail className="h-6 w-6" />
+                </div>
+                <h3 className="mb-2 text-xl font-black tracking-tight">{features[2].title}</h3>
+                <p className="text-sm font-medium leading-relaxed text-muted-foreground">
+                  {features[2].description}
+                </p>
+              </div>
+            </article>
+
+            {/* Small dynamic bento items */}
+            <article className="col-span-1 flex items-center gap-4 rounded-2xl border border-white/5 bg-white/[0.02] p-6 transition-colors hover:border-primary/20 md:col-span-3 lg:col-span-2">
+               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <FileText className="h-5 w-5" />
+              </div>
+              <h3 className="text-sm font-black tracking-tight uppercase">{features[3].title}</h3>
+            </article>
+
+            <article className="col-span-1 flex items-center gap-4 rounded-2xl border border-white/5 bg-white/[0.02] p-6 transition-colors hover:border-primary/20 md:col-span-3 lg:col-span-2">
+               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <Smartphone className="h-5 w-5" />
+              </div>
+              <h3 className="text-sm font-black tracking-tight uppercase">{features[4].title}</h3>
+            </article>
           </div>
         </div>
       </section>
 
       {/* How It Works */}
-      <section className="py-20" aria-labelledby="how-it-works-heading">
+      <section className="bg-white/[0.01] py-24 sm:py-32" aria-labelledby="how-it-works-heading">
         <div className="container mx-auto px-4">
-          <h2 id="how-it-works-heading" className="mb-4 text-center text-3xl font-bold">
-            How It Works
+          <h2 id="how-it-works-heading" className="mb-4 text-center text-4xl font-black tracking-tighter">
+            THE <span className="text-primary italic">PROCESS</span>
           </h2>
-          <p className="mb-14 text-center text-muted-foreground max-w-xl mx-auto">
-            Three steps. From first wrench turn to cash in hand.
+          <p className="mb-16 text-center text-lg font-medium text-muted-foreground max-w-xl mx-auto">
+            Three steps to financial excellence. Engineered for speed and precision.
           </p>
           <div className="relative flex flex-col gap-0 md:flex-row md:items-start md:gap-0">
             {/* Connector line — desktop only */}
-            <div className="hidden md:block absolute top-10 left-[16.66%] right-[16.66%] h-0.5 bg-border z-0" aria-hidden="true" />
+            <div className="hidden md:block absolute top-12 left-[16.66%] right-[16.66%] h-[1px] bg-primary/20 z-0" aria-hidden="true" />
 
             {[
               {
                 step: '01',
                 icon: Bot,
-                title: 'Create Invoice with AI',
-                description: 'Describe the job in plain English. AI generates a fully itemized invoice with accurate line items, labor, and parts in seconds.',
+                title: 'AI Synthesis',
+                description: 'Describe the job in plain language. Our AI generates a precision itemized invoice in seconds.',
               },
               {
                 step: '02',
                 icon: MonitorSmartphone,
-                title: 'Send & Share',
-                description: 'Email the invoice to your client with a branded Pay Now button, or export as PDF to share on the spot.',
+                title: 'Elite Delivery',
+                description: 'Share a professional, branded link or export a high-fidelity PDF instantly.',
               },
               {
                 step: '03',
                 icon: CreditCard,
-                title: 'Get Paid via Stripe',
-                description: 'Clients pay by card through your unique payment link. Funds go directly to your Stripe account—instant, secure, zero friction.',
+                title: 'Instant Settlement',
+                description: 'Collect payments via secure Stripe integration. Funds settle directly to your accounts.',
               },
             ].map(({ step, icon: Icon, title, description }) => (
               <div key={step} className="relative z-10 flex flex-col items-center text-center flex-1 px-6 pb-12 md:pb-0">
                 {/* Step badge */}
-                <div className="mb-4 flex h-20 w-20 flex-col items-center justify-center rounded-full border-2 border-primary bg-background shadow-md">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-primary">{step}</span>
-                  <Icon className="mt-0.5 h-6 w-6 text-primary" aria-hidden="true" />
+                <div className="mb-6 flex h-24 w-24 flex-col items-center justify-center rounded-full border border-primary/20 bg-background shadow-[0_0_20px_rgba(212,175,55,0.1)]">
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60">{step}</span>
+                  <Icon className="mt-1 h-7 w-7 text-primary" aria-hidden="true" />
                 </div>
-                <h3 className="mb-2 text-lg font-bold">{title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">{description}</p>
+                <h3 className="mb-3 text-xl font-black tracking-tight">{title}</h3>
+                <p className="text-sm font-medium leading-relaxed text-muted-foreground max-w-xs">{description}</p>
                 {/* Mobile connector */}
-                <div className="md:hidden mt-6 h-10 w-0.5 bg-border mx-auto last:hidden" aria-hidden="true" />
+                <div className="md:hidden mt-8 h-12 w-[1px] bg-primary/20 mx-auto last:hidden" aria-hidden="true" />
               </div>
             ))}
           </div>
@@ -294,89 +319,88 @@ export default function Index() {
       </section>
 
       {/* Referral Program Section */}
-      <section className="border-t py-20" aria-labelledby="referral-heading">
+      <section className="border-y border-white/5 py-24 sm:py-32" aria-labelledby="referral-heading">
         <div className="container mx-auto px-4 max-w-4xl">
-          <div className="text-center mb-12">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary">
-              🎁 Referral Program
+          <div className="text-center mb-16">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.2em] text-primary">
+              🎁 Elite Referral Program
             </div>
-            <h2 id="referral-heading" className="text-3xl font-bold mb-4">
-              Give a Month, Get a Month
+            <h2 id="referral-heading" className="text-4xl font-black tracking-tighter mb-6">
+              EXPAND THE <span className="text-primary italic">NETWORK</span>
             </h2>
-            <p className="text-muted-foreground max-w-xl mx-auto text-lg">
-              Share your unique link. Every friend who signs up earns you <strong className="text-foreground">1 free month of Pro</strong>. No limits — refer 10 people, get 10 free months.
+            <p className="text-muted-foreground max-w-xl mx-auto text-lg font-medium">
+              Share your unique access link. Every partner who joins earns you <strong className="text-primary">1 free month of Pro</strong> access.
             </p>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
             {[
-              { step: '01', emoji: '🔗', title: 'Get Your Link', desc: 'Sign up for free and find your unique referral link right on your dashboard.' },
-              { step: '02', emoji: '📤', title: 'Share It', desc: 'Text it, post it, email it — every contractor, freelancer, or tradesperson is a potential referral.' },
-              { step: '03', emoji: '🏆', title: 'Earn Free Pro', desc: 'When they sign up, you both get 1 free month of Pro — instantly credited, no strings attached.' },
+              { step: '01', emoji: '🔗', title: 'Secure Link', desc: 'Find your unique invitation link on your private dashboard.' },
+              { step: '02', emoji: '📤', title: 'Share Access', desc: 'Invite high-performing peers to join the gold standard.' },
+              { step: '03', emoji: '🏆', title: 'Earn Status', desc: 'When they activate, you both receive instant Pro status.' },
             ].map(({ step, emoji, title, desc }) => (
-              <div key={step} className="relative rounded-xl border bg-card p-6 text-center">
-                <div className="mb-4 mx-auto flex h-14 w-14 flex-col items-center justify-center rounded-full border-2 border-primary bg-primary/5 text-2xl">
+              <div key={step} className="relative rounded-3xl border border-white/5 bg-white/[0.02] p-8 text-center transition-colors hover:border-primary/20">
+                <div className="mb-6 mx-auto flex h-16 w-16 flex-col items-center justify-center rounded-2xl border border-primary/10 bg-primary/5 text-2xl shadow-inner">
                   {emoji}
                 </div>
-                <div className="text-[10px] font-black uppercase tracking-widest text-primary mb-1">Step {step}</div>
-                <h3 className="font-bold text-lg mb-2">{title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+                <div className="text-[10px] font-black uppercase tracking-[0.3em] text-primary/60 mb-2">Step {step}</div>
+                <h3 className="font-black text-lg mb-3 tracking-tight">{title}</h3>
+                <p className="text-sm font-medium leading-relaxed text-muted-foreground">{desc}</p>
               </div>
             ))}
           </div>
-          <div className="mt-10 text-center">
-            <Button size="lg" asChild>
-              <Link to="/signup">Sign Up & Get Your Link</Link>
+          <div className="mt-16 text-center">
+            <Button size="lg" className="h-14 px-10 text-sm font-black uppercase tracking-widest" asChild>
+              <Link to="/signup">Join & Invite Partners</Link>
             </Button>
-            <p className="mt-3 text-sm text-muted-foreground">Already have an account? Your referral link is on your dashboard.</p>
           </div>
         </div>
       </section>
 
       {/* CTA */}
-      <section className="container mx-auto px-4 py-20 text-center" aria-labelledby="cta-heading">
-        <div className="mx-auto max-w-2xl">
-          <p className="mb-6 text-xl font-medium text-primary italic">
-            "Don't trust the estimate you received? Think you're being overcharged? Use Honest Estimate and find out, free of charge."
+      <section className="container mx-auto px-4 py-24 text-center sm:py-32" aria-labelledby="cta-heading">
+        <div className="mx-auto max-w-3xl">
+          <p className="mb-8 text-2xl font-black tracking-tight text-primary italic leading-tight">
+            "Redefining the standard for professional billing. Precision meets performance."
           </p>
-          <h2 id="cta-heading" className="mb-4 text-3xl font-bold">
-            Ready to Streamline Your Business?
+          <h2 id="cta-heading" className="mb-6 text-4xl font-black tracking-tighter sm:text-5xl">
+            READY TO JOIN THE <span className="text-primary">ELITE</span>?
           </h2>
-          <p className="mb-8 text-muted-foreground">
-            Join freelancers, designers, and small business owners who save hours every week with Honest Invoice.
+          <p className="mb-12 text-lg font-medium text-muted-foreground">
+            Join thousands of high-performing professionals who have elevated their business to the Gold Standard.
           </p>
-          <Button size="lg" asChild>
-            <Link to="/signup">Create Your Free Account</Link>
+          <Button size="lg" className="h-16 px-12 text-base font-black uppercase tracking-widest shadow-[0_0_30px_rgba(212,175,55,0.2)]" asChild>
+            <Link to="/signup">Get Started Now</Link>
           </Button>
         </div>
       </section>
 
-      {/* FAQ — matches FAQPage JSON-LD for Google rich snippets */}
-      <section className="border-t py-20" aria-labelledby="faq-heading">
-        <div className="container mx-auto px-4 max-w-3xl">
-          <h2 id="faq-heading" className="mb-3 text-center text-3xl font-bold">
-            Frequently Asked Questions
+      {/* FAQ */}
+      <section className="bg-white/[0.01] py-24 sm:py-32" aria-labelledby="faq-heading">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <h2 id="faq-heading" className="mb-4 text-center text-4xl font-black tracking-tighter">
+            THE <span className="text-primary italic">INTEL</span>
           </h2>
-          <p className="mb-10 text-center text-muted-foreground">
-            Everything you need to know about the free invoice generator.
+          <p className="mb-16 text-center text-lg font-medium text-muted-foreground">
+            Everything you need to know about the Gold Standard.
           </p>
-          <dl className="divide-y divide-border rounded-xl border bg-card overflow-hidden">
+          <dl className="space-y-4">
             {faqs.map((faq, i) => (
-              <div key={i}>
+              <div key={i} className="rounded-2xl border border-white/5 bg-white/[0.01] transition-colors hover:border-primary/10 overflow-hidden">
                 <dt>
                   <button
-                    className="flex w-full items-center justify-between px-6 py-5 text-left font-semibold hover:bg-muted/40 transition-colors"
+                    className="flex w-full items-center justify-between px-8 py-6 text-left font-bold tracking-tight hover:text-primary transition-colors"
                     onClick={() => setOpenFaq(openFaq === i ? null : i)}
                     aria-expanded={openFaq === i}
                   >
                     {faq.question}
                     <ChevronDown
-                      className={`h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-200 ${openFaq === i ? 'rotate-180' : ''}`}
+                      className={`h-5 w-5 shrink-0 text-primary transition-transform duration-300 ${openFaq === i ? 'rotate-180' : ''}`}
                       aria-hidden="true"
                     />
                   </button>
                 </dt>
                 {openFaq === i && (
-                  <dd className="px-6 pb-5 text-sm text-muted-foreground leading-relaxed">
+                  <dd className="px-8 pb-6 text-base font-medium text-muted-foreground leading-relaxed animate-accordion-down">
                     {faq.answer}
                   </dd>
                 )}
@@ -438,26 +462,28 @@ export default function Index() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t py-8">
-        <div className="container mx-auto flex flex-col items-center justify-between gap-4 px-4 sm:flex-row">
-          <div className="flex items-center gap-2">
-            <img 
-              src={logo} 
-              alt="Honest Invoice - Free online invoicing software logo" 
-              className="h-6 w-6" 
-              loading="lazy"
-            />
-            <span className="text-sm text-muted-foreground">
-              © 2026 Honest Invoice. All rights reserved.
-            </span>
+      <footer className="border-t border-white/5 bg-black py-12">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col items-center justify-between gap-8 sm:flex-row">
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-black">
+                <Zap className="h-5 w-5" />
+              </div>
+              <span className="text-xl font-black tracking-tighter">GOLD CARD</span>
+            </div>
+
+            <nav className="flex flex-wrap justify-center gap-x-8 gap-y-4 text-xs font-black uppercase tracking-[0.2em] text-muted-foreground/60" aria-label="Footer navigation">
+              <Link to="/invoice-templates" className="hover:text-primary transition-colors">Templates</Link>
+              <Link to="/pay" className="hover:text-primary transition-colors">Payments</Link>
+              <Link to="/privacy" className="hover:text-primary transition-colors">Privacy</Link>
+              <Link to="/terms" className="hover:text-primary transition-colors">Terms</Link>
+              <a href="mailto:support@goldcard.com" className="hover:text-primary transition-colors">Support</a>
+            </nav>
+
+            <div className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground/40">
+              © 2024 THE GOLD CARD. ALL RIGHTS RESERVED.
+            </div>
           </div>
-          <nav className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground" aria-label="Footer navigation">
-            <Link to="/invoice-templates" className="hover:text-foreground transition-colors">Invoice Templates</Link>
-            <Link to="/pay" className="hover:text-foreground transition-colors">Pay Invoice</Link>
-            <Link to="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
-            <Link to="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
-            <a href="mailto:support@honestinvoice.com" className="hover:text-foreground transition-colors">Contact Support</a>
-          </nav>
         </div>
       </footer>
     </div>
