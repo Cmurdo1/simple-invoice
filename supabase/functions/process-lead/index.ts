@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
         post_url: post_url || null,
         date_posted: date_posted ? new Date(date_posted).toISOString() : null,
         status: 'new',
-        source: 'craigslist',
+        source: source || 'craigslist',
       })
       .select()
       .single();
