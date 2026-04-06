@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
         total_amount,
         type: 'estimate',
         status: 'draft',
-        notes: `Auto-generated from Craigslist lead.\nContact: ${contact_info || 'N/A'}\nLocation: ${location || 'N/A'}\nSource: ${post_url || 'N/A'}`,
+        notes: `Auto-generated from ${(source || 'craigslist').charAt(0).toUpperCase() + (source || 'craigslist').slice(1)} lead.\nContact: ${contact_info || 'N/A'}\nLocation: ${location || 'N/A'}\nSource: ${post_url || 'N/A'}`,
         // user_id is required — use a placeholder that signals auto-lead
         // The service role bypasses RLS so we can insert without auth.uid()
         user_id: '00000000-0000-0000-0000-000000000000',
