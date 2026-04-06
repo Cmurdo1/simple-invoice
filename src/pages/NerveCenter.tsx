@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Activity, Zap, Radio, BrainCircuit, MapPin, Phone, Mail, ExternalLink, Clock, CheckCircle, AlertCircle, Send, Loader2, Cpu, Save } from 'lucide-react';
+import { NerveChat } from '@/components/nerve-center/NerveChat';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
