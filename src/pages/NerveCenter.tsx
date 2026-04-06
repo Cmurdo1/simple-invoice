@@ -383,6 +383,9 @@ export default function NerveCenter() {
             </Card>
           </div>
 
+          {/* AI Command Center Chat */}
+          <NerveChat />
+
           {/* Support Email Composer */}
           <SupportEmailComposer />
 
