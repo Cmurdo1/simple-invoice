@@ -25,3 +25,9 @@ verify_jwt = false
 
 [functions.get-public-invoice]
 verify_jwt = false
+
+[functions.process-nextdoor-email]
+verify_jwt = false
+
+[functions.process-lead]
+verify_jwt = false

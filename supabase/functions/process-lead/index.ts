@@ -19,6 +19,7 @@ Deno.serve(async (req) => {
       location,
       post_url,
       date_posted,
+      source,
     } = await req.json();
 
     if (!job_description) {
@@ -39,7 +40,7 @@ Deno.serve(async (req) => {
         post_url: post_url || null,
         date_posted: date_posted ? new Date(date_posted).toISOString() : null,
         status: 'new',
-        source: 'craigslist',
+        source: source || 'craigslist',
       })
       .select()
       .single();
@@ -88,7 +89,7 @@ Deno.serve(async (req) => {
         total_amount,
         type: 'estimate',
         status: 'draft',
-        notes: `Auto-generated from Craigslist lead.\nContact: ${contact_info || 'N/A'}\nLocation: ${location || 'N/A'}\nSource: ${post_url || 'N/A'}`,
+        notes: `Auto-generated from ${(source || 'craigslist').charAt(0).toUpperCase() + (source || 'craigslist').slice(1)} lead.\nContact: ${contact_info || 'N/A'}\nLocation: ${location || 'N/A'}\nSource: ${post_url || 'N/A'}`,
         // user_id is required — use a placeholder that signals auto-lead
         // The service role bypasses RLS so we can insert without auth.uid()
         user_id: '00000000-0000-0000-0000-000000000000',
