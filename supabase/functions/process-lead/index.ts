@@ -19,6 +19,7 @@ Deno.serve(async (req) => {
       location,
       post_url,
       date_posted,
+      source,
     } = await req.json();
 
     if (!job_description) {
