@@ -34,3 +34,6 @@ verify_jwt = false
 
 [functions.nerve-agent]
 verify_jwt = false
+
+[functions.ai-org-cron]
+verify_jwt = false
