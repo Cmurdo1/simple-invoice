@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -6,8 +8,6 @@
    A professional, trustworthy aesthetic for field contractors
    Dark charcoal with vibrant green accents matching the HI logo
 */
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
 @layer base {
   :root {
