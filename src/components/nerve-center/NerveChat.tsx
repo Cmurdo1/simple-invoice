@@ -14,7 +14,7 @@ interface Message {
 
 export function NerveChat() {
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: "I'm your Nerve Center AI. I can manage clients, create estimates & invoices, send emails, process leads, and monitor the pipeline. What do you need?" },
+    { role: 'assistant', content: "I'm your AI **CEO**. I run a 5-agent org: Sales (lead pipeline), Ops (clients/invoices), Finance (Stripe), Marketing (outreach), Custodian (KPIs/audit). Tell me what you want done — I'll delegate." },
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
