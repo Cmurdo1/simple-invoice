@@ -14,6 +14,114 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_actions: {
+        Row: {
+          action_type: string
+          agent_role: string
+          created_at: string
+          id: string
+          payload: Json | null
+          reasoning: string | null
+          result: Json | null
+          run_id: string | null
+          status: string
+          target: string | null
+          triggered_by: string
+        }
+        Insert: {
+          action_type: string
+          agent_role: string
+          created_at?: string
+          id?: string
+          payload?: Json | null
+          reasoning?: string | null
+          result?: Json | null
+          run_id?: string | null
+          status?: string
+          target?: string | null
+          triggered_by?: string
+        }
+        Update: {
+          action_type?: string
+          agent_role?: string
+          created_at?: string
+          id?: string
+          payload?: Json | null
+          reasoning?: string | null
+          result?: Json | null
+          run_id?: string | null
+          status?: string
+          target?: string | null
+          triggered_by?: string
+        }
+        Relationships: []
+      }
+      ai_org_runs: {
+        Row: {
+          actions_count: number
+          completed_at: string | null
+          error: string | null
+          id: string
+          started_at: string
+          status: string
+          summary: string | null
+          triggered_by: string
+        }
+        Insert: {
+          actions_count?: number
+          completed_at?: string | null
+          error?: string | null
+          id?: string
+          started_at?: string
+          status?: string
+          summary?: string | null
+          triggered_by?: string
+        }
+        Update: {
+          actions_count?: number
+          completed_at?: string | null
+          error?: string | null
+          id?: string
+          started_at?: string
+          status?: string
+          summary?: string | null
+          triggered_by?: string
+        }
+        Relationships: []
+      }
+      ai_org_settings: {
+        Row: {
+          autonomous_enabled: boolean
+          ceo_model: string
+          daily_brief_hour: number
+          id: number
+          last_brief_date: string | null
+          run_interval_minutes: number
+          updated_at: string
+          worker_model: string
+        }
+        Insert: {
+          autonomous_enabled?: boolean
+          ceo_model?: string
+          daily_brief_hour?: number
+          id?: number
+          last_brief_date?: string | null
+          run_interval_minutes?: number
+          updated_at?: string
+          worker_model?: string
+        }
+        Update: {
+          autonomous_enabled?: boolean
+          ceo_model?: string
+          daily_brief_hour?: number
+          id?: number
+          last_brief_date?: string | null
+          run_interval_minutes?: number
+          updated_at?: string
+          worker_model?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           address: string | null
