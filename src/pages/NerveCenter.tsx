@@ -10,6 +10,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Activity, Zap, Radio, BrainCircuit, MapPin, Phone, Mail, ExternalLink, Clock, CheckCircle, AlertCircle, Send, Loader2, Cpu, Save } from 'lucide-react';
 import { NerveChat } from '@/components/nerve-center/NerveChat';
+import { AIOrgControl } from '@/components/nerve-center/AIOrgControl';
+import { AIActivityFeed } from '@/components/nerve-center/AIActivityFeed';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
@@ -383,8 +385,14 @@ export default function NerveCenter() {
             </Card>
           </div>
 
-          {/* AI Command Center Chat */}
+          {/* AI Command Center Chat (CEO orchestrator) */}
           <NerveChat />
+
+          {/* AI Org Control — autonomy + scheduling */}
+          <AIOrgControl />
+
+          {/* Live AI Activity Feed */}
+          <AIActivityFeed />
 
           {/* Support Email Composer */}
           <SupportEmailComposer />
