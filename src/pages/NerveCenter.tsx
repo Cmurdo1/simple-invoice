@@ -367,6 +367,11 @@ export default function NerveCenter() {
                 Central hub for automations, signals, and AI task orchestration
               </p>
             </div>
+            <div className="ml-auto">
+              <Button asChild variant="outline" size="sm">
+                <a href="/send-email"><Mail className="mr-2 h-4 w-4" /> Send Email</a>
+              </Button>
+            </div>
           </div>
 
           {/* Stats row */}

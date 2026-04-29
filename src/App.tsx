@@ -23,6 +23,7 @@ const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
 const Feedback = lazy(() => import("./pages/Feedback"));
 const NerveCenter = lazy(() => import("./pages/NerveCenter"));
+const SendEmail = lazy(() => import("./pages/SendEmail"));
 const PitchDeck = lazy(() => import("./pages/PitchDeck"));
 const PayInvoice = lazy(() => import("./pages/PayInvoice"));
 const PayLanding = lazy(() => import("./pages/PayLanding"));
@@ -115,6 +116,15 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <NerveCenter />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/send-email"
+              element={
+                <ProtectedRoute>
+                  <SendEmail />
                 </ProtectedRoute>
               }
             />
