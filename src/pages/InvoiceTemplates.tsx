@@ -79,8 +79,8 @@ export default function InvoiceTemplates() {
     <>
       <SEOHead
         canonicalUrl="/invoice-templates"
-        title="Free Invoice Template — Create & Send Online | Honest Invoice"
-        description="Download or use a free professional invoice template online. AI fills in line items automatically. Export PDF, send by email, collect payments via Stripe. 100% free."
+        title="Free Invoice Template — Honest Invoice"
+        description="Free professional invoice templates for freelancers, contractors, and small businesses. AI-powered, PDF export, Stripe payments."
         structuredData={structuredData}
       />
       <div className="min-h-screen bg-background">
