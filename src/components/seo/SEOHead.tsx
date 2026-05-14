@@ -35,8 +35,8 @@ const DEFAULT_KEYWORDS = [
 ].join(', ');
 
 export function SEOHead({
-  title = 'Honest Invoice | Professional Billing & Estimates for Trades',
-  description = 'The ultimate invoicing and estimation tool for mobile mechanics, handymen, and contractors. Create free professional invoices & estimates in seconds — AI-powered, Stripe payments, offline support. Professional, honest, and fast.',
+  title = 'Honest Invoice — Free Invoicing for Trades',
+  description = 'Free AI-powered invoices and estimates for mechanics, handymen, and contractors. Stripe payments, PDF export, and full offline support.',
   keywords = DEFAULT_KEYWORDS,
   canonicalUrl,
   ogImage = DEFAULT_OG_IMAGE,
