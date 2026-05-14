@@ -1,0 +1,19 @@
+# Honest Invoice
+
+> Free AI-powered invoicing and estimates for mechanics, handymen, contractors, and freelancers. Create invoices, send by email with a Pay Now button (Stripe), export PDFs, and work fully offline.
+
+Honest Invoice is a free invoice template and generator built for trades and field service workers. Describe a job in plain English and the AI fills in itemized line items, labor, and parts. Send invoices by email with a Stripe-powered Pay Invoice button, export branded PDFs, and manage clients — all on web, Android, and iOS, with full offline support.
+
+## Pages
+
+- [Home](/): Overview of features, pricing, and FAQs.
+- [Free Invoice Templates](/invoice-templates): Free professional invoice templates with AI line-item fill.
+- [Pay an Invoice](/pay): Customer-facing page to pay an invoice online via Stripe.
+- [Sign Up](/signup): Create a free account.
+- [Log In](/login): Existing user sign-in.
+- [Privacy Policy](/privacy): How we handle your data.
+- [Terms of Service](/terms): Terms governing use of Honest Invoice.
+
+## Optional
+
+- [Forgot Password](/forgot-password): Password recovery.
