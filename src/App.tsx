@@ -29,6 +29,7 @@ const PayInvoice = lazy(() => import("./pages/PayInvoice"));
 const PayLanding = lazy(() => import("./pages/PayLanding"));
 const InvoiceTemplates = lazy(() => import("./pages/InvoiceTemplates"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -68,6 +69,7 @@ const App = () => (
             <Route path="/pay" element={<PayLanding />} />
             <Route path="/pay/:id" element={<PayInvoice />} />
             <Route path="/invoice-templates" element={<InvoiceTemplates />} />
+            <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
 
             {/* Protected routes */}
             <Route
