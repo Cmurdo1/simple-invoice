@@ -638,12 +638,18 @@ export default function InvoiceEditor() {
                       <span className="tabular-nums">${taxAmount.toFixed(2)}</span>
                     </div>
                   )}
+                  {currentLateFee.isOverdue && currentLateFee.lateFeeAmount > 0 && (
+                    <div className="flex justify-between text-sm text-destructive">
+                      <span>Late fee ({currentLateFee.monthsOverdue.toFixed(2)} mo × {lateFeePercent}%)</span>
+                      <span className="tabular-nums">+${currentLateFee.lateFeeAmount.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div
                     className="flex justify-between text-base font-bold rounded-lg px-3 py-2.5 mt-1"
                     style={{ background: `${accentColor}15`, color: accentColor }}
                   >
-                    <span>Total</span>
-                    <span className="tabular-nums">${total.toFixed(2)}</span>
+                    <span>{currentLateFee.isOverdue ? 'Total Due (with late fee)' : 'Total'}</span>
+                    <span className="tabular-nums">${currentLateFee.totalDue.toFixed(2)}</span>
                   </div>
                 </div>
               </CardContent>
