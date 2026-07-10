@@ -21,7 +21,7 @@ import {
   Loader2, Plus, Trash2, Save, Download, ArrowLeft,
   Send, Mail, Link as LinkIcon, Copy, FileText, ClipboardList,
   User, Calendar, DollarSign, StickyNote, Receipt, Briefcase,
-  CheckCircle, Clock, AlertCircle,
+  CheckCircle, Clock, AlertCircle, Percent, Split,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -30,6 +30,7 @@ import { exportInvoiceToPDF } from '@/lib/pdfExport';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
+import { calculateLateFee } from '@/lib/lateFees';
 
 const statusConfig: Record<InvoiceStatus, { label: string; class: string; icon: React.ReactNode }> = {
   draft:   { label: 'Draft',   class: 'bg-muted text-muted-foreground border border-border',       icon: <Clock className="h-3 w-3" /> },
@@ -63,6 +64,8 @@ export default function InvoiceEditor() {
   const [sendAsEstimate, setSendAsEstimate] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [isCopyingLink, setIsCopyingLink] = useState(false);
+  const [lateFeePercent, setLateFeePercent] = useState<string>('');
+  const [isSplitting, setIsSplitting] = useState(false);
 
   useEffect(() => {
     if (invoice) {
@@ -80,8 +83,13 @@ export default function InvoiceEditor() {
       setSendAsEstimate(invoice.type === 'estimate');
       setNotes(invoice.notes || '');
       setJobDescription(invoice.job_description || '');
+      setLateFeePercent(
+        invoice.late_fee_percent != null
+          ? String(invoice.late_fee_percent)
+          : String(profile?.default_late_fee_percent ?? 1.5)
+      );
     }
-  }, [invoice]);
+  }, [invoice, profile?.default_late_fee_percent]);
 
   const handleAddItem = () => {
     setLocalItems([...localItems, { description: '', quantity: 1, unit_price: 0, isNew: true }]);
@@ -132,12 +140,13 @@ export default function InvoiceEditor() {
         }
       }
 
-      // Save notes + job description
+      // Save notes + job description + late fee
       await updateInvoice.mutateAsync({
         id,
         notes,
         job_description: jobDescription,
         type: sendAsEstimate ? 'estimate' : 'invoice',
+        late_fee_percent: lateFeePercent === '' ? null : Number(lateFeePercent),
       });
 
       await recalculateTotals.mutateAsync({ invoice_id: id, tax_rate: profile?.tax_rate || 0 });
@@ -145,6 +154,62 @@ export default function InvoiceEditor() {
     } catch (error) {
       console.error('Save error:', error);
       toast.error('Failed to save');
+    }
+  };
+
+  const handleSplitDeposit = async () => {
+    if (!invoice || !id) return;
+    if (invoice.is_deposit) {
+      toast.error('This is already a deposit invoice.');
+      return;
+    }
+    const principal = Number(invoice.total_amount) || 0;
+    if (principal <= 0) {
+      toast.error('Save the invoice with a total first.');
+      return;
+    }
+    setIsSplitting(true);
+    try {
+      const halfAmount = +(principal / 2).toFixed(2);
+      // Create the deposit invoice (child)
+      const { data: deposit, error: dErr } = await supabase
+        .from('invoices')
+        .insert({
+          user_id: invoice.user_id,
+          client_id: invoice.client_id,
+          job_description: `50% materials/parts deposit for ${invoice.invoice_number || 'invoice'}${invoice.job_description ? ' — ' + invoice.job_description : ''}`,
+          status: 'draft',
+          type: 'invoice',
+          is_deposit: true,
+          deposit_percent: 50,
+          parent_invoice_id: invoice.id,
+          total_amount: halfAmount,
+          tax_amount: 0,
+          late_fee_percent: invoice.late_fee_percent,
+        })
+        .select()
+        .single();
+      if (dErr || !deposit) throw dErr || new Error('Failed to create deposit');
+
+      // One-item line describing the deposit
+      const { error: itemErr } = await supabase
+        .from('invoice_items')
+        .insert({
+          invoice_id: deposit.id,
+          description: '50% deposit — materials & parts',
+          quantity: 1,
+          unit_price: halfAmount,
+          sort_order: 0,
+        });
+      if (itemErr) throw itemErr;
+
+      toast.success('Deposit invoice created (50% upfront)');
+      navigate(`/invoice/${deposit.id}`);
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || 'Failed to create deposit');
+    } finally {
+      setIsSplitting(false);
     }
   };
 
@@ -261,6 +326,12 @@ export default function InvoiceEditor() {
   const taxRate = profile?.tax_rate || 0;
   const taxAmount = subtotal * (taxRate / 100);
   const total = subtotal + taxAmount;
+
+  const currentLateFee = calculateLateFee(
+    total,
+    invoice.due_date,
+    lateFeePercent === '' ? 0 : Number(lateFeePercent),
+  );
 
   const isEstimateMode = sendAsEstimate;
   const accentColor = isEstimateMode
@@ -567,12 +638,18 @@ export default function InvoiceEditor() {
                       <span className="tabular-nums">${taxAmount.toFixed(2)}</span>
                     </div>
                   )}
+                  {currentLateFee.isOverdue && currentLateFee.lateFeeAmount > 0 && (
+                    <div className="flex justify-between text-sm text-destructive">
+                      <span>Late fee ({currentLateFee.monthsOverdue.toFixed(2)} mo × {lateFeePercent}%)</span>
+                      <span className="tabular-nums">+${currentLateFee.lateFeeAmount.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div
                     className="flex justify-between text-base font-bold rounded-lg px-3 py-2.5 mt-1"
                     style={{ background: `${accentColor}15`, color: accentColor }}
                   >
-                    <span>Total</span>
-                    <span className="tabular-nums">${total.toFixed(2)}</span>
+                    <span>{currentLateFee.isOverdue ? 'Total Due (with late fee)' : 'Total'}</span>
+                    <span className="tabular-nums">${currentLateFee.totalDue.toFixed(2)}</span>
                   </div>
                 </div>
               </CardContent>
@@ -708,6 +785,76 @@ export default function InvoiceEditor() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Late Fee & Deposit */}
+            {!isEstimateMode && (
+              <Card className="overflow-hidden">
+                <div className="h-0.5 w-full" style={{ background: accentColor }} />
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Percent className="h-4 w-4" style={{ color: accentColor }} />
+                    Late Fees & Deposit
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">
+                      Late fee (% per month past due)
+                    </label>
+                    <div className="relative">
+                      <Input
+                        type="number" min="0" step="0.25"
+                        value={lateFeePercent}
+                        onChange={(e) => setLateFeePercent(e.target.value)}
+                        className="pr-8 h-9 text-sm"
+                        placeholder="1.5"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">%/mo</span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground mt-1.5 leading-snug">
+                      Auto-applied on the payment page once past due. Prorated by 30-day months.
+                    </p>
+                  </div>
+
+                  {invoice.is_deposit ? (
+                    <div className="rounded-lg border bg-muted/40 p-2.5 text-xs">
+                      <div className="font-semibold text-foreground">50% materials/parts deposit</div>
+                      <div className="text-muted-foreground mt-0.5">
+                        Linked to a parent invoice for the remaining balance.
+                      </div>
+                      {invoice.parent_invoice_id && (
+                        <Button
+                          size="sm" variant="ghost"
+                          className="mt-1.5 h-7 px-2 text-xs"
+                          onClick={() => navigate(`/invoice/${invoice.parent_invoice_id}`)}
+                        >
+                          View parent invoice →
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full gap-2 h-9"
+                        onClick={handleSplitDeposit}
+                        disabled={isSplitting || total <= 0}
+                      >
+                        {isSplitting
+                          ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          : <Split className="h-3.5 w-3.5" />}
+                        Create 50% Deposit Invoice
+                      </Button>
+                      <p className="text-[11px] text-muted-foreground mt-1.5 leading-snug">
+                        Bills ${(total / 2).toFixed(2)} upfront for materials/parts; the balance stays on this invoice.
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
 
             {/* Payment Link */}
             <Card className="overflow-hidden">

@@ -235,12 +235,19 @@ export type Database = {
         Row: {
           client_id: string | null
           created_at: string
+          deposit_percent: number | null
           due_date: string | null
           feedback_token: string | null
           id: string
           invoice_number: string | null
+          is_deposit: boolean
           job_description: string | null
+          last_reminder_sent_at: string | null
+          late_fee_percent: number | null
+          marked_overdue_at: string | null
           notes: string | null
+          parent_invoice_id: string | null
+          reminder_count: number
           sent_count: number | null
           status: Database["public"]["Enums"]["invoice_status"]
           tax_amount: number | null
@@ -252,12 +259,19 @@ export type Database = {
         Insert: {
           client_id?: string | null
           created_at?: string
+          deposit_percent?: number | null
           due_date?: string | null
           feedback_token?: string | null
           id?: string
           invoice_number?: string | null
+          is_deposit?: boolean
           job_description?: string | null
+          last_reminder_sent_at?: string | null
+          late_fee_percent?: number | null
+          marked_overdue_at?: string | null
           notes?: string | null
+          parent_invoice_id?: string | null
+          reminder_count?: number
           sent_count?: number | null
           status?: Database["public"]["Enums"]["invoice_status"]
           tax_amount?: number | null
@@ -269,12 +283,19 @@ export type Database = {
         Update: {
           client_id?: string | null
           created_at?: string
+          deposit_percent?: number | null
           due_date?: string | null
           feedback_token?: string | null
           id?: string
           invoice_number?: string | null
+          is_deposit?: boolean
           job_description?: string | null
+          last_reminder_sent_at?: string | null
+          late_fee_percent?: number | null
+          marked_overdue_at?: string | null
           notes?: string | null
+          parent_invoice_id?: string | null
+          reminder_count?: number
           sent_count?: number | null
           status?: Database["public"]["Enums"]["invoice_status"]
           tax_amount?: number | null
@@ -289,6 +310,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_parent_invoice_id_fkey"
+            columns: ["parent_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
             referencedColumns: ["id"]
           },
         ]
@@ -355,6 +383,7 @@ export type Database = {
           col_multiplier: number | null
           country: string | null
           created_at: string
+          default_late_fee_percent: number
           email: string | null
           estimate_color: string | null
           id: string
@@ -379,6 +408,7 @@ export type Database = {
           col_multiplier?: number | null
           country?: string | null
           created_at?: string
+          default_late_fee_percent?: number
           email?: string | null
           estimate_color?: string | null
           id: string
@@ -403,6 +433,7 @@ export type Database = {
           col_multiplier?: number | null
           country?: string | null
           created_at?: string
+          default_late_fee_percent?: number
           email?: string | null
           estimate_color?: string | null
           id?: string
@@ -508,6 +539,7 @@ export type Database = {
         Args: { p_usage_type: string; p_user_id: string }
         Returns: Json
       }
+      mark_overdue_invoices: { Args: never; Returns: number }
       process_referral_reward: {
         Args: { p_referred_user_id: string }
         Returns: undefined

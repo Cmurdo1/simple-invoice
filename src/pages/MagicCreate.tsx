@@ -12,7 +12,7 @@ import { useCreateInvoice, useAddInvoiceItems, useRecalculateInvoiceTotals } fro
 import { useProfile } from '@/hooks/useProfile';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { getColMultiplierLabel } from '@/hooks/useGeolocation';
-import { Loader2, Wand2, Sparkles, ArrowRight, Mic, MicOff, MapPin, RefreshCw, ImagePlus, X, Camera } from 'lucide-react';
+import { Loader2, Wand2, Sparkles, ArrowRight, Mic, MicOff, MapPin, RefreshCw, ImagePlus, X, Camera, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { ExtractedLineItem } from '@/types/database';
@@ -46,6 +46,8 @@ export default function MagicCreate() {
   const [extractedItems, setExtractedItems] = useState<ExtractedLineItem[] | null>(null);
   const [creating, setCreating] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfFileName, setPdfFileName] = useState<string | null>(null);
 
   // Fetch the owner-configured AI model on mount
   useEffect(() => {
@@ -66,6 +68,7 @@ export default function MagicCreate() {
     fetchModel();
   }, []);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const pdfInputRef = useRef<HTMLInputElement>(null);
 
   const isEstimate = type === 'estimate';
   const label = isEstimate ? 'Estimate' : 'Invoice';
@@ -146,6 +149,46 @@ export default function MagicCreate() {
       return prev.filter((_, i) => i !== index);
     });
   };
+
+  const handlePdfUpload = async (file: File | null) => {
+    if (!file) return;
+    if (file.type !== 'application/pdf') {
+      toast.error('Please upload a PDF file');
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error('PDF is too large (max 15MB)');
+      return;
+    }
+    setPdfLoading(true);
+    setPdfFileName(file.name);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve((reader.result as string).split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const { data, error } = await supabase.functions.invoke('extract-line-items-from-pdf', {
+        body: { pdf_base64: base64, filename: file.name, notes: jobDescription || undefined },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (!data?.items || data.items.length === 0) {
+        toast.error('No line items found in the PDF');
+        return;
+      }
+      setExtractedItems(data.items);
+      toast.success(`Extracted ${data.items.length} line items from ${file.name}`);
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || 'Failed to read PDF');
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
 
   const handleExtract = async () => {
     if (!jobDescription.trim() && uploadedImages.length === 0) {
@@ -441,6 +484,45 @@ export default function MagicCreate() {
                 onClick={(e) => { (e.target as HTMLInputElement).value = ''; }}
               />
             </div>
+
+            {/* PDF Upload */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Import from PDF
+                <Badge variant="secondary" className="text-xs font-normal">Quotes · Receipts · Prior invoices</Badge>
+              </Label>
+              <button
+                type="button"
+                onClick={() => pdfInputRef.current?.click()}
+                disabled={pdfLoading}
+                className="flex w-full items-center justify-between gap-3 rounded-lg border-2 border-dashed border-muted-foreground/30 bg-muted/20 px-4 py-3 text-left transition-colors hover:border-primary/50 hover:bg-primary/5 disabled:opacity-60"
+              >
+                <div className="flex items-center gap-3">
+                  {pdfLoading
+                    ? <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                    : <FileText className="h-5 w-5 text-muted-foreground" />}
+                  <div>
+                    <p className="text-sm font-medium">
+                      {pdfLoading ? 'Reading PDF…' : pdfFileName || 'Upload a PDF to auto-fill line items'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Skips the description step — items go straight to the review table below.
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-xs shrink-0">Choose PDF</Badge>
+              </button>
+              <input
+                ref={pdfInputRef}
+                type="file"
+                accept="application/pdf"
+                className="hidden"
+                onChange={(e) => handlePdfUpload(e.target.files?.[0] ?? null)}
+                onClick={(e) => { (e.target as HTMLInputElement).value = ''; }}
+              />
+            </div>
+
 
             <Button
               onClick={handleExtract}
