@@ -12,7 +12,7 @@ import { useCreateInvoice, useAddInvoiceItems, useRecalculateInvoiceTotals } fro
 import { useProfile } from '@/hooks/useProfile';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { getColMultiplierLabel } from '@/hooks/useGeolocation';
-import { Loader2, Wand2, Sparkles, ArrowRight, Mic, MicOff, MapPin, RefreshCw, ImagePlus, X, Camera } from 'lucide-react';
+import { Loader2, Wand2, Sparkles, ArrowRight, Mic, MicOff, MapPin, RefreshCw, ImagePlus, X, Camera, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { ExtractedLineItem } from '@/types/database';
@@ -46,6 +46,8 @@ export default function MagicCreate() {
   const [extractedItems, setExtractedItems] = useState<ExtractedLineItem[] | null>(null);
   const [creating, setCreating] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfFileName, setPdfFileName] = useState<string | null>(null);
 
   // Fetch the owner-configured AI model on mount
   useEffect(() => {
@@ -66,6 +68,7 @@ export default function MagicCreate() {
     fetchModel();
   }, []);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const pdfInputRef = useRef<HTMLInputElement>(null);
 
   const isEstimate = type === 'estimate';
   const label = isEstimate ? 'Estimate' : 'Invoice';
