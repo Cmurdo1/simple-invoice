@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,13 @@ import { SEOHead } from '@/components/seo/SEOHead';
 import { lovable } from '@/integrations/lovable/index';
 import loginLogo from '@/assets/honest-invoice-login-logo.png';
 
+// Only accept same-origin relative paths as post-login redirect targets.
+function safeNext(raw: string | null): string {
+  if (!raw) return '/dashboard';
+  if (!raw.startsWith('/') || raw.startsWith('//')) return '/dashboard';
+  return raw;
+}
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,16 +26,25 @@ export default function Login() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const { signIn } = useAuth();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const next = safeNext(params.get('next'));
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
+    // Send Google back to /login?next=... so we can consume `next` after the
+    // session is set (needed for the MCP OAuth consent handoff).
+    const redirect = `${window.location.origin}/login?next=${encodeURIComponent(next)}`;
     const result = await lovable.auth.signInWithOAuth('google', {
-      redirect_uri: window.location.origin,
+      redirect_uri: redirect,
     });
     if (result?.error) {
       toast.error('Google sign-in failed. Please try again.');
       setGoogleLoading(false);
+      return;
     }
+    if (result?.redirected) return;
+    // Tokens returned directly (popup path) — navigate to preserved target.
+    window.location.href = next;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -40,7 +56,8 @@ export default function Login() {
       setLoading(false);
     } else {
       toast.success('Welcome back!');
-      navigate('/dashboard');
+      // Full navigation so a `next` pointing at /.lovable/oauth/consent hydrates cleanly.
+      window.location.href = next;
     }
   };
 
