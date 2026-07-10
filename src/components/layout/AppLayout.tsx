@@ -117,8 +117,8 @@ export function AppLayout({ children }: AppLayoutProps) {
                     'flex items-center rounded-lg py-2.5 text-sm font-medium transition-all duration-200',
                     isCollapsed ? 'justify-center px-0' : 'justify-start gap-3 px-3',
                     isActive
-                      ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-[0_0_15px_hsl(142_72%_50%_/_0.4)]'
-                      : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_20px_hsl(142_72%_50%_/_0.3)] hover:translate-x-1'
+                      ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-[0_2px_8px_hsl(214_70%_50%_/_0.25)]'
+                      : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_2px_10px_hsl(214_70%_50%_/_0.2)] hover:translate-x-1'
                   )}
                 >
                   <Icon className="h-5 w-5" />
@@ -180,7 +180,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         <div 
           className="fixed inset-0 z-30 pt-16 lg:hidden"
           style={{
-            background: 'linear-gradient(135deg, hsl(var(--background)) 0%, hsl(220 25% 12%) 50%, hsl(142 72% 20% / 0.3) 100%)'
+            background: 'linear-gradient(135deg, hsl(var(--background)) 0%, hsl(220 45% 12%) 50%, hsl(214 60% 25% / 0.35) 100%)'
           }}
         >
           <nav className="space-y-1 p-4">
@@ -195,8 +195,8 @@ export function AppLayout({ children }: AppLayoutProps) {
                   className={cn(
                     'flex items-center gap-3 rounded-lg px-3 py-3 text-base font-medium transition-all duration-200',
                     isActive
-                      ? 'bg-primary text-primary-foreground shadow-[0_0_15px_hsl(142_72%_50%_/_0.4)]'
-                      : 'text-foreground hover:bg-accent hover:shadow-[0_0_20px_hsl(142_72%_50%_/_0.3)]'
+                      ? 'bg-primary text-primary-foreground shadow-[0_2px_8px_hsl(214_70%_50%_/_0.25)]'
+                      : 'text-foreground hover:bg-accent hover:shadow-[0_2px_10px_hsl(214_70%_50%_/_0.2)]'
                   )}
                 >
                   <Icon className="h-5 w-5" />
@@ -223,7 +223,7 @@ export function AppLayout({ children }: AppLayoutProps) {
           isCollapsed ? "lg:ml-20" : "lg:ml-64"
         )}
         style={{
-          background: 'linear-gradient(135deg, hsl(var(--background)) 0%, hsl(220 25% 12%) 50%, hsl(142 72% 20% / 0.3) 100%)'
+          background: 'linear-gradient(135deg, hsl(var(--background)) 0%, hsl(220 45% 12%) 50%, hsl(214 60% 25% / 0.35) 100%)'
         }}
       >
         <div className="relative min-h-screen p-4 lg:p-8">

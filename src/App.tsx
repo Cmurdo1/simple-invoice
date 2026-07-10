@@ -49,8 +49,8 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Suspense fallback={
-            <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',background:'hsl(220 25% 6%)',color:'hsl(142 72% 50%)',fontFamily:'sans-serif',flexDirection:'column',gap:'12px'}}>
-              <div style={{width:'32px',height:'32px',border:'3px solid hsl(142 72% 50% / 0.3)',borderTopColor:'hsl(142 72% 50%)',borderRadius:'50%',animation:'spin 0.8s linear infinite'}} />
+            <div style={{display:'flex',alignItems:'center',justifyContent:'center',minHeight:'100vh',background:'hsl(220 45% 8%)',color:'hsl(214 70% 60%)',fontFamily:'sans-serif',flexDirection:'column',gap:'12px'}}>
+              <div style={{width:'32px',height:'32px',border:'3px solid hsl(214 70% 60% / 0.3)',borderTopColor:'hsl(214 70% 60%)',borderRadius:'50%',animation:'spin 0.8s linear infinite'}} />
               <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
               <span style={{fontSize:'14px',opacity:0.7}}>Loading...</span>
             </div>
