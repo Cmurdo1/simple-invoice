@@ -227,7 +227,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         }}
       >
         <div className="relative min-h-screen p-4 lg:p-8">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_hsl(142_72%_42%_/_0.08),_transparent_50%)]" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_hsl(214_60%_45%_/_0.1),_transparent_50%)]" />
           <div className="relative">{children}</div>
         </div>
       </main>
