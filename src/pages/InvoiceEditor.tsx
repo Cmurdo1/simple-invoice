@@ -140,12 +140,13 @@ export default function InvoiceEditor() {
         }
       }
 
-      // Save notes + job description
+      // Save notes + job description + late fee
       await updateInvoice.mutateAsync({
         id,
         notes,
         job_description: jobDescription,
         type: sendAsEstimate ? 'estimate' : 'invoice',
+        late_fee_percent: lateFeePercent === '' ? null : Number(lateFeePercent),
       });
 
       await recalculateTotals.mutateAsync({ invoice_id: id, tax_rate: profile?.tax_rate || 0 });
@@ -153,6 +154,62 @@ export default function InvoiceEditor() {
     } catch (error) {
       console.error('Save error:', error);
       toast.error('Failed to save');
+    }
+  };
+
+  const handleSplitDeposit = async () => {
+    if (!invoice || !id) return;
+    if (invoice.is_deposit) {
+      toast.error('This is already a deposit invoice.');
+      return;
+    }
+    const principal = Number(invoice.total_amount) || 0;
+    if (principal <= 0) {
+      toast.error('Save the invoice with a total first.');
+      return;
+    }
+    setIsSplitting(true);
+    try {
+      const halfAmount = +(principal / 2).toFixed(2);
+      // Create the deposit invoice (child)
+      const { data: deposit, error: dErr } = await supabase
+        .from('invoices')
+        .insert({
+          user_id: invoice.user_id,
+          client_id: invoice.client_id,
+          job_description: `50% materials/parts deposit for ${invoice.invoice_number || 'invoice'}${invoice.job_description ? ' — ' + invoice.job_description : ''}`,
+          status: 'draft',
+          type: 'invoice',
+          is_deposit: true,
+          deposit_percent: 50,
+          parent_invoice_id: invoice.id,
+          total_amount: halfAmount,
+          tax_amount: 0,
+          late_fee_percent: invoice.late_fee_percent,
+        })
+        .select()
+        .single();
+      if (dErr || !deposit) throw dErr || new Error('Failed to create deposit');
+
+      // One-item line describing the deposit
+      const { error: itemErr } = await supabase
+        .from('invoice_items')
+        .insert({
+          invoice_id: deposit.id,
+          description: '50% deposit — materials & parts',
+          quantity: 1,
+          unit_price: halfAmount,
+          sort_order: 0,
+        });
+      if (itemErr) throw itemErr;
+
+      toast.success('Deposit invoice created (50% upfront)');
+      navigate(`/invoice/${deposit.id}`);
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || 'Failed to create deposit');
+    } finally {
+      setIsSplitting(false);
     }
   };
 
