@@ -23,6 +23,8 @@ export default function Signup() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const refCode = searchParams.get('ref') ?? '';
+  const rawNext = searchParams.get('next');
+  const next = rawNext && rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/dashboard';
 
   // Persist ref code so it survives any redirects
   useEffect(() => {
@@ -33,13 +35,17 @@ export default function Signup() {
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
+    const redirect = `${window.location.origin}/login?next=${encodeURIComponent(next)}`;
     const result = await lovable.auth.signInWithOAuth('google', {
-      redirect_uri: window.location.origin,
+      redirect_uri: redirect,
     });
     if (result?.error) {
       toast.error('Google sign-in failed. Please try again.');
       setGoogleLoading(false);
+      return;
     }
+    if (result?.redirected) return;
+    window.location.href = next;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -65,7 +71,7 @@ export default function Signup() {
     } else {
       sessionStorage.removeItem('referral_code');
       toast.success('Account created! Check your email to confirm.');
-      navigate('/dashboard');
+      window.location.href = next;
     }
   };
 
