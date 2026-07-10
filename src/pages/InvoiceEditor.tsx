@@ -786,6 +786,76 @@ export default function InvoiceEditor() {
               </CardContent>
             </Card>
 
+            {/* Late Fee & Deposit */}
+            {!isEstimateMode && (
+              <Card className="overflow-hidden">
+                <div className="h-0.5 w-full" style={{ background: accentColor }} />
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Percent className="h-4 w-4" style={{ color: accentColor }} />
+                    Late Fees & Deposit
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5 block">
+                      Late fee (% per month past due)
+                    </label>
+                    <div className="relative">
+                      <Input
+                        type="number" min="0" step="0.25"
+                        value={lateFeePercent}
+                        onChange={(e) => setLateFeePercent(e.target.value)}
+                        className="pr-8 h-9 text-sm"
+                        placeholder="1.5"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">%/mo</span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground mt-1.5 leading-snug">
+                      Auto-applied on the payment page once past due. Prorated by 30-day months.
+                    </p>
+                  </div>
+
+                  {invoice.is_deposit ? (
+                    <div className="rounded-lg border bg-muted/40 p-2.5 text-xs">
+                      <div className="font-semibold text-foreground">50% materials/parts deposit</div>
+                      <div className="text-muted-foreground mt-0.5">
+                        Linked to a parent invoice for the remaining balance.
+                      </div>
+                      {invoice.parent_invoice_id && (
+                        <Button
+                          size="sm" variant="ghost"
+                          className="mt-1.5 h-7 px-2 text-xs"
+                          onClick={() => navigate(`/invoice/${invoice.parent_invoice_id}`)}
+                        >
+                          View parent invoice →
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full gap-2 h-9"
+                        onClick={handleSplitDeposit}
+                        disabled={isSplitting || total <= 0}
+                      >
+                        {isSplitting
+                          ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          : <Split className="h-3.5 w-3.5" />}
+                        Create 50% Deposit Invoice
+                      </Button>
+                      <p className="text-[11px] text-muted-foreground mt-1.5 leading-snug">
+                        Bills ${(total / 2).toFixed(2)} upfront for materials/parts; the balance stays on this invoice.
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+
             {/* Payment Link */}
             <Card className="overflow-hidden">
               <div className="h-0.5 w-full" style={{ background: accentColor }} />
