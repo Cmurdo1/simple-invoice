@@ -21,7 +21,7 @@ import {
   Loader2, Plus, Trash2, Save, Download, ArrowLeft,
   Send, Mail, Link as LinkIcon, Copy, FileText, ClipboardList,
   User, Calendar, DollarSign, StickyNote, Receipt, Briefcase,
-  CheckCircle, Clock, AlertCircle,
+  CheckCircle, Clock, AlertCircle, Percent, Split,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -30,6 +30,7 @@ import { exportInvoiceToPDF } from '@/lib/pdfExport';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
+import { calculateLateFee } from '@/lib/lateFees';
 
 const statusConfig: Record<InvoiceStatus, { label: string; class: string; icon: React.ReactNode }> = {
   draft:   { label: 'Draft',   class: 'bg-muted text-muted-foreground border border-border',       icon: <Clock className="h-3 w-3" /> },
@@ -63,6 +64,8 @@ export default function InvoiceEditor() {
   const [sendAsEstimate, setSendAsEstimate] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
   const [isCopyingLink, setIsCopyingLink] = useState(false);
+  const [lateFeePercent, setLateFeePercent] = useState<string>('');
+  const [isSplitting, setIsSplitting] = useState(false);
 
   useEffect(() => {
     if (invoice) {
@@ -80,8 +83,13 @@ export default function InvoiceEditor() {
       setSendAsEstimate(invoice.type === 'estimate');
       setNotes(invoice.notes || '');
       setJobDescription(invoice.job_description || '');
+      setLateFeePercent(
+        invoice.late_fee_percent != null
+          ? String(invoice.late_fee_percent)
+          : String(profile?.default_late_fee_percent ?? 1.5)
+      );
     }
-  }, [invoice]);
+  }, [invoice, profile?.default_late_fee_percent]);
 
   const handleAddItem = () => {
     setLocalItems([...localItems, { description: '', quantity: 1, unit_price: 0, isNew: true }]);
