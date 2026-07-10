@@ -150,6 +150,46 @@ export default function MagicCreate() {
     });
   };
 
+  const handlePdfUpload = async (file: File | null) => {
+    if (!file) return;
+    if (file.type !== 'application/pdf') {
+      toast.error('Please upload a PDF file');
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error('PDF is too large (max 15MB)');
+      return;
+    }
+    setPdfLoading(true);
+    setPdfFileName(file.name);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve((reader.result as string).split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const { data, error } = await supabase.functions.invoke('extract-line-items-from-pdf', {
+        body: { pdf_base64: base64, filename: file.name, notes: jobDescription || undefined },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (!data?.items || data.items.length === 0) {
+        toast.error('No line items found in the PDF');
+        return;
+      }
+      setExtractedItems(data.items);
+      toast.success(`Extracted ${data.items.length} line items from ${file.name}`);
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || 'Failed to read PDF');
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
+
   const handleExtract = async () => {
     if (!jobDescription.trim() && uploadedImages.length === 0) {
       toast.error('Please enter a job description or upload photos');
