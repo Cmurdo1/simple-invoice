@@ -63,32 +63,43 @@ async function callAI(
   temperature = 0.1
 ): Promise<string> {
   const config = MODEL_REGISTRY[modelKey] ?? MODEL_REGISTRY[DEFAULT_MODEL];
-  const isNvidia = config.provider === 'nvidia' && nvidiaKey;
+  const tryNvidia = config.provider === 'nvidia' && nvidiaKey;
 
-  const baseUrl = isNvidia ? NVIDIA_BASE_URL : LOVABLE_BASE_URL;
-  const authKey = isNvidia ? nvidiaKey! : lovableKey;
+  const attempt = async (useNvidia: boolean): Promise<string> => {
+    const baseUrl = useNvidia ? NVIDIA_BASE_URL : LOVABLE_BASE_URL;
+    const authKey = useNvidia ? nvidiaKey! : lovableKey;
+    const modelId = useNvidia ? config.modelId : 'google/gemini-2.5-flash';
 
-  const response = await fetch(`${baseUrl}/chat/completions`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${authKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: config.modelId,
-      messages,
-      temperature,
-      max_tokens: 2048,
-    }),
-  });
+    const response = await fetch(`${baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${authKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ model: modelId, messages, temperature, max_tokens: 2048 }),
+    });
 
-  if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`[${config.label}] ${response.status}: ${err.slice(0, 200)}`);
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`[${useNvidia ? config.label : 'Lovable AI'}] ${response.status}: ${err.slice(0, 200)}`);
+    }
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content ?? '';
+  };
+
+  if (tryNvidia) {
+    try {
+      return await attempt(true);
+    } catch (e: any) {
+      const msg = String(e?.message || '');
+      if (msg.includes(' 401') || msg.includes(' 403')) {
+        console.warn('NVIDIA auth failed, falling back to Lovable AI:', msg);
+        return await attempt(false);
+      }
+      throw e;
+    }
   }
-
-  const data = await response.json();
-  return data.choices?.[0]?.message?.content ?? '';
+  return await attempt(false);
 }
 
 // ─── Price Research ──────────────────────────────────────────────────────────
