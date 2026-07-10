@@ -327,6 +327,12 @@ export default function InvoiceEditor() {
   const taxAmount = subtotal * (taxRate / 100);
   const total = subtotal + taxAmount;
 
+  const currentLateFee = calculateLateFee(
+    total,
+    invoice.due_date,
+    lateFeePercent === '' ? 0 : Number(lateFeePercent),
+  );
+
   const isEstimateMode = sendAsEstimate;
   const accentColor = isEstimateMode
     ? (profile?.estimate_color || '#2563eb')
