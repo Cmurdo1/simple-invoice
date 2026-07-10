@@ -237,15 +237,35 @@ export default function PayInvoice() {
                   <span>${taxAmount.toFixed(2)}</span>
                 </div>
               )}
+              {lateFee.isOverdue && lateFee.lateFeeAmount > 0 && (
+                <>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Balance</span>
+                    <span>${principal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-destructive">
+                    <span>
+                      Late fee ({Number(invoice.late_fee_percent).toFixed(2)}%/mo ·
+                      {' '}{lateFee.monthsOverdue.toFixed(2)} mo overdue)
+                    </span>
+                    <span>+${lateFee.lateFeeAmount.toFixed(2)}</span>
+                  </div>
+                </>
+              )}
               <div className="flex justify-between text-lg font-bold">
-                <span>Total Due</span>
+                <span>{isDeposit ? 'Deposit Due' : 'Total Due'}</span>
                 <span>${total.toFixed(2)}</span>
               </div>
+              {isDeposit && (
+                <p className="text-xs text-muted-foreground">
+                  This is a materials/parts deposit. The balance will be invoiced separately.
+                </p>
+              )}
             </div>
 
             {invoice.due_date && (
-              <p className="text-xs text-muted-foreground pt-1">
-                Due: {new Date(invoice.due_date).toLocaleDateString()}
+              <p className={`text-xs pt-1 ${lateFee.isOverdue ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+                {lateFee.isOverdue ? 'Past due since' : 'Due'}: {new Date(invoice.due_date).toLocaleDateString()}
               </p>
             )}
           </CardContent>
