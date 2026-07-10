@@ -33,6 +33,10 @@ serve(async (req) => {
         due_date,
         type,
         user_id,
+        late_fee_percent,
+        is_deposit,
+        deposit_percent,
+        parent_invoice_id,
         client:clients(name, email),
         invoice_items(id, description, quantity, unit_price, sort_order)
       `)

@@ -50,6 +50,13 @@ export interface Invoice {
   due_date: string | null;
   feedback_token: string | null;
   sent_count: number;
+  late_fee_percent: number | null;
+  parent_invoice_id: string | null;
+  is_deposit: boolean;
+  deposit_percent: number | null;
+  last_reminder_sent_at: string | null;
+  reminder_count: number;
+  marked_overdue_at: string | null;
   created_at: string;
   updated_at: string;
   client?: Client | null;
