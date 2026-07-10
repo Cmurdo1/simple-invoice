@@ -485,6 +485,45 @@ export default function MagicCreate() {
               />
             </div>
 
+            {/* PDF Upload */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Import from PDF
+                <Badge variant="secondary" className="text-xs font-normal">Quotes · Receipts · Prior invoices</Badge>
+              </Label>
+              <button
+                type="button"
+                onClick={() => pdfInputRef.current?.click()}
+                disabled={pdfLoading}
+                className="flex w-full items-center justify-between gap-3 rounded-lg border-2 border-dashed border-muted-foreground/30 bg-muted/20 px-4 py-3 text-left transition-colors hover:border-primary/50 hover:bg-primary/5 disabled:opacity-60"
+              >
+                <div className="flex items-center gap-3">
+                  {pdfLoading
+                    ? <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                    : <FileText className="h-5 w-5 text-muted-foreground" />}
+                  <div>
+                    <p className="text-sm font-medium">
+                      {pdfLoading ? 'Reading PDF…' : pdfFileName || 'Upload a PDF to auto-fill line items'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Skips the description step — items go straight to the review table below.
+                    </p>
+                  </div>
+                </div>
+                <Badge variant="outline" className="text-xs shrink-0">Choose PDF</Badge>
+              </button>
+              <input
+                ref={pdfInputRef}
+                type="file"
+                accept="application/pdf"
+                className="hidden"
+                onChange={(e) => handlePdfUpload(e.target.files?.[0] ?? null)}
+                onClick={(e) => { (e.target as HTMLInputElement).value = ''; }}
+              />
+            </div>
+
+
             <Button
               onClick={handleExtract}
               disabled={extracting || (!jobDescription.trim() && uploadedImages.length === 0)}
