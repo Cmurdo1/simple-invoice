@@ -10,6 +10,7 @@ export interface Profile {
   address: string | null;
   phone: string | null;
   tax_rate: number;
+  default_late_fee_percent: number;
   brand_color: string | null;
   estimate_color: string | null;
   stripe_customer_id: string | null;
