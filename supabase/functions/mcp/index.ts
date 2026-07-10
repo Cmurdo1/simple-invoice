@@ -6,9 +6,11 @@
 import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.20.0";
 
 // src/lib/mcp/tools/list-invoices.ts
-import { createClient } from "npm:@supabase/supabase-js@^2.91.0";
 import { defineTool } from "npm:@lovable.dev/mcp-js@0.20.0";
 import { z } from "npm:zod@^4.4.3";
+
+// src/lib/mcp/_supabase.ts
+import { createClient } from "npm:@supabase/supabase-js@^2.91.0";
 function supabaseForUser(ctx) {
   return createClient(
     process.env.SUPABASE_URL,
@@ -19,6 +21,8 @@ function supabaseForUser(ctx) {
     }
   );
 }
+
+// src/lib/mcp/tools/list-invoices.ts
 var list_invoices_default = defineTool({
   name: "list_invoices",
   title: "List invoices",
@@ -46,19 +50,8 @@ var list_invoices_default = defineTool({
 });
 
 // src/lib/mcp/tools/get-invoice.ts
-import { createClient as createClient2 } from "npm:@supabase/supabase-js@^2.91.0";
 import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.20.0";
 import { z as z2 } from "npm:zod@^4.4.3";
-function supabaseForUser2(ctx) {
-  return createClient2(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_PUBLISHABLE_KEY,
-    {
-      global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-      auth: { persistSession: false, autoRefreshToken: false }
-    }
-  );
-}
 var get_invoice_default = defineTool2({
   name: "get_invoice",
   title: "Get invoice",
@@ -71,7 +64,7 @@ var get_invoice_default = defineTool2({
     if (!ctx.isAuthenticated()) {
       return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
     }
-    const sb = supabaseForUser2(ctx);
+    const sb = supabaseForUser(ctx);
     const { data: invoice, error } = await sb.from("invoices").select("*").eq("id", id).maybeSingle();
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
     if (!invoice) return { content: [{ type: "text", text: "Not found" }], isError: true };
@@ -85,19 +78,8 @@ var get_invoice_default = defineTool2({
 });
 
 // src/lib/mcp/tools/list-clients.ts
-import { createClient as createClient3 } from "npm:@supabase/supabase-js@^2.91.0";
 import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.20.0";
 import { z as z3 } from "npm:zod@^4.4.3";
-function supabaseForUser3(ctx) {
-  return createClient3(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_PUBLISHABLE_KEY,
-    {
-      global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-      auth: { persistSession: false, autoRefreshToken: false }
-    }
-  );
-}
 var list_clients_default = defineTool3({
   name: "list_clients",
   title: "List clients",
@@ -111,7 +93,7 @@ var list_clients_default = defineTool3({
     if (!ctx.isAuthenticated()) {
       return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
     }
-    let q = supabaseForUser3(ctx).from("clients").select("id, name, email, phone, address, created_at").order("created_at", { ascending: false }).limit(limit);
+    let q = supabaseForUser(ctx).from("clients").select("id, name, email, phone, address, created_at").order("created_at", { ascending: false }).limit(limit);
     if (search) q = q.ilike("name", `%${search}%`);
     const { data, error } = await q;
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
@@ -123,19 +105,8 @@ var list_clients_default = defineTool3({
 });
 
 // src/lib/mcp/tools/create-client.ts
-import { createClient as createClient4 } from "npm:@supabase/supabase-js@^2.91.0";
 import { defineTool as defineTool4 } from "npm:@lovable.dev/mcp-js@0.20.0";
 import { z as z4 } from "npm:zod@^4.4.3";
-function supabaseForUser4(ctx) {
-  return createClient4(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_PUBLISHABLE_KEY,
-    {
-      global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-      auth: { persistSession: false, autoRefreshToken: false }
-    }
-  );
-}
 var create_client_default = defineTool4({
   name: "create_client",
   title: "Create client",
@@ -151,7 +122,7 @@ var create_client_default = defineTool4({
     if (!ctx.isAuthenticated()) {
       return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
     }
-    const { data, error } = await supabaseForUser4(ctx).from("clients").insert({ user_id: ctx.getUserId(), name, email, phone, address }).select().single();
+    const { data, error } = await supabaseForUser(ctx).from("clients").insert({ user_id: ctx.getUserId(), name, email, phone, address }).select().single();
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
     return {
       content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
@@ -161,19 +132,8 @@ var create_client_default = defineTool4({
 });
 
 // src/lib/mcp/tools/list-leads.ts
-import { createClient as createClient5 } from "npm:@supabase/supabase-js@^2.91.0";
 import { defineTool as defineTool5 } from "npm:@lovable.dev/mcp-js@0.20.0";
 import { z as z5 } from "npm:zod@^4.4.3";
-function supabaseForUser5(ctx) {
-  return createClient5(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_PUBLISHABLE_KEY,
-    {
-      global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-      auth: { persistSession: false, autoRefreshToken: false }
-    }
-  );
-}
 var list_leads_default = defineTool5({
   name: "list_leads",
   title: "List leads",
@@ -187,7 +147,7 @@ var list_leads_default = defineTool5({
     if (!ctx.isAuthenticated()) {
       return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
     }
-    let q = supabaseForUser5(ctx).from("leads").select("id, poster_name, contact_info, job_description, location, source, status, date_posted, created_at").order("created_at", { ascending: false }).limit(limit);
+    let q = supabaseForUser(ctx).from("leads").select("id, poster_name, contact_info, job_description, location, source, status, date_posted, created_at").order("created_at", { ascending: false }).limit(limit);
     if (status) q = q.eq("status", status);
     const { data, error } = await q;
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };
