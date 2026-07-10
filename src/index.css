@@ -1,102 +1,102 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* HonestInvoice Design System
-   A professional, trustworthy aesthetic for field contractors
-   Dark charcoal with vibrant green accents matching the HI logo
+   Trustworthy, professional aesthetic — Navy Trust palette
+   Editorial serif headings, clean sans body. Finance-grade feel.
 */
 
 @layer base {
   :root {
-    /* Core palette - Professional dark with green accent */
-    --background: 210 20% 98%;
-    --foreground: 220 25% 10%;
+    /* Light — Paper white with deep navy authority */
+    --background: 210 30% 98%;
+    --foreground: 220 55% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 25% 10%;
+    --card-foreground: 220 55% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 10%;
+    --popover-foreground: 220 55% 12%;
 
-    /* Green accent from HI logo */
-    --primary: 142 72% 42%;
-    --primary-foreground: 0 0% 100%;
+    /* Deep navy primary */
+    --primary: 220 60% 22%;
+    --primary-foreground: 210 30% 98%;
 
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 220 25% 10%;
+    --secondary: 215 25% 94%;
+    --secondary-foreground: 220 55% 12%;
 
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 10% 46%;
+    --muted: 215 25% 94%;
+    --muted-foreground: 220 15% 40%;
 
-    --accent: 142 72% 95%;
-    --accent-foreground: 142 72% 30%;
+    --accent: 214 45% 92%;
+    --accent-foreground: 220 60% 22%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 45%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 142 72% 42%;
+    --border: 215 20% 88%;
+    --input: 215 20% 88%;
+    --ring: 220 60% 22%;
 
-    --radius: 0.75rem;
+    --radius: 0.375rem;
 
     /* Status colors */
-    --status-draft: 220 14% 46%;
-    --status-sent: 217 91% 60%;
-    --status-paid: 142 72% 42%;
-    --status-overdue: 0 84% 60%;
+    --status-draft: 220 15% 50%;
+    --status-sent: 214 60% 45%;
+    --status-paid: 158 55% 35%;
+    --status-overdue: 0 72% 50%;
 
-    /* Sidebar */
-    --sidebar-background: 220 25% 10%;
-    --sidebar-foreground: 220 14% 96%;
-    --sidebar-primary: 142 72% 42%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 20% 18%;
-    --sidebar-accent-foreground: 220 14% 96%;
-    --sidebar-border: 220 20% 18%;
-    --sidebar-ring: 142 72% 42%;
+    /* Sidebar — deep navy */
+    --sidebar-background: 220 55% 10%;
+    --sidebar-foreground: 210 25% 92%;
+    --sidebar-primary: 214 70% 55%;
+    --sidebar-primary-foreground: 220 55% 10%;
+    --sidebar-accent: 220 45% 18%;
+    --sidebar-accent-foreground: 210 25% 96%;
+    --sidebar-border: 220 45% 18%;
+    --sidebar-ring: 214 70% 55%;
   }
 
   .dark {
-    --background: 220 25% 6%;
-    --foreground: 220 14% 96%;
+    --background: 220 45% 8%;
+    --foreground: 210 25% 94%;
 
-    --card: 220 25% 10%;
-    --card-foreground: 220 14% 96%;
+    --card: 220 45% 11%;
+    --card-foreground: 210 25% 94%;
 
-    --popover: 220 25% 10%;
-    --popover-foreground: 220 14% 96%;
+    --popover: 220 45% 11%;
+    --popover-foreground: 210 25% 94%;
 
-    --primary: 142 72% 50%;
-    --primary-foreground: 220 25% 6%;
+    --primary: 214 70% 60%;
+    --primary-foreground: 220 55% 10%;
 
-    --secondary: 220 20% 18%;
-    --secondary-foreground: 220 14% 96%;
+    --secondary: 220 35% 16%;
+    --secondary-foreground: 210 25% 94%;
 
-    --muted: 220 20% 18%;
-    --muted-foreground: 220 10% 60%;
+    --muted: 220 35% 16%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 142 72% 15%;
-    --accent-foreground: 142 72% 60%;
+    --accent: 220 40% 20%;
+    --accent-foreground: 214 70% 75%;
 
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 20% 18%;
-    --input: 220 20% 18%;
-    --ring: 142 72% 50%;
+    --border: 220 35% 18%;
+    --input: 220 35% 18%;
+    --ring: 214 70% 60%;
 
-    --sidebar-background: 220 25% 6%;
-    --sidebar-foreground: 220 14% 96%;
-    --sidebar-primary: 142 72% 50%;
-    --sidebar-primary-foreground: 220 25% 6%;
-    --sidebar-accent: 220 20% 12%;
-    --sidebar-accent-foreground: 220 14% 96%;
-    --sidebar-border: 220 20% 12%;
-    --sidebar-ring: 142 72% 50%;
+    --sidebar-background: 220 50% 7%;
+    --sidebar-foreground: 210 25% 92%;
+    --sidebar-primary: 214 70% 60%;
+    --sidebar-primary-foreground: 220 55% 10%;
+    --sidebar-accent: 220 40% 14%;
+    --sidebar-accent-foreground: 210 25% 96%;
+    --sidebar-border: 220 40% 14%;
+    --sidebar-ring: 214 70% 60%;
   }
 }
 
@@ -107,10 +107,12 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    font-feature-settings: 'ss01', 'cv11';
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-family: 'Libre Baskerville', Georgia, serif;
+    letter-spacing: -0.01em;
   }
 }
