@@ -374,6 +374,42 @@ export type Database = {
           },
         ]
       }
+      pricing_benchmarks: {
+        Row: {
+          base_price: number
+          created_at: string
+          description: string
+          id: string
+          item_key: string
+          item_type: string
+          trade: string
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          base_price: number
+          created_at?: string
+          description: string
+          id?: string
+          item_key: string
+          item_type: string
+          trade: string
+          unit: string
+          updated_at?: string
+        }
+        Update: {
+          base_price?: number
+          created_at?: string
+          description?: string
+          id?: string
+          item_key?: string
+          item_type?: string
+          trade?: string
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           address: string | null
