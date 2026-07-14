@@ -1,42 +1,92 @@
-## Goal
 
-Produce a single `.sql` file you can run against a fresh Supabase project to recreate this database exactly — schema, functions, triggers, RLS policies, all row data, and auth users.
+## Goals
 
-## What I'll generate
+1. **Production-ready light mode** across every page (currently the dark navy gradient is hardcoded in AppLayout and several pages, so light mode looks broken).
+2. **Fix visual/UX issues** surfaced by the hardcoded-color audit.
+3. **AI-generated invoices/estimates** always return full descriptions + complete line items.
+4. **Regional pricing database** (`job_pricing_benchmarks`) that stores canonical labor/material rates by trade + region tier.
+5. **Deterministic pricing**: same job description + same location → same total, every time.
 
-One file: `/mnt/documents/honest_invoice_migration.sql`
+---
 
-Organized in this order so it runs top-to-bottom without FK/order errors:
+## 1. Light Mode (visual only)
 
-1. **Preamble** — `SET` statements, extensions (`pgcrypto` for `gen_random_uuid`).
-2. **Enums** — `invoice_status`.
-3. **Tables (public schema)** — exact DDL for: `profiles`, `clients`, `invoices`, `invoice_items`, `invoice_feedback`, `referrals`, `usage_tracking`, `leads`, `site_settings`, `ai_actions`, `ai_org_runs`, `ai_org_settings`. Includes defaults, FKs, unique constraints.
-4. **GRANTs** for `anon` / `authenticated` / `service_role` on every public table.
-5. **Functions** — all 7 existing functions (`update_updated_at_column`, `handle_new_user`, `generate_invoice_number`, `generate_referral_code`, `validate_feedback_token`, `process_referral_reward`, `increment_usage`).
-6. **Triggers** — `updated_at` triggers, `handle_new_user` on `auth.users`, invoice number + referral code generators.
-7. **RLS** — `ENABLE ROW LEVEL SECURITY` + every existing policy verbatim.
-8. **Auth users** — `INSERT INTO auth.users (...)` for all 20 users, copying `id`, `email`, `encrypted_password`, `email_confirmed_at`, `raw_user_meta_data`, `raw_app_meta_data`, `created_at`, etc. so logins keep working.
-9. **Data INSERTs** — every row from every public table, in FK-safe order (profiles → clients → invoices → invoice_items / invoice_feedback, then the rest). ~743 total rows.
+**Root cause**: `src/components/layout/AppLayout.tsx` sets `background: linear-gradient(...hsl(220 45% 12%)...)` inline — a hard navy that ignores the theme. Similar hardcoded darks in `Index.tsx`, `PayLanding.tsx`, `InvoiceTemplates.tsx`, `Settings.tsx`, `InvoiceEditor.tsx`, `PitchDeck.tsx`.
 
-## How to run it on the new Supabase project
+**Fix**:
+- Add two new CSS custom properties in `index.css`:
+  - `--gradient-app`: page background gradient (light: soft paper/blue; dark: navy currently used)
+  - `--gradient-accent-glow`: radial glow tint
+- Replace all inline `style={{ background: 'linear-gradient(...)' }}` with `style={{ background: 'var(--gradient-app)' }}` and radial glows with `var(--gradient-accent-glow)`.
+- Swap `bg-slate-900`, `text-white`, `bg-black` etc. in pages for semantic tokens (`bg-background`, `text-foreground`, `bg-card`, etc.).
+- Verify `ThemeToggle` cycles light/dark/system and persists (already wired via `ThemeContext`).
 
-```text
-1. Create the new Supabase project.
-2. Open SQL Editor → paste the file → Run.
-3. Update your app's VITE_SUPABASE_URL / keys to the new project.
-```
+**Light palette** (already defined, refined slightly for contrast): paper white background, deep navy primary, subtle blue accents. Same Libre Baskerville + IBM Plex Sans.
 
-## Important caveats (please read)
+## 2. Site issues to fix in this pass
 
-- **Passwords**: Supabase hashes are bcrypt and portable between Supabase projects, so logins will work. Google OAuth users will need to re-link on first login (the OAuth provider identity lives in `auth.identities` — I'll include that table's rows too).
-- **Storage buckets** (`business-assets`, `email-assets`) and uploaded files are **not** included — those live in Supabase Storage, not Postgres. You'd need to copy them via the Storage API or re-upload.
-- **Edge function secrets** (`RESEND_API_KEY`, `STRIPE_SECRET_KEY`, etc.) must be re-added in the new project's secrets panel.
-- **Edge functions themselves** redeploy from your repo automatically when you point Lovable at the new project.
-- This is a **point-in-time snapshot**. Any data written after the export won't be in the new DB.
+- Duplicate `NEXT_PUBLIC_SUPABASE_URL` in `.env` (unused Firebase-migration leftover) — leave (memory says migration in progress), but stop referencing wrong project in `supabase/config.toml` (`project_id = "uslfzmfnkhkgklaoofny"` while real project is `skhdbdmyrrpvgxkhytfm`). This is Lovable-managed so we don't touch it — flag only.
+- Mobile menu overlay has a hardcoded dark gradient — swap to token.
+- Ensure sidebar remains dark-authority in **both** themes (financial apps convention) OR flip to match theme. Plan: **keep sidebar dark navy in both themes** (Stripe/Linear pattern) — this is a deliberate design choice, not a bug. Confirmed via existing `--sidebar-*` tokens.
 
-## Deliverable
+## 3. AI Estimates/Invoices: Full descriptions + complete line items
 
-When you approve and switch to build mode, I'll:
-1. Query every row from every table (including `auth.users` and `auth.identities`).
-2. Write the assembled SQL to `/mnt/documents/honest_invoice_migration.sql`.
-3. Return it as a downloadable artifact.
+**Changes in `supabase/functions/extract-line-items/index.ts`**:
+
+- **Temperature 0** (not 0.1) everywhere for determinism.
+- **Add `seed` parameter** to model calls (Gemini supports it) derived from a hash of `(job_description + location)` so the same input yields the same output.
+- **Remove Perplexity live search path entirely** (non-deterministic by design — pulls fresh web results each call). Replace with the new pricing DB lookup (step 4).
+- **Force minimum detail** in each line item:
+  - `description`: full sentence including scope, location on property, materials used
+  - Every job returns at least: 1 labor line + N material lines + optional disposal/prep lines
+  - Add JSON schema validation (reject items missing description ≥ 15 chars or unit_price ≤ 0)
+- **Retry with corrective feedback** if the audit step reduces line count below 2.
+
+## 4. Regional pricing database
+
+**New table** `public.pricing_benchmarks`:
+
+| column | type | notes |
+|---|---|---|
+| trade | text | 'painting', 'plumbing', 'electrical', 'roofing', 'drywall', 'flooring', 'hvac', 'general' |
+| item_type | text | 'labor' or 'material' |
+| item_key | text | e.g. 'interior_paint_gallon', 'painter_hourly', 'drywall_sheet_4x8' |
+| description | text | Full human description |
+| base_price | numeric | National-average USD |
+| unit | text | 'hour', 'gallon', 'sheet', 'sq_ft', 'each' |
+
+Seed ~80 canonical rows covering the trades already referenced in the prompt.
+
+**Region multiplier**: reuse the existing `col_multiplier` from `profiles.col_multiplier` (already stored per user via zip lookup — see `useGeolocation.ts`). Final price = `base_price × col_multiplier`, rounded to nearest dollar.
+
+**Deterministic lookup**: new edge function helper `getPriceReference(trade, location)` queries the table, returns a stable price sheet string, and injects it into the AI prompt instead of asking the AI to invent prices.
+
+RLS: table is read-only for `authenticated`, admin-managed via `service_role`. GRANT + policies included.
+
+## 5. Consistency guarantee (same job → same price)
+
+Combined effect of:
+1. `temperature: 0`
+2. Deterministic seed derived from input hash
+3. Pricing sheet from DB (not model knowledge)
+4. Removing Perplexity live-search branch
+5. Audit prompt runs deterministically on the same prices
+
+Result: identical `(job_description, col_multiplier, trade)` → identical line items every call.
+
+---
+
+## Deliverables
+
+**Files edited**:
+- `src/index.css` — add gradient tokens
+- `src/components/layout/AppLayout.tsx` — theme-aware gradients
+- `src/pages/{Index,PayLanding,InvoiceTemplates,Settings,InvoiceEditor,PitchDeck}.tsx` — swap hardcoded colors to tokens
+- `supabase/functions/extract-line-items/index.ts` — deterministic pricing + DB lookup + strict schema
+
+**Files created**:
+- Migration: `pricing_benchmarks` table + seed data (single migration)
+
+**Not touched**: sidebar dark aesthetic (intentional), business logic outside the AI pricing prompt, MCP/nerve-agent flows.
+
+Ready to build if this scope looks right.
