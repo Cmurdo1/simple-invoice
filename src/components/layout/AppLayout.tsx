@@ -179,9 +179,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       {mobileMenuOpen && (
         <div 
           className="fixed inset-0 z-30 pt-16 lg:hidden"
-          style={{
-            background: 'linear-gradient(135deg, hsl(var(--background)) 0%, hsl(220 45% 12%) 50%, hsl(214 60% 25% / 0.35) 100%)'
-          }}
+          style={{ background: 'var(--gradient-mobile-menu)' }}
         >
           <nav className="space-y-1 p-4">
             {navItems.map((item) => {
