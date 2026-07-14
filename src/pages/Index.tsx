@@ -160,7 +160,7 @@ export default function Index() {
       <section 
         className="relative overflow-hidden py-20"
         style={{
-          background: 'linear-gradient(135deg, hsl(var(--background)) 0%, hsl(220 45% 12%) 50%, hsl(214 60% 25% / 0.35) 100%)'
+          background: 'var(--gradient-app)'
         }}
       >
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_hsl(214_60%_45%_/_0.12),_transparent_50%)]" aria-hidden="true" />

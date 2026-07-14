@@ -220,12 +220,10 @@ export function AppLayout({ children }: AppLayoutProps) {
           "pt-16 lg:pt-0 transition-all duration-300",
           isCollapsed ? "lg:ml-20" : "lg:ml-64"
         )}
-        style={{
-          background: 'linear-gradient(135deg, hsl(var(--background)) 0%, hsl(220 45% 12%) 50%, hsl(214 60% 25% / 0.35) 100%)'
-        }}
+        style={{ background: 'var(--gradient-app)' }}
       >
         <div className="relative min-h-screen p-4 lg:p-8">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_hsl(214_60%_45%_/_0.1),_transparent_50%)]" />
+          <div className="pointer-events-none absolute inset-0" style={{ background: 'var(--gradient-accent-glow)' }} />
           <div className="relative">{children}</div>
         </div>
       </main>
