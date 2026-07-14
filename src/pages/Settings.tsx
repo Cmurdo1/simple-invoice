@@ -144,9 +144,11 @@ export default function Settings() {
 
     setIsUploadingLogo(true);
     try {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) throw new Error('Not authenticated');
       const fileExt = file.name.split('.').pop();
       const fileName = `logo-${Date.now()}.${fileExt}`;
-      const filePath = `logos/${fileName}`;
+      const filePath = `logos/${authUser.id}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('business-assets')
