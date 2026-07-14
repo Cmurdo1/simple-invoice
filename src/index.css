@@ -58,7 +58,13 @@
     --sidebar-accent-foreground: 210 25% 96%;
     --sidebar-border: 220 45% 18%;
     --sidebar-ring: 214 70% 55%;
+
+    /* App-level gradients — theme-aware backgrounds */
+    --gradient-app: linear-gradient(135deg, hsl(210 30% 98%) 0%, hsl(214 40% 94%) 55%, hsl(214 55% 88%) 100%);
+    --gradient-accent-glow: radial-gradient(ellipse at top right, hsl(214 60% 55% / 0.08), transparent 55%);
+    --gradient-mobile-menu: linear-gradient(135deg, hsl(210 30% 98%) 0%, hsl(214 40% 94%) 100%);
   }
+
 
   .dark {
     --background: 220 45% 8%;
