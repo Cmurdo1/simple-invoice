@@ -307,7 +307,7 @@ export default function MagicCreate() {
             <div className="flex items-center gap-3">
               <MapPin className="h-5 w-5 text-muted-foreground" />
               <div>
-                <p className="text-sm font-medium">
+                <div className="text-sm font-medium">
                   {currentLocation ? (
                     <>
                       {currentLocation}
@@ -318,7 +318,7 @@ export default function MagicCreate() {
                   ) : (
                     <span className="text-muted-foreground">Location not set</span>
                   )}
-                </p>
+                </div>
                 <p className="text-xs text-muted-foreground">
                   {currentLocation 
                     ? 'Prices adjusted for your region based on Settings' 
