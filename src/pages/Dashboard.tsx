@@ -24,6 +24,7 @@ import { format, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { InvoiceStatus } from '@/types/database';
 import { useState } from 'react';
+import { OnboardingAutoStart, OnboardingButton } from '@/components/onboarding/OnboardingTour';
 
 const statusColors: Record<InvoiceStatus, string> = {
   draft: 'bg-muted text-muted-foreground',
@@ -78,14 +79,15 @@ export default function Dashboard() {
               {format(now, 'EEEE, MMMM d, yyyy')}
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button asChild variant="outline" className="gap-2">
+          <div className="flex flex-wrap gap-2 items-center">
+            <OnboardingButton />
+            <Button asChild variant="outline" className="gap-2" data-tour="new-estimate" data-action="dashboard.new-estimate">
               <Link to="/create?type=estimate">
                 <Plus className="h-4 w-4" />
                 New Estimate
               </Link>
             </Button>
-            <Button asChild className="gap-2">
+            <Button asChild className="gap-2" data-tour="new-invoice" data-action="dashboard.new-invoice">
               <Link to="/create?type=invoice">
                 <Plus className="h-4 w-4" />
                 New Invoice
@@ -93,6 +95,7 @@ export default function Dashboard() {
             </Button>
           </div>
         </div>
+        <OnboardingAutoStart />
 
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-3">
@@ -149,7 +152,7 @@ export default function Dashboard() {
         </div>
 
         {/* List with Tabs */}
-        <Card>
+        <Card data-tour="recent-activity">
           <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
             <CardTitle>Recent Activity</CardTitle>
             <Tabs defaultValue="all" onValueChange={setActiveTab} className="w-[480px]">
