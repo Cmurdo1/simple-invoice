@@ -152,7 +152,7 @@ export default function Dashboard() {
         </div>
 
         {/* List with Tabs */}
-        <Card>
+        <Card data-tour="recent-activity">
           <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
             <CardTitle>Recent Activity</CardTitle>
             <Tabs defaultValue="all" onValueChange={setActiveTab} className="w-[480px]">

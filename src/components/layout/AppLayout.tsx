@@ -56,6 +56,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     <div className="min-h-screen bg-background">
       {/* Desktop Sidebar */}
       <aside 
+        data-tour="sidebar"
         className={cn(
           "fixed left-0 top-0 z-40 hidden h-screen border-r border-sidebar-border bg-sidebar-background transition-all duration-300 lg:block",
           isCollapsed ? "w-20" : "w-64"
